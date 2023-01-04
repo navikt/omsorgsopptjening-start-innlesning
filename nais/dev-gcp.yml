@@ -7,8 +7,14 @@ metadata:
     team: pensjonopptjening
 spec:
   azure:
+    sidecar:
+      autoLogin: true
     application:
       enabled: true
+      allowAllUsers: false
+      claims:
+        groups:
+          - id: "12ada648-4c9d-4dc2-a0e1-acfed244882f"
 
   env:
     - name: SPRING_PROFILES_ACTIVE
