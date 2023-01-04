@@ -1,0 +1,40 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: omsorgsopptjening-start-innlesning
+  namespace: pensjonopptjening
+  labels:
+    team: pensjonopptjening
+spec:
+  azure:
+    application:
+      enabled: true
+
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: dev-gcp
+  image: {{ image }}
+  ingresses:
+    - https://omsorgsopptjening-start-innlesning.dev.intern.nav.no
+  liveness:
+    path: /internal/isalive
+    port: 8080
+    initialDelay: 40
+  readiness:
+    path: /internal/isready
+    port: 8080
+    initialDelay: 40
+  prometheus:
+    enabled: true
+    path: /actuator/prometheus
+  replicas:
+    min: 2
+    max: 4
+    cpuThresholdPercentage: 75
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4096Mi
+    requests:
+      cpu: 100m
+      memory: 1024Mi
