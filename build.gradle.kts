@@ -5,6 +5,8 @@ val springVersion = "3.0.0"
 val navTokenSupportVersion = "3.0.0"
 val hibernateValidatorVersion = "7.0.4.Final"
 val logbackEncoderVersion = "7.2"
+val postgresqlVersion = "42.5.1"
+val flywayCoreVersion = "9.10.2"
 
 
 
@@ -27,6 +29,10 @@ dependencies {
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
     implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
+
+    //DB
+    implementation("org.postgresql:postgresql:$postgresqlVersion")
+    implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springVersion")
