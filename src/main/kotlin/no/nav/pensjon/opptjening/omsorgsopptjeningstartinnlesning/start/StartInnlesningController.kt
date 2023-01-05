@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Protected
-class StartController {
+class StartInnlesningController {
 
     @GetMapping("/start/innlesning/{ar}")
     fun startInnlesning(@PathVariable ar: String): ResponseEntity<String> =
