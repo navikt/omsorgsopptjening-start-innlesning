@@ -35,7 +35,7 @@ dependencies {
     // DB
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:$springVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
-    //implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springVersion")
