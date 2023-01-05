@@ -1,6 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.health
 
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.App
+import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -12,7 +13,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 @SpringBootTest(classes = [App::class])
 @AutoConfigureMockMvc
-//@EnableMockOAuth2Server
+@EnableMockOAuth2Server
 internal class HealthControllerTest {
 
     @Autowired

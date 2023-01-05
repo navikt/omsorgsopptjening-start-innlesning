@@ -2,6 +2,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val springVersion = "3.0.0"
+val navTokenSupportVersion = "3.0.0"
+val hibernateValidatorVersion = "7.0.4.Final"
 
 
 
@@ -21,10 +23,17 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web:$springVersion")
+    implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
+    implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springVersion")
     testImplementation(kotlin("test"))
+    testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
+
+
+
+
 }
 
 tasks.test {
