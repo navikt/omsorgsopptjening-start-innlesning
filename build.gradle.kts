@@ -27,21 +27,21 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web:$springVersion")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
+
+
     implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
 
-    //DB
+    // DB
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:$springVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    //implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springVersion")
     testImplementation(kotlin("test"))
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
-
-
-
-
+    testImplementation("com.h2database:h2:2.1.214")
 }
 
 tasks.test {

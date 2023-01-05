@@ -2,3 +2,8 @@ no.nav.security.jwt:
   issuer.aad:
     discoveryurl: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
     accepted_audience: testaud
+
+spring.datasource:
+  url: jdbc:h2:mem:testdb
+  username: sa
+  password:
