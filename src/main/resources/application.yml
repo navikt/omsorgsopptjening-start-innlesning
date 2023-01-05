@@ -5,6 +5,6 @@ no.nav.security.jwt:
       - ${AZURE_APP_CLIENT_ID}
 
 spring.datasource:
-  url: ${DATABASE_URL}
+  url: jdbc:${DATABASE_URL}
   username: ${DATABASE_USERNAME}
   password: ${DATABASE_PASSWORD}
