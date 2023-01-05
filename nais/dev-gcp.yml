@@ -15,7 +15,7 @@ spec:
       allowAllUsers: false
       claims:
         groups:
-          - id: "12ada648-4c9d-4dc2-a0e1-acfed244882f"
+          - id: "7ef907b4-ec9f-47dd-ab41-4e54ba32ceb1" #AAD pensjonopptjening testgruppe
 
   env:
     - name: SPRING_PROFILES_ACTIVE
