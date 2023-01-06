@@ -40,7 +40,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springVersion")
     testImplementation(kotlin("test"))
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
-    testImplementation("com.h2database:h2:2.1.214")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 }
 
