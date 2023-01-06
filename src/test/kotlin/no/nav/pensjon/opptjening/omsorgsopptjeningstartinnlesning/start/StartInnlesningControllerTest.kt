@@ -1,6 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
 
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.App
+import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -26,6 +27,7 @@ class StartInnlesningControllerTest {
     @Autowired
     private lateinit var server: MockOAuth2Server
 
+    private val dbContainer = PostgresqlTestContainer.instance
 
     @Test
     fun `Given valid token When calling get start innlesning Then return 200 ok`() {
