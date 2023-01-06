@@ -16,6 +16,4 @@ class StartHistorikk(
     var kjoringsAr: String? = null,
     @Column(name ="TIMESTAMP", nullable = false)
     var timestamp: LocalDateTime= LocalDateTime.now()
-) {
-
-}
+)

@@ -8,6 +8,7 @@ val logbackEncoderVersion = "7.2"
 val postgresqlVersion = "42.5.1"
 val flywayCoreVersion = "9.10.2"
 val testcontainersVersion = "1.17.6"
+val jacksonVersion = "2.14.1"
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -29,6 +30,7 @@ dependencies {
 
     implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
 
     // DB
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:$springVersion")

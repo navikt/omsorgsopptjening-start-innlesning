@@ -16,4 +16,6 @@ class StartInnlesningController(private val startInnlesningService: StartInnlesn
         return ResponseEntity.ok("""Startet innlesning for $ar""")
     }
 
+    @GetMapping("/start/innlesning/historikk")
+    fun startInnlesningHistorikk(): List<StartHistorikk> = startInnlesningService.startInnlesningHistorikk()
 }

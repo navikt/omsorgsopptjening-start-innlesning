@@ -23,4 +23,6 @@ class StartInnlesningService(val repository: StartHistorikkRepository) {
 
         repository.save(startHistorikk)
     }
+
+    fun startInnlesningHistorikk(): List<StartHistorikk> = repository.findAll()
 }

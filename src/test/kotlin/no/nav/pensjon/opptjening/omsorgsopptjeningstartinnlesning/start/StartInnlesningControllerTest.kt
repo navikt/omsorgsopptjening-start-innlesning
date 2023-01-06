@@ -1,5 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.App
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -12,8 +15,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import kotlin.test.assertEquals
 
 
 @SpringBootTest(classes = [App::class])
@@ -27,6 +32,9 @@ class StartInnlesningControllerTest {
     @Autowired
     private lateinit var server: MockOAuth2Server
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     private val dbContainer = PostgresqlTestContainer.instance
 
     @Test
@@ -38,8 +46,23 @@ class StartInnlesningControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, createToken())
         ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        val response = mockMvc.perform(
+            MockMvcRequestBuilders.get("/start/innlesning/historikk")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, createToken())
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .hentStartHistorikk()
+
+
+        assertEquals(ar.toString(), response.first().kjoringsAr)
     }
 
+    fun ResultActions.hentStartHistorikk() = objectMapper.readValue(
+        this.andReturn().response.contentAsString,
+        object : TypeReference<List<StartHistorikk>>() {}
+    )
     @Test
     fun `Given invalid token When calling get start innlesning Then return 401 unauthorized`() {
         val ar = 2010
