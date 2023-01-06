@@ -7,8 +7,7 @@ val hibernateValidatorVersion = "7.0.4.Final"
 val logbackEncoderVersion = "7.2"
 val postgresqlVersion = "42.5.1"
 val flywayCoreVersion = "9.10.2"
-
-
+val testcontainersVersion = "1.17.6"
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -42,6 +41,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
     testImplementation("com.h2database:h2:2.1.214")
+    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 }
 
 tasks.test {
