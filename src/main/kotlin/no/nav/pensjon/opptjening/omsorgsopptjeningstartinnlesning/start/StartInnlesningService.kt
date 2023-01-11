@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
-class StartInnlesningService(val repository: StartHistorikkRepository) {
+class StartInnlesningService(val repository: StartHistorikkRepository, val omsorgsArbeidClient: OmsorgsArbeidClient) {
     companion object {
         private val logger = LoggerFactory.getLogger(StartInnlesningService::class.java)
     }
@@ -21,6 +21,7 @@ class StartInnlesningService(val repository: StartHistorikkRepository) {
         startHistorikk.kjoringsAr = ar
         startHistorikk.kjoringTimesamp = localDateTime
 
+        omsorgsArbeidClient.startInnlesning()
         repository.save(startHistorikk)
     }
 
