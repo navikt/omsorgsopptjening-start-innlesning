@@ -69,7 +69,7 @@ internal class OmsorgsArbeidClientTest {
 
         private val wiremock = WireMockServer(WireMockSpring.options().port(9991)).also { it.start() }
 
-        private const val START_INNLESNING_URL = "http://localhost:9991/omsorg/arbeid/start"
+        private const val START_INNLESNING_URL = "/omsorg/arbeid/start"
 
         @JvmStatic
         @AfterAll
