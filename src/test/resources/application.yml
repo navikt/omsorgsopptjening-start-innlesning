@@ -8,3 +8,5 @@ spring.datasource:
   url: jdbc:tc:postgresql:14:///test
   username: test
   password: test
+
+OMOSORGS_ARBEID_URL: "http://localhost:9991/omsorg/arbeid"

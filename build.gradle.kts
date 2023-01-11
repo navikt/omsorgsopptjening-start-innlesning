@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val springVersion = "3.0.0"
-val navTokenSupportVersion = "3.0.0"
+val navTokenSupportVersion = "3.0.2"
 val hibernateValidatorVersion = "7.0.4.Final"
 val logbackEncoderVersion = "7.2"
 val postgresqlVersion = "42.5.1"
@@ -13,9 +13,10 @@ val jacksonVersion = "2.14.1"
 plugins {
     kotlin("jvm") version "1.8.0"
     kotlin("plugin.spring") version "1.8.0"
-    id("org.springframework.boot") version "3.0.0"
-    id("io.spring.dependency-management") version "1.1.0"
+    id("org.springframework.boot") version "3.0.1"
 }
+
+apply(plugin = "io.spring.dependency-management")
 
 group = "no.nav.pensjon.opptjening"
 java.sourceCompatibility = JavaVersion.VERSION_17
@@ -25,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web:$springVersion")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
 
     implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
@@ -34,15 +35,17 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     // DB
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:$springVersion")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
 
     // Test - setup
-    testImplementation("org.springframework.boot:spring-boot-starter-test:$springVersion")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springVersion")
     testImplementation(kotlin("test"))
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
+
 }
 
 tasks.test {
