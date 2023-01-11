@@ -31,6 +31,7 @@ dependencies {
     implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     // DB
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:$springVersion")
