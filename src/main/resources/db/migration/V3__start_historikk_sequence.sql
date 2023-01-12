@@ -1,1 +1,0 @@
-CREATE SEQUENCE start_historikk_seq INCREMENT 50;
