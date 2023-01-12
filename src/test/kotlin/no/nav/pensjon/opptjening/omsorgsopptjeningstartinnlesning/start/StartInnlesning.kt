@@ -28,7 +28,7 @@ import kotlin.test.assertEquals
 @SpringBootTest(classes = [App::class])
 @AutoConfigureMockMvc
 @EnableMockOAuth2Server
-class StartInnlesningControllerTest {
+class StartInnlesning {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -39,42 +39,47 @@ class StartInnlesningControllerTest {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
+    //@Autowired
+    //private lateinit var repository: StartHistorikkRepository
+
     private val dbContainer = PostgresqlTestContainer.instance
 
     @BeforeEach
     fun resetWiremock() {
         wiremock.resetAll()
+        //TODO debug
+        //repository.deleteAll()
     }
 
     @Test
-    fun `Given valid token When calling get start innlesning Then return 200 ok`() {
+    fun `Given valid request When calling start innlesning Then return 200 ok`() {
         wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
-        callStartInnelsningController().andExpect(MockMvcResultMatchers.status().isOk)
-
-        val response = mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/historikk")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, createToken())
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .hentStartHistorikk()
-
-
-        assertEquals(AR.toString(), response.first().kjoringsAr)
+        callStartInnelsning(ar = AR_2010).andExpect(MockMvcResultMatchers.status().isOk)
     }
 
     @Test
     fun `Given valid request When calling start innlesning Then call BA start innlesning`() {
         wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
-        callStartInnelsningController().andExpect(MockMvcResultMatchers.status().isOk)
+        callStartInnelsning(ar = AR_2010).andExpect(MockMvcResultMatchers.status().isOk)
 
-        wiremock.verify(1 , WireMock.getRequestedFor(WireMock.urlEqualTo(
-            BA_START_INNLESNING_URL
-        )))
+        wiremock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo(BA_START_INNLESNING_URL)))
     }
 
+    @Test
+    fun `Given started innlesning When calling start innlesning historikk Then return historikk`() {
+        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
+
+        callStartInnelsning(ar = AR_2010).andExpect(MockMvcResultMatchers.status().isOk)
+
+        val response = callInnlesningsHistorikk()
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .getHistorikkFromBody()
+
+        assertEquals(1, response.size)
+        assertEquals(AR_2010.toString(), response.first().kjoringsAr)
+    }
 
     @Test
     fun `Given invalid token When calling get start innlesning Then return 401 unauthorized`() {
@@ -106,21 +111,28 @@ class StartInnlesningControllerTest {
         }"
     }
 
-    private fun callStartInnelsningController() =
+    private fun callStartInnelsning(ar: Int) =
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/$AR")
+            MockMvcRequestBuilders.get("/start/innlesning/$ar")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, createToken())
         )
 
-    private fun ResultActions.hentStartHistorikk() = objectMapper.readValue(
+    private fun callInnlesningsHistorikk() =
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/start/innlesning/historikk")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, createToken())
+        )
+
+    private fun ResultActions.getHistorikkFromBody() = objectMapper.readValue(
         this.andReturn().response.contentAsString,
         object : TypeReference<List<StartHistorikk>>() {}
     )
 
     companion object {
         private const val ACCEPTED_AUDIENCE = "testaud"
-        private const val AR = 2010
+        private const val AR_2010 = 2010
 
         private val wiremock = WireMockServer(WireMockSpring.options().port(9991)).also { it.start() }
 
