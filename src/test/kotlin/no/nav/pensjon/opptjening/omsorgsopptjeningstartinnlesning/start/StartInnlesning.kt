@@ -82,22 +82,12 @@ class StartInnlesning {
 
     @Test
     fun `Given invalid token When calling get start innlesning Then return 401 unauthorized`() {
-        val ar = 2010
-
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/$ar")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, createToken(audience = "invalid"))
-        ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+        callStartInnelsning(ar = AR_2010, token = createToken(audience = "invalid")).andExpect(MockMvcResultMatchers.status().isUnauthorized)
     }
 
     @Test
     fun `Given ar not provided When calling get start innlesning Then return 404 not found`() {
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, createToken())
-        ).andExpect(MockMvcResultMatchers.status().isNotFound)
+        callStartInnelsning(ar = null).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     private fun createToken(audience: String = ACCEPTED_AUDIENCE): String {
@@ -110,11 +100,12 @@ class StartInnlesning {
         }"
     }
 
-    private fun callStartInnelsning(ar: Int) =
+    private fun callStartInnelsning(ar: Int?, token: String? = createToken()) =
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/$ar")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, createToken())
+            MockMvcRequestBuilders.get("/start/innlesning/${ar ?: ""}").apply {
+                contentType(MediaType.APPLICATION_JSON)
+                token?.let { header(HttpHeaders.AUTHORIZATION, token) }
+            }
         )
 
     private fun callInnlesningsHistorikk() =
