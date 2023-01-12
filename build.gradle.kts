@@ -3,10 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val springVersion = "3.0.0"
 val navTokenSupportVersion = "3.0.2"
-val hibernateValidatorVersion = "7.0.4.Final"
+val hibernateValidatorVersion = "8.0.0.Final"
 val logbackEncoderVersion = "7.2"
 val postgresqlVersion = "42.5.1"
-val flywayCoreVersion = "9.10.2"
+val flywayCoreVersion = "9.11.0"
 val testcontainersVersion = "1.17.6"
 val jacksonVersion = "2.14.1"
 
@@ -41,7 +41,7 @@ dependencies {
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:$springVersion")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:4.0.0")
     testImplementation(kotlin("test"))
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
