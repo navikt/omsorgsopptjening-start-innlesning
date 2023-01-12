@@ -10,6 +10,9 @@ Kaller BA system som begynner opplasting av barnetrygd for år til topic
 3) Om du ikke får logget inn: sørg for at du er medlem av gruppen pensjonopptjeningtest i azureAd test tennant(trygdeetaten.no)
 2) Applikasjonen skal etter innloggin autmoatisk videresende deg til urlen du skrev inn.
 
+## Lokalt oppsett
+Start docker daemon eller colima
+
 ## Colima trouble?
 1) Setting the DOCKER_HOST environment variable to point to Colima socket.
 export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"

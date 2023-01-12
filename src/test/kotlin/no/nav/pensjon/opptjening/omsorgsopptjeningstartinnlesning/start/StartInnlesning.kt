@@ -39,16 +39,15 @@ class StartInnlesning {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-    //@Autowired
-    //private lateinit var repository: StartHistorikkRepository
+    @Autowired
+    private lateinit var repository: StartHistorikkRepository
 
     private val dbContainer = PostgresqlTestContainer.instance
 
     @BeforeEach
     fun resetWiremock() {
         wiremock.resetAll()
-        //TODO debug
-        //repository.deleteAll()
+        repository.deleteAll()
     }
 
     @Test
