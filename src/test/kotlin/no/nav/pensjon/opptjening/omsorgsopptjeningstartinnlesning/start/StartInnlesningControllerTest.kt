@@ -50,11 +50,7 @@ class StartInnlesningControllerTest {
     fun `Given valid token When calling get start innlesning Then return 200 ok`() {
         wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/$AR")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, createToken())
-        ).andExpect(MockMvcResultMatchers.status().isOk)
+        callStartInnelsningController().andExpect(MockMvcResultMatchers.status().isOk)
 
         val response = mockMvc.perform(
             MockMvcRequestBuilders.get("/start/innlesning/historikk")
@@ -72,11 +68,7 @@ class StartInnlesningControllerTest {
     fun `Given valid request When calling start innlesning Then call BA start innlesning`() {
         wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/${AR}")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, createToken())
-        ).andExpect(MockMvcResultMatchers.status().isOk)
+        callStartInnelsningController().andExpect(MockMvcResultMatchers.status().isOk)
 
         wiremock.verify(1 , WireMock.getRequestedFor(WireMock.urlEqualTo(
             BA_START_INNLESNING_URL
@@ -104,11 +96,6 @@ class StartInnlesningControllerTest {
         ).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
-    private fun ResultActions.hentStartHistorikk() = objectMapper.readValue(
-        this.andReturn().response.contentAsString,
-        object : TypeReference<List<StartHistorikk>>() {}
-    )
-
     private fun createToken(audience: String = ACCEPTED_AUDIENCE): String {
         return "Bearer ${
             server.issueToken(
@@ -118,6 +105,18 @@ class StartInnlesningControllerTest {
             ).serialize()
         }"
     }
+
+    private fun callStartInnelsningController() =
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/start/innlesning/$AR")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, createToken())
+        )
+
+    private fun ResultActions.hentStartHistorikk() = objectMapper.readValue(
+        this.andReturn().response.contentAsString,
+        object : TypeReference<List<StartHistorikk>>() {}
+    )
 
     companion object {
         private const val ACCEPTED_AUDIENCE = "testaud"
