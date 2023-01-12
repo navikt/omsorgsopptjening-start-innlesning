@@ -21,10 +21,10 @@ spec:
       - type: POSTGRES_14
         diskAutoresize: true
         pointInTimeRecovery: true
-        name: omsorginnlesning
+        name: omsorginnlesningdb
         tier: db-custom-1-3840
         databases:
-          - name: omsorginnlesning
+          - name: omsorginnlesningdb
             envVarPrefix: DATABASE
   env:
     - name: SPRING_PROFILES_ACTIVE
