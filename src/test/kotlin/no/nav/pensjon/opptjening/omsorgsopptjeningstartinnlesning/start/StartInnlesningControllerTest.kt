@@ -2,16 +2,20 @@ package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.App
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cloud.contract.wiremock.WireMockSpring
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -37,12 +41,17 @@ class StartInnlesningControllerTest {
 
     private val dbContainer = PostgresqlTestContainer.instance
 
+    @BeforeEach
+    fun resetWiremock() {
+        wiremock.resetAll()
+    }
+
     @Test
     fun `Given valid token When calling get start innlesning Then return 200 ok`() {
-        val ar = 2010
+        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/$ar")
+            MockMvcRequestBuilders.get("/start/innlesning/$AR")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, createToken())
         ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -56,13 +65,25 @@ class StartInnlesningControllerTest {
             .hentStartHistorikk()
 
 
-        assertEquals(ar.toString(), response.first().kjoringsAr)
+        assertEquals(AR.toString(), response.first().kjoringsAr)
     }
 
-    fun ResultActions.hentStartHistorikk() = objectMapper.readValue(
-        this.andReturn().response.contentAsString,
-        object : TypeReference<List<StartHistorikk>>() {}
-    )
+    @Test
+    fun `Given valid request When calling start innlesning Then call BA start innlesning`() {
+        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/start/innlesning/${AR}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, createToken())
+        ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        wiremock.verify(1 , WireMock.getRequestedFor(WireMock.urlEqualTo(
+            BA_START_INNLESNING_URL
+        )))
+    }
+
+
     @Test
     fun `Given invalid token When calling get start innlesning Then return 401 unauthorized`() {
         val ar = 2010
@@ -83,6 +104,11 @@ class StartInnlesningControllerTest {
         ).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
+    private fun ResultActions.hentStartHistorikk() = objectMapper.readValue(
+        this.andReturn().response.contentAsString,
+        object : TypeReference<List<StartHistorikk>>() {}
+    )
+
     private fun createToken(audience: String = ACCEPTED_AUDIENCE): String {
         return "Bearer ${
             server.issueToken(
@@ -95,5 +121,17 @@ class StartInnlesningControllerTest {
 
     companion object {
         private const val ACCEPTED_AUDIENCE = "testaud"
+        private const val AR = 2010
+
+        private val wiremock = WireMockServer(WireMockSpring.options().port(9991)).also { it.start() }
+
+        private const val BA_START_INNLESNING_URL = "/omsorg/arbeid/start"
+
+        @JvmStatic
+        @AfterAll
+        fun clean() {
+            wiremock.stop()
+            wiremock.shutdown()
+        }
     }
 }
