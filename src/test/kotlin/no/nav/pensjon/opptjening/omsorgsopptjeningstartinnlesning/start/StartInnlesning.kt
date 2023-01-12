@@ -67,6 +67,27 @@ class StartInnlesning {
     }
 
     @Test
+    fun `Given invalid token When calling get start innlesning Then return 401 unauthorized`() {
+        callStartInnelsning(ar = AR_2010, token = createToken(audience = "invalid")).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+    }
+
+    @Test
+    fun `Given ar not provided When calling get start innlesning Then return 404 not found`() {
+        callStartInnelsning(ar = null).andExpect(MockMvcResultMatchers.status().isNotFound)
+    }
+
+    @Test
+    fun `Given no calls to started innlesning When calling start innlesning historikk Then empty list`() {
+        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
+
+        val response = callInnlesningsHistorikk()
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .getHistorikkFromBody()
+
+        assertEquals(0, response.size)
+    }
+
+    @Test
     fun `Given started innlesning When calling start innlesning historikk Then return historikk`() {
         wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
@@ -81,14 +102,14 @@ class StartInnlesning {
     }
 
     @Test
-    fun `Given invalid token When calling get start innlesning Then return 401 unauthorized`() {
-        callStartInnelsning(ar = AR_2010, token = createToken(audience = "invalid")).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+    fun `Given invalid token When calling start innlesning historikk Then return 401`() {
+        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
+
+        callStartInnelsning(ar = AR_2010,token = createToken(audience = "unauthorized"))
+            .andExpect(MockMvcResultMatchers.status().isUnauthorized)
     }
 
-    @Test
-    fun `Given ar not provided When calling get start innlesning Then return 404 not found`() {
-        callStartInnelsning(ar = null).andExpect(MockMvcResultMatchers.status().isNotFound)
-    }
+
 
     private fun createToken(audience: String = ACCEPTED_AUDIENCE): String {
         return "Bearer ${
