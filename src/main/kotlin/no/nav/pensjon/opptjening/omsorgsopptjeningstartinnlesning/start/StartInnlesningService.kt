@@ -11,7 +11,6 @@ class StartInnlesningService(val repository: StartHistorikkRepository, val omsor
         private val logger = LoggerFactory.getLogger(StartInnlesningService::class.java)
     }
 
-
     fun startInnlesning(ar: String) {
         val localDateTime = LocalDateTime.now()
         val timestamp = localDateTime.format(DateTimeFormatter.ISO_DATE_TIME)
