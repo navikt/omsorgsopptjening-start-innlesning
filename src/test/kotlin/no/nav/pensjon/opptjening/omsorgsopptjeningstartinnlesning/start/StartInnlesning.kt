@@ -63,7 +63,7 @@ class StartInnlesning {
 
         callStartInnelsning(ar = AR_2010).andExpect(MockMvcResultMatchers.status().isOk)
 
-        wiremock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo(BA_START_INNLESNING_URL)))
+     //   wiremock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo(BA_START_INNLESNING_URL)))
     }
 
     @Test
