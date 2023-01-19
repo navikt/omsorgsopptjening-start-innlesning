@@ -28,7 +28,7 @@ import kotlin.test.assertEquals
 @SpringBootTest(classes = [App::class])
 @AutoConfigureMockMvc
 @EnableMockOAuth2Server
-class StartInnlesning {
+class StartInnlesningTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -52,18 +52,18 @@ class StartInnlesning {
 
     @Test
     fun `Given valid request When calling start innlesning Then return 200 ok`() {
-        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
+        wiremock.stubFor(WireMock.post(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
         callStartInnelsning(ar = AR_2010).andExpect(MockMvcResultMatchers.status().isOk)
     }
 
     @Test
     fun `Given valid request When calling start innlesning Then call BA start innlesning`() {
-        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
+        wiremock.stubFor(WireMock.post(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
         callStartInnelsning(ar = AR_2010).andExpect(MockMvcResultMatchers.status().isOk)
 
-     //   wiremock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo(BA_START_INNLESNING_URL)))
+        wiremock.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo(BA_START_INNLESNING_URL)))
     }
 
     @Test
@@ -78,8 +78,6 @@ class StartInnlesning {
 
     @Test
     fun `Given no calls to started innlesning When calling start innlesning historikk Then empty list`() {
-        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
-
         val response = callInnlesningsHistorikk()
             .andExpect(MockMvcResultMatchers.status().isOk)
             .getHistorikkFromBody()
@@ -89,7 +87,7 @@ class StartInnlesning {
 
     @Test
     fun `Given started innlesning When calling start innlesning historikk Then return historikk`() {
-        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
+        wiremock.stubFor(WireMock.post(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
 
         callStartInnelsning(ar = AR_2010).andExpect(MockMvcResultMatchers.status().isOk)
 
@@ -103,8 +101,6 @@ class StartInnlesning {
 
     @Test
     fun `Given invalid token When calling start innlesning historikk Then return 401`() {
-        wiremock.stubFor(WireMock.get(BA_START_INNLESNING_URL).willReturn(WireMock.aResponse().withStatus(200)))
-
         callStartInnelsning(ar = AR_2010,token = createToken(audience = "unauthorized"))
             .andExpect(MockMvcResultMatchers.status().isUnauthorized)
     }
@@ -147,7 +143,7 @@ class StartInnlesning {
 
         private val wiremock = WireMockServer(WireMockSpring.options().port(9991)).also { it.start() }
 
-        private const val BA_START_INNLESNING_URL = "/omsorg/arbeid/start"
+        private const val BA_START_INNLESNING_URL = "/innlesing/start/"
 
         @JvmStatic
         @AfterAll

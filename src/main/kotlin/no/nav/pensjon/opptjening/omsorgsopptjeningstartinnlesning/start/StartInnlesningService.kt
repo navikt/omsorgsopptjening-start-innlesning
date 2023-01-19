@@ -20,7 +20,7 @@ class StartInnlesningService(val repository: StartHistorikkRepository, val omsor
         startHistorikk.kjoringsAr = ar
         startHistorikk.kjoringTimesamp = localDateTime
 
-        //omsorgsArbeidClient.startInnlesning()
+        omsorgsArbeidClient.startInnlesning(ar, timestamp)
         repository.save(startHistorikk)
     }
 
