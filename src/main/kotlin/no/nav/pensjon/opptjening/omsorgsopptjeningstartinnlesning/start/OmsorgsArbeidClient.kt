@@ -17,6 +17,6 @@ class OmsorgsArbeidClient(val webClient: WebClient, @Value("\${OMSORGS_ARBEID_UR
             .getBody()
 }
 
-private data class RequestBody(val ar: String, val hash: String)
+private data class RequestBody(val omsorgsAr: String, val hash: String)
 
 fun WebClient.ResponseSpec.getBody() = bodyToMono(String::class.java).block()
