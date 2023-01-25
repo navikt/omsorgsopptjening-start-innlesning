@@ -119,7 +119,7 @@ class StartInnlesningTest {
 
     private fun callStartInnelsning(ar: Int?, token: String? = createToken()) =
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/${ar ?: ""}").apply {
+            MockMvcRequestBuilders.get("/innlesning/start/${ar ?: ""}").apply {
                 contentType(MediaType.APPLICATION_JSON)
                 token?.let { header(HttpHeaders.AUTHORIZATION, token) }
             }
@@ -127,7 +127,7 @@ class StartInnlesningTest {
 
     private fun callInnlesningsHistorikk() =
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/start/innlesning/historikk")
+            MockMvcRequestBuilders.get("/innlesning/historikk")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, createToken())
         )

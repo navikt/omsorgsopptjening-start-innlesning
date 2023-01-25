@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RestController
 @Protected
 class StartInnlesningController(private val startInnlesningService: StartInnlesningService) {
 
-    @GetMapping("/start/innlesning/{ar}")
+    @GetMapping("/innlesning/start/{ar}")
     fun startInnlesning(@PathVariable ar: String): ResponseEntity<String> {
         startInnlesningService.startInnlesning(ar)
         return ResponseEntity.ok("""Startet innlesning for $ar""")
     }
 
-    @GetMapping("/start/innlesning/historikk")
+    @GetMapping("/innlesning/historikk")
     fun startInnlesningHistorikk(): List<StartHistorikk> = startInnlesningService.startInnlesningHistorikk()
 }
