@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.RestController
 @Unprotected
 class HealthController {
 
-    @GetMapping("/ping")
-    fun ping(): ResponseEntity<Unit> = ResponseEntity.ok().build()
-
     @GetMapping("/internal/isalive")
     fun isalive(): ResponseEntity<String> = ResponseEntity.ok("Is alive")
 

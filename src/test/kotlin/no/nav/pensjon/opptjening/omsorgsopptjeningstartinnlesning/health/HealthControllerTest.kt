@@ -23,13 +23,6 @@ class HealthControllerTest {
     private val dbContainer = PostgresqlTestContainer.instance
 
     @Test
-    fun `when calling ping endpoint then return 200`() {
-        mockMvc.perform(MockMvcRequestBuilders.get("/ping"))
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
-    }
-
-    @Test
     fun `when isAlive ping endpoint then return 200`() {
         mockMvc.perform(MockMvcRequestBuilders.get("/internal/isalive"))
             .andExpect(MockMvcResultMatchers.status().isOk)
