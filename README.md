@@ -1,7 +1,8 @@
 # omsorgsopptjening-start-innlesning
 Kaller BA system som begynner opplasting av barnetrygd for år til topic
 
-
+## Arkitektur
+[Overordnet arkitektur omsorgsopptjening](https://confluence.adeo.no/x/Gl_qHg)
 
 ## Test miljø:
 ### Kall tjenesten i tesmiljø:
