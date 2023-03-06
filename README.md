@@ -20,3 +20,5 @@ export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
 
 2) Linking the Colima socket to the default socket path. Note that this may break other Docker servers.
 sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+3) Linking colima test container socket
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
