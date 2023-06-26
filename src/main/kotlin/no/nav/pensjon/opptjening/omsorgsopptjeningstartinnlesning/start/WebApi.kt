@@ -8,14 +8,11 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Protected
-class StartInnlesningController(private val startInnlesningService: StartInnlesningService) {
+class WebApi(private val innlesningService: InnlesningService) {
 
     @GetMapping("/innlesning/start/{ar}")
-    fun startInnlesning(@PathVariable ar: String): ResponseEntity<String> {
-        startInnlesningService.startInnlesning(ar)
+    fun startInnlesning(@PathVariable ar: Int): ResponseEntity<String> {
+        innlesningService.initierSendingAvIdenter(ar)
         return ResponseEntity.ok("""Startet innlesning for $ar""")
     }
-
-    @GetMapping("/innlesning/historikk")
-    fun startInnlesningHistorikk(): List<StartHistorikk> = startInnlesningService.startInnlesningHistorikk()
 }

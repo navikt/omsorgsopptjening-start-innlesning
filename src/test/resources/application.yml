@@ -1,4 +1,4 @@
-OMSORGS_ARBEID_URL: http://localhost:9991/
+BARNETRYGD_URL: http://localhost:9991/
 
 no.nav.security.jwt:
   issuer.aad:
