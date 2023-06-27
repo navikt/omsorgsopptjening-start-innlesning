@@ -9,6 +9,7 @@ val postgresqlVersion = "42.5.1"
 val flywayCoreVersion = "9.11.0"
 val testcontainersVersion = "1.17.6"
 val jacksonVersion = "2.14.1"
+val springKafkaTestVersion = "3.0.5"
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -27,6 +28,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.kafka:spring-kafka")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
 
     implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
@@ -45,6 +47,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
+    testImplementation("org.springframework.kafka:spring-kafka-test:$springKafkaTestVersion")
 
 }
 

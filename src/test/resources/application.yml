@@ -10,3 +10,6 @@ spring.datasource:
   url: jdbc:tc:postgresql:14:///test
   username: test
   password: test
+
+kafka:
+  brokers: ${spring.embedded.kafka.brokers}
