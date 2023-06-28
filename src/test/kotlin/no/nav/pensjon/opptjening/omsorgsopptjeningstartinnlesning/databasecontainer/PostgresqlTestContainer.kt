@@ -1,28 +1,43 @@
 package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.databasecontainer
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 
 
-class PostgresqlTestContainer private constructor() : PostgreSQLContainer<PostgresqlTestContainer>(
-    IMAGE_VERSION
-) {
+class PostgresqlTestContainer private constructor(image: String) : PostgreSQLContainer<PostgresqlTestContainer>(image) {
+
+    init {
+        start()
+    }
+
     override fun start() {
         super.start()
         super.waitingFor(Wait.defaultWaitStrategy())
     }
 
     override fun stop() {
-        //do nothing, JVM handles shut down
+        //Do nothing, JVM handles shut down
+    }
+
+    fun removeDataFromDB() {
+        dataSource.connection.apply {
+            createStatement().execute(
+                """
+                        delete from barnetrygdmottaker;
+                    """
+            )
+            close()
+        }
     }
 
     companion object {
-        private const val IMAGE_VERSION = "postgres:14.4"
-        private var container: PostgresqlTestContainer? = null
-        val instance: PostgresqlTestContainer
-            get() {
-                if (container == null) container = PostgresqlTestContainer()
-                return container!!
-            }
+        val instance: PostgresqlTestContainer = PostgresqlTestContainer("postgres:14.7-alpine")
+        private val dataSource = HikariDataSource(HikariConfig().apply {
+            jdbcUrl = "jdbc:tc:postgresql:14:///test"
+            username = instance.username
+            password = instance.password
+        })
     }
 }

@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient
 class Client {
 
     @Bean
-    fun omsorgsarbeidClient(): WebClient = WebClient.builder()
+    fun webClient(): WebClient = WebClient.builder()
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
         .build()

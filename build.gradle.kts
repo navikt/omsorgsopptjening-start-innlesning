@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val domeneVersion = "1.0.48"
 val springVersion = "3.0.0"
 val navTokenSupportVersion = "3.0.2"
 val hibernateValidatorVersion = "8.0.0.Final"
@@ -23,10 +24,19 @@ group = "no.nav.pensjon.opptjening"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven("https://maven.pkg.github.com/navikt/maven-release") {
+        credentials {
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
+    implementation("no.nav.pensjon.opptjening:omsorgsopptjening-domene-lib:$domeneVersion")
+
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")

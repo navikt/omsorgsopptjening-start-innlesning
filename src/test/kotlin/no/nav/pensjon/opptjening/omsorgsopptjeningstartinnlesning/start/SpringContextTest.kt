@@ -26,7 +26,7 @@ sealed class SpringContextTest {
 
     }
 
-    @EmbeddedKafka(partitions = 1, topics = ["barnetrygd-identer-topic"])
+    @EmbeddedKafka(partitions = 1, topics = ["barnetrygd-identer-topic","todo-topic"])
     @SpringBootTest(classes = [App::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
@@ -39,7 +39,7 @@ sealed class SpringContextTest {
         lateinit var objectMapper: ObjectMapper
 
         fun sendBarnetrygdMottakerKafka(
-            melding: KafkaListener.BarnetrygdMottakerMelding
+            melding: BarnetrygdmottakerKafkaListener.BarnetrygdMottakerMelding
         ) {
             val omsorgsArbeid = objectMapper.writeValueAsString(melding)
 

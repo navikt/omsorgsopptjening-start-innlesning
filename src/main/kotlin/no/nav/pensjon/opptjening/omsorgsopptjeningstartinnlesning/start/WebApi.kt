@@ -12,7 +12,16 @@ class WebApi(private val innlesningService: InnlesningService) {
 
     @GetMapping("/innlesning/start/{ar}")
     fun startInnlesning(@PathVariable ar: Int): ResponseEntity<String> {
-        innlesningService.initierSendingAvIdenter(ar)
-        return ResponseEntity.ok("""Startet innlesning for $ar""")
+        return innlesningService.initierSendingAvIdenter(ar).let {
+            when (it) {
+                is BarnetrygdClientResponse.Feil -> {
+                    ResponseEntity.status(it.status ?: 500).body(it.body ?: "Ukjent feil")
+                }
+
+                is BarnetrygdClientResponse.Ok -> {
+                    ResponseEntity.ok("""Startet innlesning for $ar""")
+                }
+            }
+        }
     }
 }

@@ -1,7 +1,9 @@
 package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
 
 import org.springframework.data.jpa.repository.JpaRepository
-import java.util.UUID
+import org.springframework.data.jpa.repository.Query
 
 interface BarnetrygdmottakerRepository: JpaRepository<Barnetrygdmottaker, Long> {
+    @Query("select b from barnetrygdmottaker b where b.prosessert=false order by b.opprettet asc limit 1")
+    fun finnNesteUprosesserte(): Barnetrygdmottaker?
 }
