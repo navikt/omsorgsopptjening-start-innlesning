@@ -1,10 +1,16 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.verify
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.BarnetrygdMelding
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.BarnetrygdSak
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -31,31 +37,55 @@ class FlowIntegrationTest : SpringContextTest.WithKafka() {
     @Test
     fun test() {
         wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
-                .willReturn(WireMock.ok().withBody(serialize(emptyList<BarnetrygdSak>())))
+            WireMock.post(urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                .willReturn(WireMock.ok().withBody(serialize(emptyList<Barnetrygdmelding.Sak>())))
         )
 
-        val melding = BarnetrygdmottakerKafkaListener.BarnetrygdMottakerMelding("12345678910", 2022)
+        val melding = BarnetrygdmottakerKafkaListener.KafkaMelding("12345678910", 2022)
 
         sendBarnetrygdMottakerKafka(melding)
 
         Thread.sleep(1000)
 
-        barnetrygdmottakerRepository.findAll().single().also {
-            assertEquals(it.ident, melding.ident)
-            assertEquals(it.ar, melding.ar)
-            assertNotNull(it.id)
-            assertTrue(it.prosessert)
-        }
+        val barnetrygdmottaker = barnetrygdmottakerRepository.findAll().single()
 
-        assertEquals(
-            serialize(
-                BarnetrygdMelding(
-                    ident = "12345678910",
-                    list = emptyList()
-                )
-            ),
-            producedMessageListener.removeFirstRecord(5).value()
-        )
+        wiremock.verify(
+            postRequestedFor(urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                .withHeader(CorrelationId.name, equalTo(barnetrygdmottaker.correlationId))
+        );
+
+        assertEquals(barnetrygdmottaker.ident, melding.ident)
+        assertEquals(barnetrygdmottaker.ar, melding.ar)
+        assertNotNull(barnetrygdmottaker.id)
+        assertTrue(barnetrygdmottaker.prosessert)
+        assertNotNull(barnetrygdmottaker.correlationId)
+
+        producedMessageListener.removeFirstRecord(5).let {
+            assertEquals(
+                serialize(
+                    Barnetrygdmelding.KafkaKey(
+                        ident = "12345678910",
+                    )
+                ),
+                it.key()
+            )
+            assertEquals(
+                serialize(
+                    Barnetrygdmelding(
+                        ident = "12345678910",
+                        list = emptyList()
+                    )
+                ),
+                it.value()
+            )
+            assertEquals(
+                "BARNETRYGD",
+                String(it.headers().lastHeader(KafkaMessageType.name).value())
+            )
+            assertEquals(
+                barnetrygdmottaker.correlationId,
+                String(it.headers().lastHeader(CorrelationId.name).value())
+            )
+        }
     }
 }

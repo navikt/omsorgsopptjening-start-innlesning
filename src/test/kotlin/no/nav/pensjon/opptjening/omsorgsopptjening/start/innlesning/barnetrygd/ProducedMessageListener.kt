@@ -23,7 +23,7 @@ class ProducedMessageListener {
     @KafkaListener(
         containerFactory = "consumerContainerFactory",
         idIsGroup = false,
-        topics = ["todo-topic"],
+        topics = ["omsorgsopptjening"],
         groupId = "todo-produced-messages-group"
     )
     private fun poll(record: ConsumerRecord<String, String>, ack: Acknowledgment) {
@@ -39,6 +39,6 @@ class ProducedMessageListener {
         }
         return records.firstOrNull()
             ?.also { records.remove(it) }
-            ?: throw RuntimeException("No messages of type:${KafkaMessageType.OMSORGSOPPTJENING} to consume")
+            ?: throw RuntimeException("No messages of type:${KafkaMessageType.OPPTJENING} to consume")
     }
 }

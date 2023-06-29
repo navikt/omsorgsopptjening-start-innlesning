@@ -1,5 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -23,14 +25,17 @@ class BarnetrygdClient(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    fun initierSendingAvIdenter(ar: Int): BarnetrygdClientResponse {
+    fun initierSendingAvIdenter(
+        ar: Int
+    ): BarnetrygdClientResponse {
         log.info("Initiating sending of barnetrygdmottakere by invoking url:$url")
         return webClient
             .post()
             .uri("$url/api/ekstern/pensjon/hent-barnetrygdmottakere")
+            .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
             .body(
                 BodyInserters.fromValue(
-                    no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.InitierBarnetrygdDetaljerRequest(
+                    InitierBarnetrygdDetaljerRequest(
                         LocalDate.of(ar, Month.JANUARY, 1).toString()
                     )
                 )
@@ -44,11 +49,15 @@ class BarnetrygdClient(
         )
     }
 
-    fun hentBarnetrygdDetaljer(ident: String, ar: Int): BarnetrygdClientResponse {
+    fun hentBarnetrygdDetaljer(
+        ident: String,
+        ar: Int
+    ): BarnetrygdClientResponse {
         log.info("Retrieving details for ident:$ident, år:$ar from url: $url")
         return webClient
             .post()
             .uri("$url/api/ekstern/pensjon/hent-barnetrygd")
+            .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
             .body(
                 BodyInserters.fromValue(
                     BarnetrygdDetaljerRequest(

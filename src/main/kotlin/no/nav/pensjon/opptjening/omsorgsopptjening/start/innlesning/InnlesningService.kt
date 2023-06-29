@@ -1,12 +1,16 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.BarnetrygdMelding
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.BarnetrygdSak
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdmottakerRepository
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.header.internals.RecordHeader
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -28,32 +32,51 @@ class InnlesningService(
     fun prosesserBarnetrygdmottakere() {
         repository.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
             log.info("Start processing for id:${barnetrygdmottaker.id}")
-            val detaljer = client.hentBarnetrygdDetaljer(
-                ident = barnetrygdmottaker.ident!!,
-                ar = barnetrygdmottaker.ar!!
-            )
-            when (detaljer) {
-                is BarnetrygdClientResponse.Feil -> {
-                    throw RuntimeException("Feil")
-                }
+            Mdc.scopedMdc(CorrelationId.name, barnetrygdmottaker.correlationId) {
+                val detaljer = client.hentBarnetrygdDetaljer(
+                    ident = barnetrygdmottaker.ident!!,
+                    ar = barnetrygdmottaker.ar!!,
+                )
+                when (detaljer) {
+                    is BarnetrygdClientResponse.Feil -> {
+                        throw RuntimeException("Feil")
+                    }
 
-                is BarnetrygdClientResponse.Ok -> {
-                    log.info("Publishing details for id:${barnetrygdmottaker.id} to topic:todo-topic")
-                    kafkaProducer.send(
-                        "todo-topic",
-                        serialize(
-                            BarnetrygdMelding(
-                                ident = barnetrygdmottaker.ident!!,
-                                list = deserialize<List<BarnetrygdSak>>(detaljer.body!!)
-                            )
-                        )
-                    )
-                    log.info("Processing completed for id:${barnetrygdmottaker.id}")
-                    log.info("Saving state for id:${barnetrygdmottaker.id}")
-                    barnetrygdmottaker.markerProsessert()
-                    repository.save(barnetrygdmottaker)
+                    is BarnetrygdClientResponse.Ok -> {
+                        log.info("Publishing details for id:${barnetrygdmottaker.id} to topic:omsorgsopptjening")
+                        kafkaProducer.send(createKafkaMessage(barnetrygdmottaker, detaljer)).get()
+                        log.info("Processing completed for id:${barnetrygdmottaker.id}")
+                        log.info("Saving state for id:${barnetrygdmottaker.id}")
+                        barnetrygdmottaker.markerProsessert()
+                        repository.save(barnetrygdmottaker)
+                    }
                 }
             }
         }
+    }
+
+    private fun createKafkaMessage(
+        barnetrygdmottaker: Barnetrygdmottaker,
+        detaljer: BarnetrygdClientResponse.Ok
+    ): ProducerRecord<String, String> {
+        return ProducerRecord(
+            "omsorgsopptjening",
+            null,
+            serialize(
+                Barnetrygdmelding.KafkaKey(
+                    ident = barnetrygdmottaker.ident!!
+                )
+            ),
+            serialize(
+                Barnetrygdmelding(
+                    ident = barnetrygdmottaker.ident!!,
+                    list = deserialize<List<Barnetrygdmelding.Sak>>(detaljer.body!!)
+                )
+            ),
+            setOf(
+                RecordHeader(KafkaMessageType.name, KafkaMessageType.BARNETRYGD.toString().toByteArray()),
+                RecordHeader(CorrelationId.name, barnetrygdmottaker.correlationId.toByteArray())
+            ),
+        )
     }
 }

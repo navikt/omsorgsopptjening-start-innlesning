@@ -27,8 +27,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                 .willReturn(WireMock.ok())
         )
 
-        client.initierSendingAvIdenter(2020).also {
-            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Ok(null), it)
+        client.initierSendingAvIdenter(ar = 2020).also {
+            assertEquals(BarnetrygdClientResponse.Ok(null), it)
         }
     }
 
@@ -39,8 +39,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                 .willReturn(WireMock.serverError().withBody("Feilmelding"))
         )
 
-        client.initierSendingAvIdenter(2020).also {
-            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
+        client.initierSendingAvIdenter(ar = 2020).also {
+            assertEquals(BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
         }
     }
 
@@ -51,8 +51,11 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                 .willReturn(WireMock.ok().withBody("""{"json":{"key":"value"}}"""))
         )
 
-        client.hentBarnetrygdDetaljer("123", 2020).also {
-            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Ok("""{"json":{"key":"value"}}"""), it)
+        client.hentBarnetrygdDetaljer(
+            ident = "123",
+            ar = 2020
+        ).also {
+            assertEquals(BarnetrygdClientResponse.Ok("""{"json":{"key":"value"}}"""), it)
         }
     }
 
@@ -63,8 +66,11 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                 .willReturn(WireMock.serverError().withBody("Feilmelding"))
         )
 
-        client.hentBarnetrygdDetaljer("123", 2020).also {
-            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
+        client.hentBarnetrygdDetaljer(
+            ident = "123",
+            ar = 2020
+        ).also {
+            assertEquals(BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
         }
     }
 }

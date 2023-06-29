@@ -1,6 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import jakarta.persistence.*
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import org.hibernate.annotations.DynamicInsert
 import java.time.Clock
 import java.time.Instant
@@ -27,14 +28,19 @@ class Barnetrygdmottaker {
     @Column(name = "opprettet", nullable = false)
     var opprettet: Instant = Instant.now(Clock.systemUTC())
 
+    @Column(name = "correlationid", nullable = false)
+    var correlationId: String = CorrelationId.generate()
+
     constructor()
     constructor(
         ident: String,
-        år: Int
+        år: Int,
+        correlationId: String,
     ) : this() {
         apply {
             this.ident = ident
             this.ar = år
+            this.correlationId = correlationId
         }
     }
 
