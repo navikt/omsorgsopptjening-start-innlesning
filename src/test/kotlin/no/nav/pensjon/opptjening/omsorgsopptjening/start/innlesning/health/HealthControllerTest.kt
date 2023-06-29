@@ -1,6 +1,6 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.health
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.health
 
-import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.App
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.App
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start.SpringContextTest
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -14,7 +14,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 
-@SpringBootTest(classes = [App::class])
+@SpringBootTest(classes = [no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.App::class])
 @AutoConfigureMockMvc
 @EnableMockOAuth2Server
 class HealthControllerTest: SpringContextTest.WithKafka() {

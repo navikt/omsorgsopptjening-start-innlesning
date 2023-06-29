@@ -1,12 +1,12 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import jakarta.annotation.PostConstruct
-import org.apache.juli.logging.Log
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesningService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class ProsesserBarnetrygdmottakereTask(
+class BarnetrygdProcessingTask(
     private val service: InnlesningService
 ) : Runnable {
 

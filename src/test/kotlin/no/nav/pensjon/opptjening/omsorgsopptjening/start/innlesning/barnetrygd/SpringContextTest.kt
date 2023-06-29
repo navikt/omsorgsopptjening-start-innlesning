@@ -1,7 +1,6 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.App
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,14 +19,14 @@ sealed class SpringContextTest {
     }
 
     @ActiveProfiles("no-kafka")
-    @SpringBootTest(classes = [App::class])
+    @SpringBootTest(classes = [no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.App::class])
     @EnableMockOAuth2Server
     class NoKafka : SpringContextTest() {
 
     }
 
     @EmbeddedKafka(partitions = 1, topics = ["barnetrygd-identer-topic","todo-topic"])
-    @SpringBootTest(classes = [App::class])
+    @SpringBootTest(classes = [no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.App::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
     class WithKafka : SpringContextTest() {

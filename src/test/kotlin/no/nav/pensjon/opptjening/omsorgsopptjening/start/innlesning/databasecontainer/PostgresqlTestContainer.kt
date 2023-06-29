@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.databasecontainer
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration

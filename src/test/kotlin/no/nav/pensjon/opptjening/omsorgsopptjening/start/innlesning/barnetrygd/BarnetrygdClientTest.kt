@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
     @Autowired
-    private lateinit var client: BarnetrygdClient
+    private lateinit var client: no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClient
 
     companion object {
         @RegisterExtension
@@ -28,7 +28,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         )
 
         client.initierSendingAvIdenter(2020).also {
-            assertEquals(BarnetrygdClientResponse.Ok(null), it)
+            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Ok(null), it)
         }
     }
 
@@ -40,7 +40,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         )
 
         client.initierSendingAvIdenter(2020).also {
-            assertEquals(BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
+            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
         }
     }
 
@@ -52,7 +52,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         )
 
         client.hentBarnetrygdDetaljer("123", 2020).also {
-            assertEquals(BarnetrygdClientResponse.Ok("""{"json":{"key":"value"}}"""), it)
+            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Ok("""{"json":{"key":"value"}}"""), it)
         }
     }
 
@@ -64,7 +64,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         )
 
         client.hentBarnetrygdDetaljer("123", 2020).also {
-            assertEquals(BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
+            assertEquals(no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
         }
     }
 }

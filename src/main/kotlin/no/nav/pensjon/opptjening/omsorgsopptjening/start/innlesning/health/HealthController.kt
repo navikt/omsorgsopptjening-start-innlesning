@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.health
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.health
 
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.http.ResponseEntity

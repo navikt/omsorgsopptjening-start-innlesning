@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
 
 import org.apache.kafka.clients.CommonClientConfigs

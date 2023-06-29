@@ -1,6 +1,5 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
-import org.apache.juli.logging.Log
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -31,7 +30,7 @@ class BarnetrygdClient(
             .uri("$url/api/ekstern/pensjon/hent-barnetrygdmottakere")
             .body(
                 BodyInserters.fromValue(
-                    InitierBarnetrygdDetaljerRequest(
+                    no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.InitierBarnetrygdDetaljerRequest(
                         LocalDate.of(ar, Month.JANUARY, 1).toString()
                     )
                 )
@@ -39,7 +38,10 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { handleResponse(it) } ?: BarnetrygdClientResponse.Feil(null, null)
+            .block()?.let { handleResponse(it) } ?: BarnetrygdClientResponse.Feil(
+            null,
+            null
+        )
     }
 
     fun hentBarnetrygdDetaljer(ident: String, ar: Int): BarnetrygdClientResponse {
@@ -58,7 +60,10 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { handleResponse(it) } ?: BarnetrygdClientResponse.Feil(null, null)
+            .block()?.let { handleResponse(it) } ?: BarnetrygdClientResponse.Feil(
+            null,
+            null
+        )
     }
 
     private fun not200(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.OK))
@@ -88,6 +93,3 @@ sealed class BarnetrygdClientResponse {
 
 private data class BarnetrygdDetaljerRequest(val ident: String, val fraDato: String)
 private data class InitierBarnetrygdDetaljerRequest(val fraDato: String)
-
-
-fun WebClient.ResponseSpec.getBody() = bodyToMono(String::class.java).block()

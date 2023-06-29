@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders

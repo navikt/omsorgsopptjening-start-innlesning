@@ -1,9 +1,12 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.BarnetrygdMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.BarnetrygdSak
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClient
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClientResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdmottakerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -24,6 +27,7 @@ class InnlesningService(
 
     fun prosesserBarnetrygdmottakere() {
         repository.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
+            log.info("Start processing for id:${barnetrygdmottaker.id}")
             val detaljer = client.hentBarnetrygdDetaljer(
                 ident = barnetrygdmottaker.ident!!,
                 ar = barnetrygdmottaker.ar!!

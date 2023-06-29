@@ -1,13 +1,9 @@
-package no.nav.pensjon.opptjening.omsorgsopptjeningstartinnlesning.start
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import jakarta.persistence.*
-import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.DynamicInsert
-import org.hibernate.annotations.Generated
-import org.hibernate.annotations.GenerationTime
 import java.time.Clock
 import java.time.Instant
-import java.time.ZoneOffset
 
 
 @Entity(name = "barnetrygdmottaker")
