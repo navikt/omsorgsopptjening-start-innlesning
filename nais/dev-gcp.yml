@@ -6,6 +6,8 @@ metadata:
   labels:
     team: pensjonopptjening
 spec:
+  kafka:
+    pool: nav-dev
   azure:
     sidecar:
       enabled: true
