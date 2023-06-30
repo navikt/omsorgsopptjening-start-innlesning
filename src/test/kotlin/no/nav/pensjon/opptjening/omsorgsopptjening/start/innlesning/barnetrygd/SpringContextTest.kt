@@ -1,6 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +26,7 @@ sealed class SpringContextTest {
 
     }
 
-    @EmbeddedKafka(partitions = 1, topics = ["barnetrygd-identer-topic","omsorgsopptjening"])
+    @EmbeddedKafka(partitions = 1, topics = [Topics.BARNETRYGDMOTTAKER, Topics.Omsorgsopptjening.NAME])
     @SpringBootTest(classes = [no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.App::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
@@ -43,7 +44,7 @@ sealed class SpringContextTest {
             val omsorgsArbeid = objectMapper.writeValueAsString(melding)
 
             val pr = ProducerRecord(
-                "barnetrygd-identer-topic",
+                Topics.BARNETRYGDMOTTAKER,
                 null,
                 null,
                 melding.ident,

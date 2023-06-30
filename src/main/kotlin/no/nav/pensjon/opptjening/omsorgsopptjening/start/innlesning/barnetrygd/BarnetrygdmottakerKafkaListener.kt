@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -25,7 +26,7 @@ class BarnetrygdmottakerKafkaListener(
     @KafkaListener(
         containerFactory = "consumerContainerFactory",
         idIsGroup = false,
-        topics = ["barnetrygd-identer-topic"],
+        topics = [Topics.BARNETRYGDMOTTAKER],
         groupId = "omsorgsopptjening-start-innlesning"
     )
     fun poll(

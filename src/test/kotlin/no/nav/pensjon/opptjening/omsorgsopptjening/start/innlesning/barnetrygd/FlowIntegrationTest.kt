@@ -10,6 +10,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -63,7 +64,7 @@ class FlowIntegrationTest : SpringContextTest.WithKafka() {
         producedMessageListener.removeFirstRecord(5).let {
             assertEquals(
                 serialize(
-                    Barnetrygdmelding.KafkaKey(
+                    Topics.Omsorgsopptjening.Key(
                         ident = "12345678910",
                     )
                 ),

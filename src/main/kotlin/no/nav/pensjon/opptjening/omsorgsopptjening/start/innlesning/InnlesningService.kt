@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdClient
@@ -60,17 +61,17 @@ class InnlesningService(
         detaljer: BarnetrygdClientResponse.Ok
     ): ProducerRecord<String, String> {
         return ProducerRecord(
-            "omsorgsopptjening",
+            Topics.Omsorgsopptjening.NAME,
             null,
             serialize(
-                Barnetrygdmelding.KafkaKey(
+                Topics.Omsorgsopptjening.Key(
                     ident = barnetrygdmottaker.ident!!
                 )
             ),
             serialize(
                 Barnetrygdmelding(
                     ident = barnetrygdmottaker.ident!!,
-                    list = deserialize<List<Barnetrygdmelding.Sak>>(detaljer.body!!)
+                    list = deserialize(detaljer.body!!)
                 )
             ),
             setOf(
