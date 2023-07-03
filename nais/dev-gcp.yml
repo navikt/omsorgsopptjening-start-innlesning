@@ -37,6 +37,12 @@ spec:
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.dev.intern.nav.no
+  accessPolicy:
+    inbound:
+      rules:
+        - application: omsorgsarbeid-ba-mock
+          namespace: pensjonopptjening
+          cluster: dev-gcp
   liveness:
     path: /internal/isalive
     port: 8080
