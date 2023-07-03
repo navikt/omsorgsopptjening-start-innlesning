@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.platform.commons.logging.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -23,7 +24,7 @@ class ProducedMessageListener {
     @KafkaListener(
         containerFactory = "consumerContainerFactory",
         idIsGroup = false,
-        topics = ["omsorgsopptjening"],
+        topics = [Topics.Omsorgsopptjening.NAME],
         groupId = "todo-produced-messages-group"
     )
     private fun poll(record: ConsumerRecord<String, String>, ack: Acknowledgment) {
