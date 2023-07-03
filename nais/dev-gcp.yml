@@ -38,7 +38,7 @@ spec:
   ingresses:
     - https://omsorgsopptjening-start-innlesning.dev.intern.nav.no
   accessPolicy:
-    inbound:
+    outbound:
       rules:
         - application: omsorgsarbeid-ba-mock
           namespace: pensjonopptjening
