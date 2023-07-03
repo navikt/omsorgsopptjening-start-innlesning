@@ -2,9 +2,6 @@
 <configuration>
     <springProfile name="dev-gcp">
         <appender name="stdout_json" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>%level %logger %msg %n</pattern>
-            </encoder>
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
                 <includeCallerData>true</includeCallerData>
             </encoder>
