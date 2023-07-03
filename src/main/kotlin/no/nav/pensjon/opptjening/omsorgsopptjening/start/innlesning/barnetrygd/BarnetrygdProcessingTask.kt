@@ -13,16 +13,21 @@ class BarnetrygdProcessingTask(
     companion object {
         val log = LoggerFactory.getLogger(this::class.java)
     }
+
     @PostConstruct
-    fun init(){
+    fun init() {
         val name = "prosesser-barnetrygdmottakere-thread"
         log.info("Starting new thread:$name to process barnetrygdmottakere")
         Thread(this, name).start()
     }
 
     override fun run() {
-        while(true){
-            service.prosesserBarnetrygdmottakere()
+        while (true) {
+            try {
+                service.prosesserBarnetrygdmottakere()
+            } catch (ex: Throwable) {
+                log.error("Exception caught while processing, message:${ex.message}, cause:${ex.cause}")
+            }
         }
     }
 }
