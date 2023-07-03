@@ -33,7 +33,7 @@ spec:
     - name: SPRING_PROFILES_ACTIVE
       value: dev-gcp
     - name: BARNETRYGD_URL
-      value: https://familie-ba-sak.intern.dev.nav.no
+      value: https://omsorgsarbeid-ba-mock.dev.intern.nav.no
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.dev.intern.nav.no
