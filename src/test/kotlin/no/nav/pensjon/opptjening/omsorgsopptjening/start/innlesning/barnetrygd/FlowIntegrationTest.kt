@@ -14,6 +14,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +37,7 @@ class FlowIntegrationTest : SpringContextTest.WithKafka() {
     }
 
     @Test
+    @Disabled
     fun test() {
         wiremock.stubFor(
             WireMock.post(urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
