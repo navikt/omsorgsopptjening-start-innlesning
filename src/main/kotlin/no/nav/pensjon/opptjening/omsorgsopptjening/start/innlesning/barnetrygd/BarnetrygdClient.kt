@@ -4,20 +4,19 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
+import pensjon.opptjening.azure.ad.client.TokenProvider
 import reactor.core.publisher.Mono
 import java.time.LocalDate
 import java.time.Month
 import java.util.function.Predicate
 
 @Component
-class BarnetrygdClient(
+class BarnetrygdClient(private val tokenProvider: TokenProvider,
     private val webClient: WebClient,
     @Value("\${BARNETRYGD_URL}") private val url: String
 ) {
@@ -33,6 +32,9 @@ class BarnetrygdClient(
             .post()
             .uri("$url/api/ekstern/pensjon/hent-barnetrygdmottakere")
             .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
             .body(
                 BodyInserters.fromValue(
                     InitierBarnetrygdDetaljerRequest(
@@ -58,6 +60,9 @@ class BarnetrygdClient(
             .post()
             .uri("$url/api/ekstern/pensjon/hent-barnetrygd")
             .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
             .body(
                 BodyInserters.fromValue(
                     BarnetrygdDetaljerRequest(

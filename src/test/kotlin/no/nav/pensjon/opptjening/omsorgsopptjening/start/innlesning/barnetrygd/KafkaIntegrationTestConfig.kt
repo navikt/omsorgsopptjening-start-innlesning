@@ -1,7 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.KafkaSecurityConfig
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaSecurityConfig
 import org.apache.kafka.clients.CommonClientConfigs
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

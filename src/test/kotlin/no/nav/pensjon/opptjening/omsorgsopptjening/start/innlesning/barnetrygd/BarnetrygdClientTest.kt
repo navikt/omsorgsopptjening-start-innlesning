@@ -3,10 +3,12 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import com.github.tomakehurst.wiremock.matching.EqualToPattern
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
 
 class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
@@ -63,6 +65,22 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
     fun `returner feil dersom kall til hent-barnetrygd går dårlig`() {
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                .willReturn(WireMock.serverError().withBody("Feilmelding"))
+        )
+
+        client.hentBarnetrygdDetaljer(
+            ident = "123",
+            ar = 2020
+        ).also {
+            assertEquals(BarnetrygdClientResponse.Feil(500, "Feilmelding"), it)
+        }
+    }
+
+    @Test
+    fun `returner feil dersom bearer token ikke er med`() {
+        wiremock.stubFor(
+            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                .withHeader(HttpHeaders.AUTHORIZATION,EqualToPattern("Bearer bananas"))
                 .willReturn(WireMock.serverError().withBody("Feilmelding"))
         )
 

@@ -37,7 +37,6 @@ class FlowIntegrationTest : SpringContextTest.WithKafka() {
     }
 
     @Test
-    @Disabled
     fun test() {
         wiremock.stubFor(
             WireMock.post(urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))

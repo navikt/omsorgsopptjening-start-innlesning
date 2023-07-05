@@ -11,6 +11,7 @@ val flywayCoreVersion = "9.11.0"
 val testcontainersVersion = "1.17.6"
 val jacksonVersion = "2.14.1"
 val springKafkaTestVersion = "3.0.5"
+val azureAdClient = "0.0.7"
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -45,6 +46,8 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
+
 
     // DB
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
