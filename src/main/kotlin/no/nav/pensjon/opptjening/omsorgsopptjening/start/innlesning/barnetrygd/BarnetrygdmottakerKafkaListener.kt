@@ -23,12 +23,12 @@ class BarnetrygdmottakerKafkaListener(
         val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    @KafkaListener(
+  /*  @KafkaListener(
         containerFactory = "consumerContainerFactory",
         idIsGroup = false,
         topics = [Topics.BARNETRYGDMOTTAKER],
         groupId = "omsorgsopptjening-start-innlesning"
-    )
+    )*/
     fun poll(
         consumerRecord: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment
