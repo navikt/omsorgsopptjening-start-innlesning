@@ -41,8 +41,6 @@ spec:
     outbound:
       rules:
         - application: omsorgsarbeid-ba-mock
-          namespace: pensjonopptjening
-          cluster: dev-gcp
   liveness:
     path: /internal/isalive
     port: 8080
