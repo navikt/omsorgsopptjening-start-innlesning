@@ -3,7 +3,6 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.*
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
@@ -18,7 +17,6 @@ import java.util.function.Predicate
 @Component
 class BarnetrygdClient(private val tokenProvider: TokenProvider,
     private val webClient: WebClient,
-    @Value("\${BARNETRYGD_URL}") private val url: String
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
@@ -27,10 +25,10 @@ class BarnetrygdClient(private val tokenProvider: TokenProvider,
     fun initierSendingAvIdenter(
         ar: Int
     ): BarnetrygdClientResponse {
-        log.info("Initiating sending of barnetrygdmottakere by invoking url:$url")
+        log.info("Initiating sending of barnetrygdmottakere")
         return webClient
             .post()
-            .uri("$url/api/ekstern/pensjon/hent-barnetrygdmottakere")
+            .uri("/api/ekstern/pensjon/hent-barnetrygdmottakere")
             .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -55,10 +53,10 @@ class BarnetrygdClient(private val tokenProvider: TokenProvider,
         ident: String,
         ar: Int
     ): BarnetrygdClientResponse {
-        log.info("Retrieving details for ident:$ident, år:$ar from url: $url")
+        log.info("Retrieving details for ident:$ident, år:$ar")
         return webClient
             .post()
-            .uri("$url/api/ekstern/pensjon/hent-barnetrygd")
+            .uri("/api/ekstern/pensjon/hent-barnetrygd")
             .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -91,7 +89,7 @@ class BarnetrygdClient(private val tokenProvider: TokenProvider,
             }
 
             else -> {
-                log.error("Failed to retrieve data from url:$url, status:${it.statusCode}, message:${it.body}")
+                log.error("Failed to retrieve data, status:${it.statusCode}, message:${it.body}")
                 BarnetrygdClientResponse.Feil(
                     status = it.statusCode.value(),
                     body = it.body
