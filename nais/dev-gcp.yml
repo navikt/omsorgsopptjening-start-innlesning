@@ -42,13 +42,13 @@ spec:
       rules:
         - application: omsorgsarbeid-ba-mock
   liveness:
-    path: /internal/isalive
+    path: /actuator/health/liveness
     port: 8080
-    initialDelay: 40
+    initialDelay: 50
   readiness:
-    path: /internal/isready
+    path: /actuator/health/readiness
     port: 8080
-    initialDelay: 40
+    initialDelay: 50
   prometheus:
     enabled: true
     path: /actuator/prometheus
