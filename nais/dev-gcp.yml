@@ -33,7 +33,7 @@ spec:
     - name: SPRING_PROFILES_ACTIVE
       value: dev-gcp
     - name: BARNETRYGD_URL
-      value: https://omsorgsarbeid-ba-mock.intern.dev.nav.no
+      value: http://omsorgsarbeid-ba-mock
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no
