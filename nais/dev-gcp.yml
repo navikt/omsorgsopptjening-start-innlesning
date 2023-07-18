@@ -36,7 +36,7 @@ spec:
       value: https://omsorgsarbeid-ba-mock.intern.dev.nav.no
   image: {{ image }}
   ingresses:
-    - https://omsorgsopptjening-start-innlesning.dev.intern.nav.no
+    - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no
   accessPolicy:
     outbound:
       rules:
