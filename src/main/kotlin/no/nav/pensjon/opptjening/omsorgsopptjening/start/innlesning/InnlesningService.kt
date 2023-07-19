@@ -32,8 +32,9 @@ class InnlesningService(
 
     fun prosesserBarnetrygdmottakere() {
         repository.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
-            log.info("Start processing for id:${barnetrygdmottaker.id}")
             Mdc.scopedMdc(CorrelationId.name, barnetrygdmottaker.correlationId) {
+                log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
+                log.info("Henter detaljer")
                 val detaljer = client.hentBarnetrygdDetaljer(
                     ident = barnetrygdmottaker.ident!!,
                     ar = barnetrygdmottaker.ar!!,
@@ -44,12 +45,11 @@ class InnlesningService(
                     }
 
                     is BarnetrygdClientResponse.Ok -> {
-                        log.info("Publishing details for id:${barnetrygdmottaker.id} to topic:omsorgsopptjening")
+                        log.info("Publiserer detaljer til topic:${Topics.Omsorgsopptjening.NAME}")
                         kafkaProducer.send(createKafkaMessage(barnetrygdmottaker, detaljer)).get()
-                        log.info("Processing completed for id:${barnetrygdmottaker.id}")
-                        log.info("Saving state for id:${barnetrygdmottaker.id}")
                         barnetrygdmottaker.markerProsessert()
                         repository.save(barnetrygdmottaker)
+                        log.info("Prosessering fullført")
                     }
                 }
             }
