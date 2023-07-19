@@ -16,9 +16,9 @@ class BarnetrygdProcessingTask(
 
     @PostConstruct
     fun init() {
-//        val name = "prosesser-barnetrygdmottakere-thread"
-//        log.info("Starting new thread:$name to process barnetrygdmottakere")
-//        Thread(this, name).start()
+        val name = "prosesser-barnetrygdmottakere-thread"
+        log.info("Starting new thread:$name to process barnetrygdmottakere")
+        Thread(this, name).start()
     }
 
     override fun run() {

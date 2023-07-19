@@ -14,7 +14,7 @@ import javax.sql.DataSource
 
 
 @SpringBootApplication
-//@EnableJwtTokenValidation
+@EnableJwtTokenValidation
 @EnableRetry
 class App {
     @Bean
