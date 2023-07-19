@@ -45,7 +45,7 @@ class BarnetrygdmottakerKafkaListener(
         acknowledgment.acknowledge()
     }
 
-    private data class KafkaMelding(
+    data class KafkaMelding(
         val ident: String,
         val ar: Int,
     ) {
