@@ -35,7 +35,7 @@ class StatusTest {
     }
 
     @Test
-    fun `Gitt en feilet status saa skal den kunne endre status til ferdig`() {
+    fun `Gitt en feilet status saa skal den ikke kunne endre status til ferdig`() {
         val bt = Barnetrygdmottaker("12345678910", 2023, "xx")
         bt.retry()
         bt.retry()
