@@ -1,11 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.equalTo
-import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
-import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import com.github.tomakehurst.wiremock.client.WireMock.verify
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
@@ -13,8 +9,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMess
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +32,6 @@ class FlowIntegrationTest : SpringContextTest.WithKafka() {
     }
 
     @Test
-    @Disabled
     fun test() {
         wiremock.stubFor(
             WireMock.post(urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
@@ -60,7 +54,7 @@ class FlowIntegrationTest : SpringContextTest.WithKafka() {
         assertEquals(barnetrygdmottaker.ident, melding.ident)
         assertEquals(barnetrygdmottaker.ar, melding.ar)
         assertNotNull(barnetrygdmottaker.id)
-        assertTrue(barnetrygdmottaker.prosessert)
+        assertInstanceOf(Status.Ferdig::class.java, barnetrygdmottaker.status)
         assertNotNull(barnetrygdmottaker.correlationId)
 
         producedMessageListener.removeFirstRecord(5).let {

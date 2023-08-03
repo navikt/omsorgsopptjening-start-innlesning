@@ -3,9 +3,11 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import jakarta.annotation.PostConstruct
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesningService
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 @Component
+@Profile("!no-kafka")
 class BarnetrygdProcessingTask(
     private val service: InnlesningService
 ) : Runnable {

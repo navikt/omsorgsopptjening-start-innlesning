@@ -54,6 +54,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    implementation("io.hypersistence:hypersistence-utils-hibernate-60:3.5.0")
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test")

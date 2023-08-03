@@ -15,6 +15,7 @@ import org.apache.kafka.common.header.internals.RecordHeader
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class InnlesningService(
@@ -29,28 +30,35 @@ class InnlesningService(
     fun initierSendingAvIdenter(ar: Int): BarnetrygdClientResponse {
         return client.initierSendingAvIdenter(ar)
     }
-
+    @Transactional
     fun prosesserBarnetrygdmottakere() {
         repository.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
             Mdc.scopedMdc(CorrelationId.name, barnetrygdmottaker.correlationId) {
-                log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
-                log.info("Henter detaljer")
-                val detaljer = client.hentBarnetrygdDetaljer(
-                    ident = barnetrygdmottaker.ident!!,
-                    ar = barnetrygdmottaker.ar!!,
-                )
-                when (detaljer) {
-                    is BarnetrygdClientResponse.Feil -> {
-                        throw RuntimeException("Feil")
-                    }
+                try {
+                    log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
+                    log.info("Henter detaljer")
+                    val detaljer = client.hentBarnetrygdDetaljer(
+                        ident = barnetrygdmottaker.ident!!,
+                        ar = barnetrygdmottaker.ar!!,
+                    )
+                    when (detaljer) {
+                        is BarnetrygdClientResponse.Feil -> {
+                            barnetrygdmottaker.retry()
+                        }
 
-                    is BarnetrygdClientResponse.Ok -> {
-                        log.info("Publiserer detaljer til topic:${Topics.Omsorgsopptjening.NAME}")
-                        kafkaProducer.send(createKafkaMessage(barnetrygdmottaker, detaljer)).get()
-                        barnetrygdmottaker.markerProsessert()
-                        repository.save(barnetrygdmottaker)
-                        log.info("Prosessering fullført")
+                        is BarnetrygdClientResponse.Ok -> {
+                            log.info("Publiserer detaljer til topic:${Topics.Omsorgsopptjening.NAME}")
+                            kafkaProducer.send(createKafkaMessage(barnetrygdmottaker, detaljer)).get()
+                            barnetrygdmottaker.ferdig()
+                            log.info("Prosessering fullført")
+                        }
                     }
+                    repository.save(barnetrygdmottaker)
+                } catch (e: Throwable) {
+                    log.error("Exception caught while processing id: ${barnetrygdmottaker.id}, cause: ${e.cause}")
+                    barnetrygdmottaker.retry()
+                    repository.save(barnetrygdmottaker)
+                    throw e
                 }
             }
         }

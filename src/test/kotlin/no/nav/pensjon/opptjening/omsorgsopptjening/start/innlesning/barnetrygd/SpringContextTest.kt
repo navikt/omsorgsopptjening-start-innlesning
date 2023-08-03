@@ -2,26 +2,28 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Profile
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.context.EmbeddedKafka
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import pensjon.opptjening.azure.ad.client.AzureAdVariableConfig
-import pensjon.opptjening.azure.ad.client.TokenProvider
 
-
+@DirtiesContext
 sealed class SpringContextTest {
 
     companion object {
-        const val PDL_PATH = "/graphql"
         const val WIREMOCK_PORT = 9991
+    }
+
+    @BeforeEach
+    fun setup() {
+        PostgresqlTestContainer.instance.removeDataFromDB()
     }
 
     @ActiveProfiles("no-kafka")

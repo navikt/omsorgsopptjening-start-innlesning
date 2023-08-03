@@ -5,5 +5,6 @@ create table barnetrygdmottaker
     ar       integer not null,
     opprettet  timestamptz not null default (now() at time zone 'utc'),
     prosessert boolean not null default false,
-    correlationid varchar not null
+    correlationid varchar not null,
+    status json not null
 );
