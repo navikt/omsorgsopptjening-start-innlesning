@@ -25,7 +25,8 @@ class PostgresqlTestContainer private constructor(image: String) : PostgreSQLCon
         dataSource.connection.apply {
             createStatement().execute(
                 """
-                        delete from barnetrygdmottaker;
+                        DELETE FROM BARNETRYGDMOTTAKER_STATUS;
+                        DELETE FROM BARNETRYGDMOTTAKER;
                     """
             )
             close()

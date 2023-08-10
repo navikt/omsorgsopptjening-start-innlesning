@@ -11,30 +11,28 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
-@Profile("!no-kafka")
-
 @Component
+@Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
 class BarnetrygdmottakerKafkaListener(
-    private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository
+    private val repo: BarnetrygdmottakerRepository
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
     @KafkaListener(
-          containerFactory = "consumerContainerFactory",
-          idIsGroup = false,
-          topics = [Topics.BARNETRYGDMOTTAKER],
-          groupId = "omsorgsopptjening-start-innlesning"
+        containerFactory = "listener",
+        topics = [Topics.BARNETRYGDMOTTAKER],
+        groupId = "omsorgsopptjening-start-innlesning"
     )
     fun poll(
         consumerRecord: ConsumerRecord<String, String>,
         acknowledgment: Acknowledgment
     ) {
-        Mdc.scopedMdc(CorrelationId.name, CorrelationId.generate()) {
+        Mdc.scopedMdc(CorrelationId.name, CorrelationId.generate()) {0
             deserialize<KafkaMelding>(consumerRecord.value()).let {
                 log.info("Mottatt melding om barnetrygdmottaker")
-                barnetrygdmottakerRepository.save(it.toDomain(Mdc.getOrCreateCorrelationId()))
+                repo.save(it.toDomain(Mdc.getOrCreateCorrelationId()))
                 log.info("Melding prosessert")
             }
         }

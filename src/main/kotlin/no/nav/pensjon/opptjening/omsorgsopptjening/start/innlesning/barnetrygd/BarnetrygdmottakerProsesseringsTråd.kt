@@ -1,15 +1,14 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import jakarta.annotation.PostConstruct
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesningService
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("!no-kafka")
-class BarnetrygdProcessingTask(
-    private val service: InnlesningService
+@Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
+class BarnetrygdmottakerProsesseringsTråd(
+    private val service: BarnetrygdService
 ) : Runnable {
 
     companion object {
@@ -29,6 +28,7 @@ class BarnetrygdProcessingTask(
                 service.prosesserBarnetrygdmottakere()
             } catch (ex: Throwable) {
                 log.error("Exception caught while processing, message:${ex.message}, cause:${ex.cause}")
+                Thread.sleep(1000)
             }
         }
     }

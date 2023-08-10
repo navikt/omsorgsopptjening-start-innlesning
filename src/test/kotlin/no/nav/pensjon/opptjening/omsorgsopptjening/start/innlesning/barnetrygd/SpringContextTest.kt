@@ -2,6 +2,8 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Application
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaIntegrationTestConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -26,15 +28,15 @@ sealed class SpringContextTest {
         PostgresqlTestContainer.instance.removeDataFromDB()
     }
 
-    @ActiveProfiles("no-kafka")
-    @SpringBootTest(classes = [no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.App::class])
+    @SpringBootTest(classes = [Application::class])
     @EnableMockOAuth2Server
     class NoKafka : SpringContextTest() {
 
     }
 
+    @ActiveProfiles("kafkaIntegrationTest")
     @EmbeddedKafka(partitions = 1, topics = [Topics.BARNETRYGDMOTTAKER, Topics.Omsorgsopptjening.NAME])
-    @SpringBootTest(classes = [no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.App::class])
+    @SpringBootTest(classes = [Application::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
     class WithKafka : SpringContextTest() {

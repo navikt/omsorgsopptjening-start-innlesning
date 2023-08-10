@@ -4,17 +4,16 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Component
 import pensjon.opptjening.azure.ad.client.AzureAdTokenProvider
 import pensjon.opptjening.azure.ad.client.AzureAdVariableConfig
 import pensjon.opptjening.azure.ad.client.TokenProvider
 
 @Configuration
+@Profile("dev-gcp", "prod-gcp")
 class TokenProviderConfig {
 
     @Bean
-    @Profile("dev-gcp", "prod-gcp")
-    fun omsorgsopptjeningbBstemAzureAdConfig(
+    fun azureAdConfig(
         @Value("\${AZURE_APP_CLIENT_ID}") azureAppClientId: String,
         @Value("\${AZURE_APP_CLIENT_SECRET}") azureAppClientSecret: String,
         @Value("dev-gcp.pensjonopptjening.omsorgsarbeid-ba-mock") scope: String,
@@ -28,7 +27,6 @@ class TokenProviderConfig {
 
 
     @Bean
-    @Profile("dev-gcp", "prod-gcp")
     fun tokenProvider(azureAdVariableConfig: AzureAdVariableConfig): TokenProvider =
         AzureAdTokenProvider(azureAdVariableConfig)
 }

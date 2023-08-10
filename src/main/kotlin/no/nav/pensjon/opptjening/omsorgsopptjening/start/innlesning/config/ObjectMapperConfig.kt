@@ -10,12 +10,11 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class ObjectMapperConfig {
-
     @Bean
     fun objectMapper(): ObjectMapper {
         return jacksonObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .registerModule( JavaTimeModule())
+            .registerModule(JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
 }

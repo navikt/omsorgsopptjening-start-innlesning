@@ -1,70 +1,111 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
-import io.hypersistence.utils.hibernate.type.json.JsonType
-import jakarta.persistence.*
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
-import org.hibernate.annotations.DynamicInsert
-import org.hibernate.annotations.Type
-import java.time.Clock
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 
-@Entity(name = "barnetrygdmottaker")
-@DynamicInsert
-class Barnetrygdmottaker {
+data class Barnetrygdmottaker(
+    val id: UUID? = null,
+    var opprettet: Instant? = null,
+    var ident: String,
+    var år: Int,
+    var correlationId: String,
+    val statushistorikk: List<Status> = listOf(Status.Klar())
+) {
+    val status: Status get() = statushistorikk.last()
+    fun ferdig(): Barnetrygdmottaker {
+        return copy(statushistorikk = statushistorikk + status.ferdig())
+    }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    val id: Long? = null
+    fun retry(melding: String): Barnetrygdmottaker {
+        return copy(statushistorikk = statushistorikk + status.retry(melding))
+    }
 
-    @Column(name = "ident", nullable = false)
-    var ident: String? = null
-
-    @Column(name = "ar", nullable = false)
-    var ar: Int? = null
-
-    @Column(name = "opprettet", nullable = false)
-    var opprettet: Instant = Instant.now(Clock.systemUTC())
-
-    @Column(name = "correlationid", nullable = false)
-    var correlationId: String = CorrelationId.generate()
-
-    @Column(name = "status", nullable = false)
-    @Type(JsonType::class)
-    @Convert(converter = StatusConverter::class)
-    var status: Status = Status.Klar(opprettet)
-
-    constructor()
     constructor(
         ident: String,
         år: Int,
         correlationId: String,
-    ) : this() {
-        apply {
-            this.ident = ident
-            this.ar = år
-            this.correlationId = correlationId
+    ) : this(
+        id = null,
+        opprettet = null,
+        ident = ident,
+        år = år,
+        correlationId = correlationId,
+    )
+
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type",
+    )
+    sealed class Status {
+
+        open fun ferdig(): Ferdig {
+            throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Ferdig")
         }
-    }
-    fun ferdig() {
-        status = status.ferdig()
-    }
-    fun retry() {
-        status = status.retry()
-    }
-}
 
-@Converter
-class StatusConverter(): AttributeConverter<Status, String> {
-    override fun convertToDatabaseColumn(attribute: Status?): String {
-        return serialize(attribute!!)
-    }
+        open fun retry(melding: String): Status {
+            throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Retry")
+        }
 
-    override fun convertToEntityAttribute(dbData: String?): Status {
-        return deserialize(dbData!!)
+        @JsonTypeName("Klar")
+        data class Klar(
+            val tidspunkt: Instant = Instant.now()
+        ) : Status() {
+            override fun ferdig(): Ferdig {
+                return Ferdig()
+            }
+
+            override fun retry(melding: String): Status {
+                return Retry(melding = melding)
+            }
+        }
+
+        @JsonTypeName("Ferdig")
+        data class Ferdig(
+            val tidspunkt: Instant = Instant.now(),
+        ) : Status()
+
+        @JsonTypeName("Retry")
+        data class Retry(
+            val tidspunkt: Instant = Instant.now(),
+            val antallForsøk: Int = 1,
+            val maxAntallForsøk: Int = 3,
+            val karanteneTil: Instant = tidspunkt.plus(5, ChronoUnit.HOURS),
+            val melding: String,
+        ) : Status() {
+            override fun ferdig(): Ferdig {
+                return Ferdig()
+            }
+
+            override fun retry(melding: String): Status {
+                return when {
+                    antallForsøk < maxAntallForsøk -> {
+                        Retry(
+                            tidspunkt = Instant.now(),
+                            antallForsøk = antallForsøk + 1,
+                            melding = melding,
+                        )
+                    }
+
+                    antallForsøk == maxAntallForsøk -> {
+                        Feilet()
+                    }
+
+                    else -> {
+                        super.retry(melding)
+                    }
+                }
+            }
+        }
+
+        @JsonTypeName("Feilet")
+        data class Feilet(
+            val tidspunkt: Instant = Instant.now(),
+        ) : Status()
     }
 
 }

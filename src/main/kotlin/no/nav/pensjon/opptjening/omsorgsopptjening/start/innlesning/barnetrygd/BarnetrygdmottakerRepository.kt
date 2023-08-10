@@ -1,9 +1,101 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.mapper
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import org.springframework.jdbc.core.RowMapper
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import org.springframework.jdbc.support.GeneratedKeyHolder
+import org.springframework.stereotype.Component
+import java.sql.ResultSet
+import java.time.Clock
+import java.time.Instant
+import java.util.UUID
 
-interface BarnetrygdmottakerRepository: JpaRepository<Barnetrygdmottaker, Long> {
-    @Query("""select * from barnetrygdmottaker where status ->> 'type' in ('Klar', 'Retry') limit 1""", nativeQuery = true)
-    fun finnNesteUprosesserte(): Barnetrygdmottaker?
+inline fun <reified T> List<T>.serialize(): String {
+    val listType = mapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
+    return mapper.writerFor(listType).writeValueAsString(this)
+}
+
+inline fun <reified T> String.deserializeList(): List<T> {
+    val listType = mapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
+    return mapper.readerFor(listType).readValue(this)
+}
+
+@Component
+class BarnetrygdmottakerRepository(
+    private val jdbcTemplate: NamedParameterJdbcTemplate,
+    private val clock: Clock = Clock.systemUTC()
+) {
+    fun save(melding: Barnetrygdmottaker): Barnetrygdmottaker {
+        val keyHolder = GeneratedKeyHolder()
+        jdbcTemplate.update(
+            """insert into barnetrygdmottaker (ident, ar, correlation_id) values (:ident, :ar, :correlation_id)""",
+            MapSqlParameterSource(
+                mapOf<String, Any>(
+                    "ident" to melding.ident,
+                    "ar" to melding.år,
+                    "correlation_id" to melding.correlationId,
+                ),
+            ),
+            keyHolder
+        )
+        jdbcTemplate.update(
+            """insert into barnetrygdmottaker_status (id, status, statushistorikk) values (:id, to_json(:status::json), to_json(:statushistorikk::json))""",
+            MapSqlParameterSource(
+                mapOf<String, Any>(
+                    "id" to keyHolder.keys!!["id"] as UUID,
+                    "status" to serialize(melding.status),
+                    "statushistorikk" to melding.statushistorikk.serialize()
+                ),
+            ),
+        )
+        return find(keyHolder.keys!!["id"] as UUID)
+    }
+
+    fun updateStatus(melding: Barnetrygdmottaker) {
+        jdbcTemplate.update(
+            """update barnetrygdmottaker_status set status = to_json(:status::json), statushistorikk = to_json(:statushistorikk::json) where id = :id""",
+            MapSqlParameterSource(
+                mapOf<String, Any>(
+                    "id" to melding.id!!,
+                    "status" to serialize(melding.status),
+                    "statushistorikk" to melding.statushistorikk.serialize()
+                ),
+            ),
+        )
+    }
+
+    fun find(id: UUID): Barnetrygdmottaker {
+        return jdbcTemplate.query(
+            """select b.*, bs.statushistorikk from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id where b.id = :id""",
+            mapOf<String, Any>(
+                "id" to id
+            ),
+            BarnetrygdmottakerRowMapper()
+        ).single()
+    }
+
+    fun finnNesteUprosesserte(): Barnetrygdmottaker? {
+        return jdbcTemplate.query(
+            """select b.*, bs.statushistorikk from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id where (bs.status->>'type' = 'Klar') or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz) fetch first row only for update of b skip locked""",
+            mapOf(
+                "now" to Instant.now(clock).toString()
+            ),
+            BarnetrygdmottakerRowMapper()
+        ).singleOrNull()
+    }
+
+    internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker> {
+        override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker {
+            return Barnetrygdmottaker(
+                id = UUID.fromString(rs.getString("id")),
+                opprettet = rs.getTimestamp("opprettet").toInstant(),
+                ident = rs.getString("ident"),
+                år = rs.getInt("ar"),
+                correlationId = rs.getString("correlation_id"),
+                statushistorikk = rs.getString("statushistorikk").deserializeList(),
+            )
+        }
+    }
 }

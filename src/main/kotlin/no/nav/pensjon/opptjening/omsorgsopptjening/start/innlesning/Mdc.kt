@@ -4,7 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import org.slf4j.MDC
 
 object Mdc {
-    fun scopedMdc(key: String, value: String, block: () -> Any){
+    fun <T> scopedMdc(key: String, value: String, block: () -> T): T{
         return MDC.putCloseable(key, value).use { block() }
     }
 

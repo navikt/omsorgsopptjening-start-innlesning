@@ -4,7 +4,6 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.junit.platform.commons.logging.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
@@ -12,20 +11,15 @@ import org.springframework.stereotype.Component
 
 
 @Component
-@Profile("!no-kafka")
-class ProducedMessageListener {
+@Profile("kafkaIntegrationTest")
+class OmsorgsopptjeningTopicListener {
 
     private val records: MutableList<ConsumerRecord<String, String>> = mutableListOf()
 
-    init {
-        LoggerFactory.getLogger(this::class.java).error { "THIS IS MY $this" }
-    }
-
     @KafkaListener(
-        containerFactory = "consumerContainerFactory",
-        idIsGroup = false,
+        containerFactory = "listener",
         topics = [Topics.Omsorgsopptjening.NAME],
-        groupId = "todo-produced-messages-group"
+        groupId = "test-omsorgsgrunnlag-listener"
     )
     private fun poll(record: ConsumerRecord<String, String>, ack: Acknowledgment) {
         records.add(record)
@@ -40,6 +34,6 @@ class ProducedMessageListener {
         }
         return records.firstOrNull()
             ?.also { records.remove(it) }
-            ?: throw RuntimeException("No messages of type:${KafkaMessageType.OPPTJENING} to consume")
+            ?: throw RuntimeException("No messages of type:${KafkaMessageType.OMSORGSGRUNNLAG} to consume")
     }
 }

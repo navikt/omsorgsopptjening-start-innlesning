@@ -43,7 +43,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
 
-    implementation("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -51,10 +50,9 @@ dependencies {
 
 
     // DB
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
-    implementation("io.hypersistence:hypersistence-utils-hibernate-60:3.5.0")
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test")
