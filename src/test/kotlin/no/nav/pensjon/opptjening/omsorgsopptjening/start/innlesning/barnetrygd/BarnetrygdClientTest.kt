@@ -31,23 +31,23 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
     @Test
     fun `returner ok dersom kall til hent-barnetrygdmottakere går bra`() {
         wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygdmottakere"))
+            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
                 .withHeader(CorrelationId.name, AnythingPattern())
                 .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(WireMock.ok().withBody("ok"))
+                .willReturn(WireMock.aResponse().withStatus(202).withBody("123enfinid"))
         )
 
         client.hentBarnetrygdmottakere(ar = 2020).also {
-            assertInstanceOf(HentBarnetygdmottakereResponse.Ok::class.java, it)
+            assertEquals(HentBarnetygdmottakereResponse.Ok("123enfinid", 2020), it)
         }
     }
 
     @Test
     fun `returner feil med diverse informasjon dersom kall til hent-barnetrygdmottakere gir 500`() {
         wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygdmottakere"))
+            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
                 .withHeader(CorrelationId.name, AnythingPattern())
                 .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
@@ -85,7 +85,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
     @Test
     fun `returner feil dersom kall til hent-barnetrygdmottakere gir andre feil enn 500`() {
         wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygdmottakere"))
+            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
                 .withHeader(CorrelationId.name, AnythingPattern())
                 .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))

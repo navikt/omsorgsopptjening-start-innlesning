@@ -11,10 +11,24 @@ data class Barnetrygdmottaker(
     val id: UUID? = null,
     var opprettet: Instant? = null,
     var ident: String,
-    var år: Int,
-    var correlationId: String,
-    val statushistorikk: List<Status> = listOf(Status.Klar())
+    var år: Int? = null,
+    var correlationId: UUID,
+    val statushistorikk: List<Status> = listOf(Status.Klar()),
+    val requestId: String
 ) {
+    constructor(
+        ident: String,
+        correlationId: UUID,
+        requestId: String
+    ) : this(
+        id = null,
+        opprettet = null,
+        år = null,
+        ident = ident,
+        correlationId = correlationId,
+        requestId = requestId
+    )
+
     val status: Status get() = statushistorikk.last()
     fun ferdig(): Barnetrygdmottaker {
         return copy(statushistorikk = statushistorikk + status.ferdig())
@@ -23,18 +37,6 @@ data class Barnetrygdmottaker(
     fun retry(melding: String): Barnetrygdmottaker {
         return copy(statushistorikk = statushistorikk + status.retry(melding))
     }
-
-    constructor(
-        ident: String,
-        år: Int,
-        correlationId: String,
-    ) : this(
-        id = null,
-        opprettet = null,
-        ident = ident,
-        år = år,
-        correlationId = correlationId,
-    )
 
     @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

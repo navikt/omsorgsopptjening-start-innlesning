@@ -25,7 +25,7 @@ class BarnetrygdmottakerProsesseringsTråd(
     override fun run() {
         while (true) {
             try {
-                service.prosesserBarnetrygdmottakere()
+                service.process()
             } catch (ex: Throwable) {
                 log.error("Exception caught while processing, message:${ex.message}, cause:${ex.cause}")
                 Thread.sleep(1000)

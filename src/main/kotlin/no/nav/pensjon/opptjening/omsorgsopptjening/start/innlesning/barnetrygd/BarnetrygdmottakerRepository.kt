@@ -30,12 +30,12 @@ class BarnetrygdmottakerRepository(
     fun save(melding: Barnetrygdmottaker): Barnetrygdmottaker {
         val keyHolder = GeneratedKeyHolder()
         jdbcTemplate.update(
-            """insert into barnetrygdmottaker (ident, ar, correlation_id) values (:ident, :ar, :correlation_id)""",
+            """insert into barnetrygdmottaker (ident, correlation_id, request_id) values (:ident, :correlation_id, :request_id)""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "ident" to melding.ident,
-                    "ar" to melding.år,
                     "correlation_id" to melding.correlationId,
+                    "request_id" to melding.requestId,
                 ),
             ),
             keyHolder
@@ -68,7 +68,7 @@ class BarnetrygdmottakerRepository(
 
     fun find(id: UUID): Barnetrygdmottaker {
         return jdbcTemplate.query(
-            """select b.*, bs.statushistorikk from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id where b.id = :id""",
+            """select b.*, bs.statushistorikk, i.id as request_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.request_id where b.id = :id""",
             mapOf<String, Any>(
                 "id" to id
             ),
@@ -76,9 +76,14 @@ class BarnetrygdmottakerRepository(
         ).single()
     }
 
+    /**
+     * Utformet for å være mekanismen som tilrettelegger for at flere podder kan prosessere data i paralell.
+     * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en
+     * annen connection (pod) så lenge transaksjonen lever.
+     */
     fun finnNesteUprosesserte(): Barnetrygdmottaker? {
         return jdbcTemplate.query(
-            """select b.*, bs.statushistorikk from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id where (bs.status->>'type' = 'Klar') or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz) fetch first row only for update of b skip locked""",
+            """select b.*, bs.statushistorikk, i.id as request_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.request_id where i.ferdig_tidspunkt is not null and (bs.status->>'type' = 'Klar') or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz) fetch first row only for update of b skip locked""",
             mapOf(
                 "now" to Instant.now(clock).toString()
             ),
@@ -92,9 +97,10 @@ class BarnetrygdmottakerRepository(
                 id = UUID.fromString(rs.getString("id")),
                 opprettet = rs.getTimestamp("opprettet").toInstant(),
                 ident = rs.getString("ident"),
-                år = rs.getInt("ar"),
-                correlationId = rs.getString("correlation_id"),
+                år = rs.getInt("år"),
+                correlationId = UUID.fromString(rs.getString("correlation_id")),
                 statushistorikk = rs.getString("statushistorikk").deserializeList(),
+                requestId = rs.getString("request_id")
             )
         }
     }

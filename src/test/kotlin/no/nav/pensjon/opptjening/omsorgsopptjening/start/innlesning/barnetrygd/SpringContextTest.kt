@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Application
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaIntegrationTestConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
@@ -15,6 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import java.util.UUID
 
 @DirtiesContext
 sealed class SpringContextTest {
@@ -46,18 +48,51 @@ sealed class SpringContextTest {
 
         @Autowired
         lateinit var objectMapper: ObjectMapper
-
-        fun sendBarnetrygdMottakerKafka(
-            melding: BarnetrygdmottakerKafkaListener.KafkaMelding
+        fun sendStartInnlesingKafka(
+            requestId: String
         ) {
-            val omsorgsArbeid = objectMapper.writeValueAsString(melding)
+            val pr = ProducerRecord(
+                Topics.BARNETRYGDMOTTAKER,
+                null,
+                "",
+                serialize(
+                    KafkaMelding(
+                        meldingstype = KafkaMelding.Type.START,
+                        requestId = UUID.fromString(requestId),
+                        personident = null
+                    )
+                ),
+            )
+            kafkaProducer.send(pr).get()
+        }
 
+        fun sendBarnetrygdmottakerDataKafka(
+            melding: KafkaMelding,
+        ) {
             val pr = ProducerRecord(
                 Topics.BARNETRYGDMOTTAKER,
                 null,
                 null,
-                melding.ident,
-                omsorgsArbeid
+                melding.personident,
+                serialize(melding),
+            )
+            kafkaProducer.send(pr).get()
+        }
+
+        fun sendSluttInnlesingKafka(
+            requestId: String
+        ) {
+            val pr = ProducerRecord(
+                Topics.BARNETRYGDMOTTAKER,
+                null,
+                "",
+                serialize(
+                    KafkaMelding(
+                        meldingstype = KafkaMelding.Type.SLUTT,
+                        requestId = UUID.fromString(requestId),
+                        personident = null
+                    )
+                ),
             )
             kafkaProducer.send(pr).get()
         }

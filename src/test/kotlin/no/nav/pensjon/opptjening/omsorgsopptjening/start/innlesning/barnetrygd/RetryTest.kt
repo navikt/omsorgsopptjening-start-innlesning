@@ -7,6 +7,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Innlesing
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
@@ -22,21 +24,25 @@ import org.springframework.kafka.core.KafkaTemplate
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
 
 class RetryTest : SpringContextTest.NoKafka() {
     @Autowired
-    lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository
+    private lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository
 
     @Autowired
-    lateinit var barnetrygdService: BarnetrygdService
+    private lateinit var barnetrygdService: BarnetrygdService
 
     @MockBean
-    lateinit var kafkaTemplate: KafkaTemplate<String, String>
+    private lateinit var kafkaTemplate: KafkaTemplate<String, String>
 
     @MockBean
-    lateinit var clock: Clock
+    private lateinit var clock: Clock
+
+    @Autowired
+    private lateinit var innlesingRepo: InnlesingRepo
 
     companion object {
         @RegisterExtension
@@ -56,22 +62,32 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val barnetrygdmottaker = barnetrygdmottakerRepository.save(Barnetrygdmottaker("12345678910", 2023, "xx"))
+        val innlesing = innlesingRepo.forespurt(Innlesing(id = UUID.randomUUID().toString(), år = 2023))
+            .also { innlesingRepo.fullført(id = it.id) }
+
+        val barnetrygdmottaker = barnetrygdmottakerRepository.save(
+            Barnetrygdmottaker(
+                ident = "12345678910",
+                år = 2023,
+                correlationId = UUID.randomUUID(),
+                requestId = innlesing.id
+            )
+        )
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
         )
 
-        barnetrygdService.prosesserBarnetrygdmottakere()
+        barnetrygdService.process()
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
                 assertEquals(1, it.antallForsøk)
                 assertEquals(3, it.maxAntallForsøk)
             }
         }
-        barnetrygdService.prosesserBarnetrygdmottakere()
-        barnetrygdService.prosesserBarnetrygdmottakere()
-        barnetrygdService.prosesserBarnetrygdmottakere()
+        barnetrygdService.process()
+        barnetrygdService.process()
+        barnetrygdService.process()
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Feilet::class.java,
@@ -88,6 +104,9 @@ class RetryTest : SpringContextTest.NoKafka() {
          * Stiller klokka litt fram i tid for å unngå at [Barnetrygdmottaker.Status.Retry.karanteneTil] fører til at vi hopper over raden.
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
+
+        val innlesing = innlesingRepo.forespurt(Innlesing(id = UUID.randomUUID().toString(), år = 2023))
+            .also { innlesingRepo.fullført(id = it.id) }
 
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
@@ -118,14 +137,21 @@ class RetryTest : SpringContextTest.NoKafka() {
                 )
         )
 
-        val barnetrygdmottaker = barnetrygdmottakerRepository.save(Barnetrygdmottaker("12345678910", 2023, "xx"))
+        val barnetrygdmottaker = barnetrygdmottakerRepository.save(
+            Barnetrygdmottaker(
+                ident = "12345678910",
+                år = 2023,
+                correlationId = UUID.randomUUID(),
+                requestId = innlesing.id
+            )
+        )
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
         )
 
-        barnetrygdService.prosesserBarnetrygdmottakere()
+        barnetrygdService.process()
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).let {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
                 assertEquals(1, it.antallForsøk)
@@ -133,7 +159,7 @@ class RetryTest : SpringContextTest.NoKafka() {
             }
         }
 
-        barnetrygdService.prosesserBarnetrygdmottakere()
+        barnetrygdService.process()
         assertInstanceOf(
             Barnetrygdmottaker.Status.Ferdig::class.java,
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
@@ -153,7 +179,17 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val barnetrygdmottaker = barnetrygdmottakerRepository.save(Barnetrygdmottaker("12345678910", 2023, "xx"))
+        val innlesing = innlesingRepo.forespurt(Innlesing(id = UUID.randomUUID().toString(), år = 2023))
+            .also { innlesingRepo.fullført(id = it.id) }
+
+        val barnetrygdmottaker = barnetrygdmottakerRepository.save(
+            Barnetrygdmottaker(
+                ident = "12345678910",
+                år = 2023,
+                correlationId = UUID.randomUUID(),
+                requestId = innlesing.id
+            )
+        )
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
@@ -161,7 +197,7 @@ class RetryTest : SpringContextTest.NoKafka() {
         )
 
         assertThrows<JsonParseException> {
-            barnetrygdService.prosesserBarnetrygdmottakere()
+            barnetrygdService.process()
         }
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).also {

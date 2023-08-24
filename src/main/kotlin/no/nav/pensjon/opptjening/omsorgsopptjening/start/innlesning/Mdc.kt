@@ -4,8 +4,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import org.slf4j.MDC
 
 object Mdc {
-    fun <T> scopedMdc(key: String, value: String, block: () -> T): T{
-        return MDC.putCloseable(key, value).use { block() }
+    fun <T> scopedMdc(key: String, value: String, block: (value: String) -> T): T{
+        return MDC.putCloseable(key, value).use { block(value) }
     }
 
     fun getOrCreateCorrelationId(): String {

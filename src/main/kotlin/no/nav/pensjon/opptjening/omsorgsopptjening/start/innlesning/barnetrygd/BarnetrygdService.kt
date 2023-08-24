@@ -35,16 +35,16 @@ class BarnetrygdService(
     }
 
     @Transactional(rollbackFor = [Throwable::class])
-    fun prosesserBarnetrygdmottakere(): Barnetrygdmottaker? {
+    fun process(): Barnetrygdmottaker? {
         return repo.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
-            Mdc.scopedMdc(CorrelationId.name, barnetrygdmottaker.correlationId) {
+            Mdc.scopedMdc(CorrelationId.name, barnetrygdmottaker.correlationId.toString()) {
                 try {
                     log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
-                    log.info("Henter detaljer")
 
+                    log.info("Henter detaljer")
                     client.hentBarnetrygd(
                         ident = barnetrygdmottaker.ident,
-                        ar = barnetrygdmottaker.år,
+                        ar = barnetrygdmottaker.år!!,
                     ).let { response ->
                         when (response) {
                             is HentBarnetrygdResponse.Feil -> {
@@ -59,13 +59,13 @@ class BarnetrygdService(
                                 log.info("Publiserer detaljer til topic:${Topics.Omsorgsopptjening.NAME}")
                                 barnetrygdmottaker.ferdig()
                                     .also {
-                                        repo.updateStatus(it)
                                         kafkaProducer.send(
                                             createKafkaMessage(
                                                 barnetrygdmottaker = it,
                                                 saker = response.barnetrygdsaker
                                             )
                                         ).get()
+                                        repo.updateStatus(it)
                                         log.info("Prosessering fullført")
                                     }
 
@@ -97,7 +97,7 @@ class BarnetrygdService(
                 OmsorgsgrunnlagMelding(
                     omsorgsyter = barnetrygdmottaker.ident,
                     omsorgstype = Omsorgstype.BARNETRYGD,
-                    kjoreHash = "xxx",
+                    kjoreHash = barnetrygdmottaker.requestId,
                     kilde = Kilde.BARNETRYGD,
                     saker = saker.map { barnetrygdSak ->
                         OmsorgsgrunnlagMelding.Sak(
@@ -122,7 +122,7 @@ class BarnetrygdService(
                 ),
                 RecordHeader(
                     CorrelationId.name,
-                    barnetrygdmottaker.correlationId.toByteArray()
+                    barnetrygdmottaker.correlationId.toString().toByteArray()
                 )
             ),
         )

@@ -42,9 +42,8 @@ class BarnetrygdClient(
         log.info("Initiating sending of barnetrygdmottakere")
         return webClient
             .post()
-            .uri("/api/ekstern/pensjon/hent-barnetrygdmottakere")
+            .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/$ar")
             .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
             .body(
@@ -57,16 +56,16 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { handleHentBarnetrygdmottakere(it) } ?: HentBarnetygdmottakereResponse.Feil(
+            .block()?.let { handleHentBarnetrygdmottakere(it, ar) } ?: HentBarnetygdmottakereResponse.Feil(
             null,
             null
         )
     }
 
-    private fun handleHentBarnetrygdmottakere(it: ResponseEntity<String>): HentBarnetygdmottakereResponse {
+    private fun handleHentBarnetrygdmottakere(it: ResponseEntity<String>, ar: Int): HentBarnetygdmottakereResponse {
         return when (val status = it.statusCode) {
-            HttpStatus.OK -> {
-                HentBarnetygdmottakereResponse.Ok
+            HttpStatus.ACCEPTED -> {
+                HentBarnetygdmottakereResponse.Ok(it.body!!, ar)
             }
 
             HttpStatus.INTERNAL_SERVER_ERROR -> {
@@ -174,7 +173,7 @@ class BarnetrygdClient(
 }
 
 sealed class HentBarnetygdmottakereResponse {
-    object Ok : HentBarnetygdmottakereResponse()
+    data class Ok(val requestId: String, val år: Int) : HentBarnetygdmottakereResponse()
     data class Feil(val status: Int?, val body: String?) : HentBarnetygdmottakereResponse()
 }
 

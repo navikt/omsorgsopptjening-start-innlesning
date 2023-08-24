@@ -9,6 +9,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Innlesing
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -16,11 +18,15 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import java.util.UUID
 
 class KafkaIntegrationTest : SpringContextTest.WithKafka() {
 
     @Autowired
-    lateinit var listener: OmsorgsopptjeningTopicListener
+    private lateinit var listener: OmsorgsopptjeningTopicListener
+
+    @Autowired
+    private lateinit var innlesingRepo: InnlesingRepo
 
     companion object {
         @RegisterExtension
@@ -55,7 +61,16 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
 
         )
 
-        sendBarnetrygdMottakerKafka(BarnetrygdmottakerKafkaListener.KafkaMelding("12345678910", 20))
+        val innlesing = innlesingRepo.forespurt(Innlesing(UUID.randomUUID().toString(), 2020))
+        sendStartInnlesingKafka(innlesing.id)
+        sendBarnetrygdmottakerDataKafka(
+            melding = KafkaMelding(
+                meldingstype = KafkaMelding.Type.DATA,
+                requestId = UUID.fromString(innlesing.id),
+                personident = "12345678910"
+            )
+        )
+        sendSluttInnlesingKafka(innlesing.id)
 
         listener.removeFirstRecord(5).let {
             assertEquals(
@@ -66,7 +81,7 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
             )
             assertEquals(
                 """
-                    {"omsorgsyter":"12345678910","omsorgstype":"BARNETRYGD","kjoreHash":"xxx","kilde":"BARNETRYGD","saker":[{"omsorgsyter":"12345678910","vedtaksperioder":[]}],"rådata":{"data":"[{\"fagsakId\":\"1\",\"fagsakEiersIdent\":\"12345678910\",\"barnetrygdPerioder\":[]}]"}}
+                    {"omsorgsyter":"12345678910","omsorgstype":"BARNETRYGD","kjoreHash":"${innlesing.id}","kilde":"BARNETRYGD","saker":[{"omsorgsyter":"12345678910","vedtaksperioder":[]}],"rådata":{"data":"[{\"fagsakId\":\"1\",\"fagsakEiersIdent\":\"12345678910\",\"barnetrygdPerioder\":[]}]"}}
                 """.trimIndent(),
                 it.value()
             )
