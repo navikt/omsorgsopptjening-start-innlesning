@@ -1,7 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.annotation.Profile
@@ -34,6 +33,6 @@ class OmsorgsopptjeningTopicListener {
         }
         return records.firstOrNull()
             ?.also { records.remove(it) }
-            ?: throw RuntimeException("No messages of type:${KafkaMessageType.OMSORGSGRUNNLAG} to consume")
+            ?: throw RuntimeException("No messages of type to consume")
     }
 }

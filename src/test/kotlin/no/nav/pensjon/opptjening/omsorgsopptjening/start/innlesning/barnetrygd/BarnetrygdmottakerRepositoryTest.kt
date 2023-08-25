@@ -1,5 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Innlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
 import org.junit.jupiter.api.Assertions
@@ -7,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.TransactionTemplate
-import java.util.UUID
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -24,19 +25,19 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `finner ingen meldinger som skal prosesseres før alle meldingene i forsendelsen er lest inn`() {
-        val innlesing = innlesingRepo.forespurt(Innlesing(id = UUID.randomUUID().toString(), år = 2023))
+        val innlesing = innlesingRepo.forespurt(Innlesing(id = InnlesingId.generate(), år = 2023))
 
         barnetrygdmottakerRepository.save(
             melding = Barnetrygdmottaker(
                 ident = "123",
-                correlationId = UUID.randomUUID(),
-                requestId = innlesing.id
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
             )
         )
 
         assertNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
 
-        innlesingRepo.fullført(innlesing.id)
+        innlesingRepo.fullført(innlesing.id.toString())
 
         assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
     }
@@ -44,15 +45,15 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
     @Test
     fun `finnNesteUprosesserte låser raden slik at den ikke plukkes opp av andre connections`() {
         val innlesing = innlesingRepo.forespurt(Innlesing(
-            id = UUID.randomUUID().toString(),
+            id = InnlesingId.generate(),
             år = 2023
-        )).also { innlesingRepo.fullført(it.id) }
+        )).also { innlesingRepo.fullført(it.id.toString()) }
 
         barnetrygdmottakerRepository.save(
             melding = Barnetrygdmottaker(
                 ident = "123",
-                correlationId = UUID.randomUUID(),
-                requestId = innlesing.id
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
             )
         )
 

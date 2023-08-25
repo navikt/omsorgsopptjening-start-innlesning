@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.BarnetrygdService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.HentBarnetygdmottakereResponse
 import no.nav.security.token.support.core.api.Protected
@@ -29,7 +30,7 @@ class WebApi(
                 }
 
                 is HentBarnetygdmottakereResponse.Ok -> {
-                    innlesingRepo.forespurt(Innlesing(id = it.requestId, år = it.år))
+                    innlesingRepo.forespurt(Innlesing(id = InnlesingId.fromString(it.requestId), år = it.år))
                     ResponseEntity.ok("""Forespurt innlesning: ${it.requestId} for $ar""")
                 }
             }

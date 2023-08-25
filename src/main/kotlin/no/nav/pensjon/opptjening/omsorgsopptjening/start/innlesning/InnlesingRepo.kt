@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -17,7 +18,7 @@ class InnlesingRepo(
             """insert into innlesing (id, år, forespurt_tidspunkt) values (:id, :ar, now())""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
-                    "id" to innlesing.id,
+                    "id" to innlesing.id.toString(),
                     "ar" to innlesing.år,
                 ),
             ),
@@ -65,7 +66,7 @@ class InnlesingRepo(
     private class InnlesingRowMapper : RowMapper<Innlesing> {
         override fun mapRow(rs: ResultSet, rowNum: Int): Innlesing? {
             return Innlesing(
-                id = rs.getString("id"),
+                id = InnlesingId.fromString(rs.getString("id")),
                 år = rs.getInt("år"),
                 forespurtTidspunkt = rs.getTimestamp("forespurt_tidspunkt").toInstant(),
                 startTidspunkt = rs.getTimestamp("start_tidspunkt")?.toInstant(),

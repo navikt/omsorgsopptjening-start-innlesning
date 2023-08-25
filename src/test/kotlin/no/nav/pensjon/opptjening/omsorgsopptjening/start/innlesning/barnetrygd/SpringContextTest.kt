@@ -37,7 +37,7 @@ sealed class SpringContextTest {
     }
 
     @ActiveProfiles("kafkaIntegrationTest")
-    @EmbeddedKafka(partitions = 1, topics = [Topics.BARNETRYGDMOTTAKER, Topics.Omsorgsopptjening.NAME])
+    @EmbeddedKafka(partitions = 1, topics = [BarnetrygdTopic.NAME, Topics.Omsorgsopptjening.NAME])
     @SpringBootTest(classes = [Application::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
@@ -52,7 +52,7 @@ sealed class SpringContextTest {
             requestId: String
         ) {
             val pr = ProducerRecord(
-                Topics.BARNETRYGDMOTTAKER,
+                BarnetrygdTopic.NAME,
                 null,
                 "",
                 serialize(
@@ -70,7 +70,7 @@ sealed class SpringContextTest {
             melding: KafkaMelding,
         ) {
             val pr = ProducerRecord(
-                Topics.BARNETRYGDMOTTAKER,
+                BarnetrygdTopic.NAME,
                 null,
                 null,
                 melding.personident,
@@ -83,7 +83,7 @@ sealed class SpringContextTest {
             requestId: String
         ) {
             val pr = ProducerRecord(
-                Topics.BARNETRYGDMOTTAKER,
+                BarnetrygdTopic.NAME,
                 null,
                 "",
                 serialize(

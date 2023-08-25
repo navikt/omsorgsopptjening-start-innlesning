@@ -1,17 +1,17 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.UUID
 
 class StatusTest {
 
     private val barnetrygdmottaker = Barnetrygdmottaker(
         ident = "12345678910",
-        år = 2023,
-        correlationId = UUID.randomUUID(),
-        requestId = UUID.randomUUID().toString()
+        correlationId = CorrelationId.generate(),
+        innlesingId = InnlesingId.generate()
     )
 
     @Test

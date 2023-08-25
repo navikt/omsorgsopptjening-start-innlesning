@@ -2,6 +2,8 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -12,21 +14,21 @@ data class Barnetrygdmottaker(
     var opprettet: Instant? = null,
     var ident: String,
     var år: Int? = null,
-    var correlationId: UUID,
+    var correlationId: CorrelationId,
     val statushistorikk: List<Status> = listOf(Status.Klar()),
-    val requestId: String
+    val innlesingId: InnlesingId
 ) {
     constructor(
         ident: String,
-        correlationId: UUID,
-        requestId: String
+        correlationId: CorrelationId,
+        innlesingId: InnlesingId
     ) : this(
         id = null,
         opprettet = null,
         år = null,
         ident = ident,
         correlationId = correlationId,
-        requestId = requestId
+        innlesingId = innlesingId
     )
 
     val status: Status get() = statushistorikk.last()

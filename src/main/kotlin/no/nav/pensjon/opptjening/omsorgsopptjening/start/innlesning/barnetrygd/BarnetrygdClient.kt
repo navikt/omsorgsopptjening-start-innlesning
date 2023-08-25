@@ -1,8 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -43,7 +43,8 @@ class BarnetrygdClient(
         return webClient
             .post()
             .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/$ar")
-            .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
+            .header(CorrelationId.identifier, Mdc.getCorrelationId())
+            .header(InnlesingId.identifier, Mdc.getInnlesingId())
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
             .body(
@@ -100,7 +101,7 @@ class BarnetrygdClient(
         return webClient
             .post()
             .uri("/api/ekstern/pensjon/hent-barnetrygd")
-            .header(CorrelationId.name, Mdc.getOrCreateCorrelationId())
+            .header(CorrelationId.identifier, Mdc.getCorrelationId())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())

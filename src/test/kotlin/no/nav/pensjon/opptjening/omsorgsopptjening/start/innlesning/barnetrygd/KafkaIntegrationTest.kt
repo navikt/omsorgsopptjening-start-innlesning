@@ -6,8 +6,9 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.KafkaMessageType
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Innlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
@@ -39,7 +40,7 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
     fun test() {
         wiremock.stubFor(
             WireMock.post(urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
-                .withHeader(CorrelationId.name, AnythingPattern())
+                .withHeader(CorrelationId.identifier, AnythingPattern())
                 .withHeader(HttpHeaders.CONTENT_TYPE, WireMock.equalTo(MediaType.APPLICATION_JSON_VALUE))
                 .withHeader(HttpHeaders.ACCEPT, WireMock.equalTo(MediaType.APPLICATION_JSON_VALUE))
                 .withHeader(HttpHeaders.AUTHORIZATION, WireMock.equalTo("Bearer test.token.test"))
@@ -61,16 +62,16 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
 
         )
 
-        val innlesing = innlesingRepo.forespurt(Innlesing(UUID.randomUUID().toString(), 2020))
-        sendStartInnlesingKafka(innlesing.id)
+        val innlesing = innlesingRepo.forespurt(Innlesing(InnlesingId.generate(), 2020))
+        sendStartInnlesingKafka(innlesing.id.toString())
         sendBarnetrygdmottakerDataKafka(
             melding = KafkaMelding(
                 meldingstype = KafkaMelding.Type.DATA,
-                requestId = UUID.fromString(innlesing.id),
+                requestId = UUID.fromString(innlesing.id.toString()),
                 personident = "12345678910"
             )
         )
-        sendSluttInnlesingKafka(innlesing.id)
+        sendSluttInnlesingKafka(innlesing.id.toString())
 
         listener.removeFirstRecord(5).let {
             assertEquals(
@@ -79,17 +80,26 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
                 """.trimIndent(),
                 it.key()
             )
-            assertEquals(
-                """
-                    {"omsorgsyter":"12345678910","omsorgstype":"BARNETRYGD","kjoreHash":"${innlesing.id}","kilde":"BARNETRYGD","saker":[{"omsorgsyter":"12345678910","vedtaksperioder":[]}],"rådata":{"data":"[{\"fagsakId\":\"1\",\"fagsakEiersIdent\":\"12345678910\",\"barnetrygdPerioder\":[]}]"}}
-                """.trimIndent(),
-                it.value()
-            )
-            assertEquals(
-                "OMSORGSGRUNNLAG",
-                String(it.headers().lastHeader(KafkaMessageType.name).value())
-            )
-            assertNotNull(String(it.headers().lastHeader(CorrelationId.name).value()))
+            deserialize<OmsorgsgrunnlagMelding>(it.value()).also {
+                assertEquals("12345678910", it.omsorgsyter)
+                assertEquals("BARNETRYGD", it.omsorgstype.toString())
+                assertEquals("BARNETRYGD", it.kilde.toString())
+                assertEquals(
+                    listOf(
+                        OmsorgsgrunnlagMelding.Sak(
+                            omsorgsyter = "12345678910",
+                            vedtaksperioder = emptyList()
+                        )
+                    ),
+                    it.saker
+                )
+                assertEquals(
+                    """[{"fagsakId":"1","fagsakEiersIdent":"12345678910","barnetrygdPerioder":[]}]""",
+                    it.rådata.toString()
+                )
+                assertEquals(innlesing.id, it.innlesingId)
+                assertNotNull(it.correlationId) //opprettes internt
+            }
         }
     }
 }

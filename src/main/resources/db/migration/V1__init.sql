@@ -15,7 +15,7 @@ create table barnetrygdmottaker
     ident varchar not null,
     opprettet timestamptz not null default (now() at time zone 'utc'),
     correlation_id varchar not null,
-    request_id varchar not null references innlesing(id)
+    innlesing_id varchar not null references innlesing(id)
 );
 
 create table barnetrygdmottaker_status

@@ -1,8 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -25,7 +25,7 @@ class BarnetrygdmottakerKafkaListener(
 
     @KafkaListener(
         containerFactory = "listener",
-        topics = [Topics.BARNETRYGDMOTTAKER],
+        topics = [BarnetrygdTopic.NAME],
         groupId = "omsorgsopptjening-start-innlesning"
     )
     fun poll(
@@ -34,12 +34,12 @@ class BarnetrygdmottakerKafkaListener(
     ) {
         deserialize<KafkaMelding>(consumerRecord.value())
             .also { kafkaMelding ->
-                Mdc.scopedMdc(CorrelationId.name, CorrelationId.generate()) { correlationId ->
-                    kafkaMelding.requestId.toString().also { requestId ->
+                Mdc.scopedMdc(CorrelationId.generate()) { correlationId ->
+                    Mdc.scopedMdc(InnlesingId.fromString(kafkaMelding.requestId.toString())) { innlesingId ->
                         when (kafkaMelding.meldingstype) {
                             KafkaMelding.Type.START -> {
-                                log.info("Starter ny innlesing, id: $requestId")
-                                innlesingRepo.start(requestId)
+                                log.info("Starter ny innlesing, id: $innlesingId")
+                                innlesingRepo.start(innlesingId.toString())
                             }
 
                             KafkaMelding.Type.DATA -> {
@@ -47,8 +47,8 @@ class BarnetrygdmottakerKafkaListener(
                                     log.info("Mottatt melding om barnetrygdmottaker")
                                     barnetrygdmottakerRepository.save(
                                         it.toBarnetrygdmottaker(
-                                            correlationId = UUID.fromString(correlationId),
-                                            requestId = requestId
+                                            correlationId = correlationId,
+                                            innlesingId = innlesingId
                                         )
                                     )
                                     log.info("Melding prosessert")
@@ -56,11 +56,12 @@ class BarnetrygdmottakerKafkaListener(
                             }
 
                             KafkaMelding.Type.SLUTT -> {
-                                log.info("Fullført innlesing, id: $requestId")
-                                innlesingRepo.fullført(requestId)
+                                log.info("Fullført innlesing, id: $innlesingId")
+                                innlesingRepo.fullført(innlesingId.toString())
                             }
                         }
                     }
+
                 }
             }
         acknowledgment.acknowledge()
@@ -73,13 +74,13 @@ data class KafkaMelding(
     val personident: String?
 ) {
     fun toBarnetrygdmottaker(
-        correlationId: UUID,
-        requestId: String,
+        correlationId: CorrelationId,
+        innlesingId: InnlesingId,
     ): Barnetrygdmottaker {
         return Barnetrygdmottaker(
             ident = personident!!,
             correlationId = correlationId,
-            requestId = requestId
+            innlesingId = innlesingId
         )
     }
 

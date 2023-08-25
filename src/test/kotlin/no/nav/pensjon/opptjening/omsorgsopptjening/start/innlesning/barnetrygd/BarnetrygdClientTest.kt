@@ -6,10 +6,10 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.barnetrygd.Barnetrygdmelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,32 +30,38 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `returner ok dersom kall til hent-barnetrygdmottakere går bra`() {
-        wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
-                .withHeader(CorrelationId.name, AnythingPattern())
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(WireMock.aResponse().withStatus(202).withBody("123enfinid"))
-        )
+        Mdc.scopedMdc(CorrelationId.generate()) {
+            Mdc.scopedMdc(InnlesingId.generate()) {
+                wiremock.stubFor(
+                    WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
+                        .withHeader(CorrelationId.identifier, AnythingPattern())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
+                        .willReturn(WireMock.aResponse().withStatus(202).withBody("123enfinid"))
+                )
 
-        client.hentBarnetrygdmottakere(ar = 2020).also {
-            assertEquals(HentBarnetygdmottakereResponse.Ok("123enfinid", 2020), it)
+                client.hentBarnetrygdmottakere(ar = 2020).also {
+                    assertEquals(HentBarnetygdmottakereResponse.Ok("123enfinid", 2020), it)
+                }
+            }
         }
     }
 
     @Test
     fun `returner feil med diverse informasjon dersom kall til hent-barnetrygdmottakere gir 500`() {
-        wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
-                .withHeader(CorrelationId.name, AnythingPattern())
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(
-                    WireMock.serverError()
-                        .withBody(
-                            """
+        Mdc.scopedMdc(CorrelationId.generate()) {
+            Mdc.scopedMdc(InnlesingId.generate()) {
+                wiremock.stubFor(
+                    WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
+                        .withHeader(CorrelationId.identifier, AnythingPattern())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
+                        .willReturn(
+                            WireMock.serverError()
+                                .withBody(
+                                    """
                                 [
                                     {
                                        "data": {
@@ -68,98 +74,110 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                     }
                                 ]
                             """.trimIndent()
+                                )
                         )
                 )
-        )
 
-        client.hentBarnetrygdmottakere(ar = 2020).also {
-            assertEquals(
-                HentBarnetygdmottakereResponse.Feil(
-                    500,
-                    """[InternalServerErrorResponse(data={key=value}, status=FEILET, melding=Her ble det bare krøll, frontendMelding=test, stacktrace=null)]"""
-                ), it
-            )
+                client.hentBarnetrygdmottakere(ar = 2020).also {
+                    assertEquals(
+                        HentBarnetygdmottakereResponse.Feil(
+                            500,
+                            """[InternalServerErrorResponse(data={key=value}, status=FEILET, melding=Her ble det bare krøll, frontendMelding=test, stacktrace=null)]"""
+                        ), it
+                    )
+                }
+            }
         }
     }
 
     @Test
     fun `returner feil dersom kall til hent-barnetrygdmottakere gir andre feil enn 500`() {
-        wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
-                .withHeader(CorrelationId.name, AnythingPattern())
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(
-                    WireMock.forbidden().withBody("Forbidden!")
+        Mdc.scopedMdc(CorrelationId.generate()) {
+            Mdc.scopedMdc(InnlesingId.generate()) {
+                wiremock.stubFor(
+                    WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
+                        .withHeader(CorrelationId.identifier, AnythingPattern())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
+                        .willReturn(
+                            WireMock.forbidden().withBody("Forbidden!")
+                        )
                 )
-        )
 
-        client.hentBarnetrygdmottakere(ar = 2020).also {
-            assertEquals(
-                HentBarnetygdmottakereResponse.Feil(
-                    403,
-                    "Forbidden!"
-                ), it
-            )
+                client.hentBarnetrygdmottakere(ar = 2020).also {
+                    assertEquals(
+                        HentBarnetygdmottakereResponse.Feil(
+                            403,
+                            "Forbidden!"
+                        ), it
+                    )
+                }
+            }
         }
     }
 
     @Test
     fun `returner ok dersom kall til hent-barnetrygd går bra`() {
-        wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
-                .withHeader(CorrelationId.name, AnythingPattern())
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(
-                    WireMock.ok()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(
-                            serialize(
-                                listOf(
-                                    Barnetrygdmelding.Sak(
-                                        fagsakId = "1",
-                                        fagsakEiersIdent = "11",
-                                        barnetrygdPerioder = emptyList()
+        Mdc.scopedMdc(CorrelationId.generate()) {
+            Mdc.scopedMdc(InnlesingId.generate()) {
+                wiremock.stubFor(
+                    WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                        .withHeader(CorrelationId.identifier, AnythingPattern())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
+                        .willReturn(
+                            WireMock.ok()
+                                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                                .withBody(
+                                    serialize(
+                                        listOf(
+                                            Barnetrygdmelding.Sak(
+                                                fagsakId = "1",
+                                                fagsakEiersIdent = "11",
+                                                barnetrygdPerioder = emptyList()
+                                            )
+                                        )
                                     )
                                 )
-                            )
                         )
                 )
-        )
 
-        client.hentBarnetrygd(
-            ident = "123",
-            ar = 2020
-        ).also {
-            assertEquals(
-                HentBarnetrygdResponse.Ok(
-                    listOf(
-                        Barnetrygdmelding.Sak(
-                            fagsakId = "1",
-                            fagsakEiersIdent = "11",
-                            barnetrygdPerioder = emptyList()
-                        )
+                client.hentBarnetrygd(
+                    ident = "123",
+                    ar = 2020
+                ).also {
+                    assertEquals(
+                        HentBarnetrygdResponse.Ok(
+                            listOf(
+                                Barnetrygdmelding.Sak(
+                                    fagsakId = "1",
+                                    fagsakEiersIdent = "11",
+                                    barnetrygdPerioder = emptyList()
+                                )
+                            )
+                        ), it
                     )
-                ), it
-            )
+                }
+            }
         }
     }
 
     @Test
     fun `returner feil med diverse informasjon dersom kall til hent-barnetrygd gir 500`() {
-        wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
-                .withHeader(CorrelationId.name, AnythingPattern())
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(
-                    WireMock.serverError()
-                        .withBody(
-                            """
+        Mdc.scopedMdc(CorrelationId.generate()) {
+            Mdc.scopedMdc(InnlesingId.generate()) {
+                wiremock.stubFor(
+                    WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                        .withHeader(CorrelationId.identifier, AnythingPattern())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
+                        .willReturn(
+                            WireMock.serverError()
+                                .withBody(
+                                    """
                                 [
                                     {
                                        "status":"FUNKSJONELL_FEIL",
@@ -167,46 +185,52 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                     }
                                 ]
                             """.trimIndent()
+                                )
                         )
                 )
-        )
 
-        client.hentBarnetrygd(
-            ident = "123",
-            ar = 2020
-        ).also {
-            assertEquals(
-                HentBarnetrygdResponse.Feil(
-                    500,
-                    """[InternalServerErrorResponse(data=null, status=FUNKSJONELL_FEIL, melding=Dette gikk ikke så bra, frontendMelding=null, stacktrace=null)]"""
-                ), it
-            )
+                client.hentBarnetrygd(
+                    ident = "123",
+                    ar = 2020
+                ).also {
+                    assertEquals(
+                        HentBarnetrygdResponse.Feil(
+                            500,
+                            """[InternalServerErrorResponse(data=null, status=FUNKSJONELL_FEIL, melding=Dette gikk ikke så bra, frontendMelding=null, stacktrace=null)]"""
+                        ), it
+                    )
+                }
+            }
         }
     }
 
     @Test
     fun `returner feil dersom kall til hent-barnetrygd gir andre feil enn 500`() {
-        wiremock.stubFor(
-            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
-                .withHeader(CorrelationId.name, AnythingPattern())
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(
-                    WireMock.forbidden().withBody("Forbidden!")
+        Mdc.scopedMdc(CorrelationId.generate()) {
+            Mdc.scopedMdc(InnlesingId.generate()) {
+                wiremock.stubFor(
+                    WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                        .withHeader(CorrelationId.identifier, AnythingPattern())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                        .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
+                        .willReturn(
+                            WireMock.forbidden().withBody("Forbidden!")
+                        )
                 )
-        )
 
-        client.hentBarnetrygd(
-            ident = "123",
-            ar = 2020
-        ).also {
-            assertEquals(
-                HentBarnetrygdResponse.Feil(
-                    403,
-                    "Forbidden!"
-                ), it
-            )
+                client.hentBarnetrygd(
+                    ident = "123",
+                    ar = 2020
+                ).also {
+                    assertEquals(
+                        HentBarnetrygdResponse.Feil(
+                            403,
+                            "Forbidden!"
+                        ), it
+                    )
+                }
+            }
         }
     }
 }
