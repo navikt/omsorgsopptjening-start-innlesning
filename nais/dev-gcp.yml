@@ -34,6 +34,7 @@ spec:
       value: dev-gcp
     - name: BARNETRYGD_URL
       value: http://omsorgsarbeid-ba-mock
+#      value: http://teamfamilie.familie-ba-sak
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no
@@ -41,6 +42,7 @@ spec:
     outbound:
       rules:
         - application: omsorgsarbeid-ba-mock
+        - application: teamfamilie.familie-ba-sak
   liveness:
     path: /actuator/health/liveness
     port: 8080
