@@ -1,7 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
@@ -28,8 +26,8 @@ class BarnetrygdService(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    fun initierSendingAvIdenter(ar: Int): HentBarnetygdmottakereResponse {
-        return client.hentBarnetrygdmottakere(ar)
+    fun bestillPersonerMedBarnetrygd(ar: Int): HentBarnetygdmottakereResponse {
+        return client.bestillPersonerMedBarnetrygd(ar)
     }
 
     @Transactional(rollbackFor = [Throwable::class])

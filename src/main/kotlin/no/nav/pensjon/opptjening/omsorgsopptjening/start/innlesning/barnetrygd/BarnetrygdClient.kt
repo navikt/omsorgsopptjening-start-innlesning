@@ -40,42 +40,34 @@ class BarnetrygdClient(
      * Signaliserer til barnetrygd-systemet at de skal sende oss identen til alle mottakere av barnetrygd i året [ar]
      * og fremover. Barnetrydmottakerne publiseres til topic [no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics.BARNETRYGDMOTTAKER].
      */
-    fun hentBarnetrygdmottakere(
+    fun bestillPersonerMedBarnetrygd(
         ar: Int
     ): HentBarnetygdmottakereResponse {
         log.info("Initiating sending of barnetrygdmottakere")
         return webClient
-            .post()
+            .get()
             .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/$ar")
             .header(CorrelationId.identifier, UUID.randomUUID().toString())
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
-            .body(
-                BodyInserters.fromValue(
-                    HentBarnetrygdmottakerRequest(
-                        fraDato = LocalDate.of(ar, Month.JANUARY, 1).toString()
-                    )
-                )
-            )
             .retrieve()
-            .onStatus(not200()) { Mono.empty() }
+            .onStatus(not202()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { handleHentBarnetrygdmottakere(it, ar) } ?: HentBarnetygdmottakereResponse.Feil(
+            .block()?.let { handleBestillResponse(it, ar) } ?: HentBarnetygdmottakereResponse.Feil(
             null,
             null
         )
     }
 
-    private fun handleHentBarnetrygdmottakere(it: ResponseEntity<String>, ar: Int): HentBarnetygdmottakereResponse {
-        return when (val status = it.statusCode) {
-            HttpStatus.ACCEPTED -> {
-                HentBarnetygdmottakereResponse.Ok(it.body!!, ar)
-            }
+    private fun not202(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.ACCEPTED))
 
-            HttpStatus.INTERNAL_SERVER_ERROR -> {
-                HentBarnetygdmottakereResponse.Feil(
-                    status = status.value(),
-                    body = deserialize<List<InternalServerErrorResponse>>(it.body!!).toString()
+
+    private fun handleBestillResponse(it: ResponseEntity<String>, ar: Int): HentBarnetygdmottakereResponse {
+        return when (it.statusCode) {
+            HttpStatus.ACCEPTED -> {
+                HentBarnetygdmottakereResponse.Ok(
+                    requestId = it.body!!,
+                    år = ar
                 )
             }
 
@@ -160,13 +152,6 @@ class BarnetrygdClient(
                 }
             }
 
-            HttpStatus.INTERNAL_SERVER_ERROR -> {
-                HentBarnetrygdResponse.Feil(
-                    status = status.value(),
-                    body = it.body?.let { deserialize<List<InternalServerErrorResponse>>(it).toString() }
-                )
-            }
-
             else -> {
                 HentBarnetrygdResponse.Feil(
                     status = it.statusCode.value(),
@@ -188,12 +173,3 @@ sealed class HentBarnetrygdResponse {
 }
 
 private data class HentBarnetrygdRequest(val ident: String, val fraDato: String)
-private data class HentBarnetrygdmottakerRequest(val fraDato: String)
-
-private data class InternalServerErrorResponse(
-    val data: Any? = null,
-    val status: String,
-    val melding: String,
-    val frontendMelding: String? = null,
-    val stacktrace: String? = null
-)

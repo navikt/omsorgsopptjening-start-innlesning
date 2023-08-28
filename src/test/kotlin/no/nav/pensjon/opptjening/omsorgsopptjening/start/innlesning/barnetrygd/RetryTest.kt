@@ -1,6 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
-import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -169,7 +169,15 @@ class RetryTest : SpringContextTest.NoKafka() {
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .willReturn(
-                    WireMock.serverError().withBody("""dette er ikke gyldig json format""")
+                    WireMock.ok()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            """
+                                {
+                                    "dette er ikke json"
+                                }
+                            """.trimIndent()
+                        )
                 )
         )
         /**
@@ -193,7 +201,7 @@ class RetryTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
         )
 
-        assertThrows<JsonParseException> {
+        assertThrows<MismatchedInputException> {
             barnetrygdService.process()
         }
 

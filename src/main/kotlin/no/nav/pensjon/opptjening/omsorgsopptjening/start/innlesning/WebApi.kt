@@ -23,14 +23,17 @@ class WebApi(
 
     @GetMapping("/innlesning/start/{ar}")
     fun startInnlesning(@PathVariable ar: Int): ResponseEntity<String> {
-        return barnetrygdService.initierSendingAvIdenter(ar).let {
+        return barnetrygdService.bestillPersonerMedBarnetrygd(ar).let {
             when (it) {
                 is HentBarnetygdmottakereResponse.Feil -> {
                     ResponseEntity.status(it.status ?: 500).body(it.body ?: "Ukjent feil")
                 }
 
                 is HentBarnetygdmottakereResponse.Ok -> {
-                    innlesingRepo.forespurt(Innlesing(id = InnlesingId.fromString(it.requestId), år = it.år))
+                    innlesingRepo.forespurt(Innlesing(
+                        id = InnlesingId.fromString(it.requestId),
+                        år = it.år
+                    ))
                     ResponseEntity.ok("""Forespurt innlesning: ${it.requestId} for $ar""")
                 }
             }
