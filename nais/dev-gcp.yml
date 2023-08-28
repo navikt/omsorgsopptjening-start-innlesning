@@ -34,7 +34,7 @@ spec:
       value: dev-gcp
     - name: BARNETRYGD_URL
 #      value: http://omsorgsarbeid-ba-mock
-      value: http://teamfamilie.familie-ba-sak
+      value: http://familie-ba-sak.teamfamilie
     - name: BARNETRYGD_API_ID
 #      value: dev-gcp.pensjonopptjening.omsorgsarbeid-ba-mock
       value: dev-gcp.teamfamilie.familie-ba-sak
