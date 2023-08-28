@@ -13,12 +13,16 @@ import pensjon.opptjening.azure.ad.client.TokenProvider
 @Profile("dev-gcp", "prod-gcp")
 class BarnetrygdTokenProvider(
     @Value("\${BARNETRYGD_API_ID}") val appId: String,
-    private val azureAdConfig: AzureAdTokenClientConfig,
+    azureAdConfig: AzureAdTokenClientConfig
+) : TokenProvider {
     private val config: AzureAdConfig = AzureAdVariableConfig(
         azureAppClientId = azureAdConfig.azureAppClientId,
         azureAppClientSecret = azureAdConfig.azureAppClientSecret,
         targetApiId = appId,
         wellKnownUrl = azureAdConfig.wellKnownUrl,
-    ),
+    )
     private val tokenProvider: TokenProvider = AzureAdTokenProvider(config)
-) : TokenProvider by tokenProvider
+    override fun getToken(): String {
+        return tokenProvider.getToken()
+    }
+}
