@@ -24,17 +24,17 @@ spec:
         cascadingDelete: true
         diskAutoresize: true
         pointInTimeRecovery: true
-        name: omsorginnlesningdb
+        name: omsorginnlesning
         tier: db-custom-1-3840
         databases:
-          - name: omsorginnlesningdb
+          - name: omsorginnlesning
             envVarPrefix: DATABASE
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: dev-gcp
     - name: BARNETRYGD_URL
-      value: http://omsorgsarbeid-ba-mock
-#      value: http://teamfamilie.familie-ba-sak
+#      value: http://omsorgsarbeid-ba-mock
+      value: http://teamfamilie.familie-ba-sak
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no
