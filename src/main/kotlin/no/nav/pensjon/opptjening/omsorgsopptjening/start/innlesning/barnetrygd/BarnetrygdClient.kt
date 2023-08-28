@@ -19,6 +19,7 @@ import pensjon.opptjening.azure.ad.client.TokenProvider
 import reactor.core.publisher.Mono
 import java.time.LocalDate
 import java.time.Month
+import java.util.UUID
 import java.util.function.Predicate
 
 /**
@@ -46,8 +47,7 @@ class BarnetrygdClient(
         return webClient
             .post()
             .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/$ar")
-            .header(CorrelationId.identifier, Mdc.getCorrelationId())
-            .header(InnlesingId.identifier, Mdc.getInnlesingId())
+            .header(CorrelationId.identifier, UUID.randomUUID().toString())
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
             .body(
@@ -105,6 +105,7 @@ class BarnetrygdClient(
             .post()
             .uri("/api/ekstern/pensjon/hent-barnetrygd")
             .header(CorrelationId.identifier, Mdc.getCorrelationId())
+            .header(InnlesingId.identifier, Mdc.getInnlesingId())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
