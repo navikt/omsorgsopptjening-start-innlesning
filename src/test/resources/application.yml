@@ -1,4 +1,5 @@
 BARNETRYGD_URL: http://localhost:9991
+BARNETRYGD_API_ID:
 
 no.nav.security.jwt:
   issuer.aad:

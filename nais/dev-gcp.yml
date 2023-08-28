@@ -35,6 +35,9 @@ spec:
     - name: BARNETRYGD_URL
 #      value: http://omsorgsarbeid-ba-mock
       value: http://teamfamilie.familie-ba-sak
+    - name: BARNETRYGD_API_ID
+#      value: dev-gcp.pensjonopptjening.omsorgsarbeid-ba-mock
+      value: dev-gcp.teamfamilie.familie-ba-sak
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no
@@ -42,7 +45,8 @@ spec:
     outbound:
       rules:
         - application: omsorgsarbeid-ba-mock
-        - application: teamfamilie.familie-ba-sak
+        - application: familie-ba-sak
+          namespace: teamfamilie
   liveness:
     path: /actuator/health/liveness
     port: 8080
