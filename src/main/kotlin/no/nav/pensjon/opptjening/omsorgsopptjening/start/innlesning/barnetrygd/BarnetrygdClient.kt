@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -26,8 +27,10 @@ import java.util.function.Predicate
 @Component
 class BarnetrygdClient(
     private val tokenProvider: TokenProvider,
-    private val webClient: WebClient,
+    @Value("\${BARNETRYGD_URL}") private val url: String,
 ) {
+    private val webClient: WebClient = WebClient.builder().baseUrl(url).build()
+
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
     }
