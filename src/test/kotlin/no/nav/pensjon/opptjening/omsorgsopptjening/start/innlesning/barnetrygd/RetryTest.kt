@@ -9,7 +9,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Innlesing
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepository
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
@@ -42,7 +42,7 @@ class RetryTest : SpringContextTest.NoKafka() {
     private lateinit var clock: Clock
 
     @Autowired
-    private lateinit var innlesingRepo: InnlesingRepo
+    private lateinit var innlesingRepository: InnlesingRepository
 
     companion object {
         @RegisterExtension
@@ -62,8 +62,8 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
-            .also { innlesingRepo.fullført(id = it.id.toString()) }
+        val innlesing = innlesingRepository.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
+            .also { innlesingRepository.fullført(id = it.id.toString()) }
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.save(
             Barnetrygdmottaker(
@@ -74,11 +74,11 @@ class RetryTest : SpringContextTest.NoKafka() {
         )
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
         )
 
         barnetrygdService.process()
-        barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).also {
+        barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
                 assertEquals(1, it.antallForsøk)
                 assertEquals(3, it.maxAntallForsøk)
@@ -90,7 +90,7 @@ class RetryTest : SpringContextTest.NoKafka() {
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Feilet::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
         )
     }
 
@@ -104,8 +104,8 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
-            .also { innlesingRepo.fullført(id = it.id.toString()) }
+        val innlesing = innlesingRepository.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
+            .also { innlesingRepository.fullført(id = it.id.toString()) }
 
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
@@ -146,12 +146,12 @@ class RetryTest : SpringContextTest.NoKafka() {
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
         )
 
         barnetrygdService.process()
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).let {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
                 assertEquals(1, it.antallForsøk)
                 assertEquals(3, it.maxAntallForsøk)
             }
@@ -160,7 +160,7 @@ class RetryTest : SpringContextTest.NoKafka() {
         barnetrygdService.process()
         assertInstanceOf(
             Barnetrygdmottaker.Status.Ferdig::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
         )
     }
 
@@ -185,8 +185,8 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
-            .also { innlesingRepo.fullført(id = it.id.toString()) }
+        val innlesing = innlesingRepository.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
+            .also { innlesingRepository.fullført(id = it.id.toString()) }
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.save(
             Barnetrygdmottaker(
@@ -198,7 +198,7 @@ class RetryTest : SpringContextTest.NoKafka() {
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
         )
 
         assertThrows<MismatchedInputException> {
@@ -206,7 +206,7 @@ class RetryTest : SpringContextTest.NoKafka() {
         }
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
                 assertEquals(1, it.antallForsøk)
                 assertEquals(3, it.maxAntallForsøk)
             }

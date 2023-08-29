@@ -3,7 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Innlesing
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +15,7 @@ import kotlin.test.assertNull
 class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @Autowired
-    private lateinit var innlesingRepo: InnlesingRepo
+    private lateinit var innlesingRepository: InnlesingRepository
 
     @Autowired
     private lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository
@@ -25,7 +25,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `finner ingen meldinger som skal prosesseres før alle meldingene i forsendelsen er lest inn`() {
-        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
+        val innlesing = innlesingRepository.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
 
         barnetrygdmottakerRepository.save(
             melding = Barnetrygdmottaker(
@@ -37,17 +37,17 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         assertNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
 
-        innlesingRepo.fullført(innlesing.id.toString())
+        innlesingRepository.fullført(innlesing.id.toString())
 
         assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
     }
 
     @Test
     fun `finnNesteUprosesserte låser raden slik at den ikke plukkes opp av andre connections`() {
-        val innlesing = innlesingRepo.bestilt(Innlesing(
+        val innlesing = innlesingRepository.bestilt(Innlesing(
             id = InnlesingId.generate(),
             år = 2023
-        )).also { innlesingRepo.fullført(it.id.toString()) }
+        )).also { innlesingRepository.fullført(it.id.toString()) }
 
         barnetrygdmottakerRepository.save(
             melding = Barnetrygdmottaker(

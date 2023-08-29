@@ -11,7 +11,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Innlesing
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepo
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -27,7 +27,7 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
     private lateinit var listener: OmsorgsopptjeningTopicListener
 
     @Autowired
-    private lateinit var innlesingRepo: InnlesingRepo
+    private lateinit var innlesingRepository: InnlesingRepository
 
     companion object {
         @RegisterExtension
@@ -62,7 +62,7 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
 
         )
 
-        val innlesing = innlesingRepo.bestilt(Innlesing(InnlesingId.generate(), 2020))
+        val innlesing = innlesingRepository.bestilt(Innlesing(InnlesingId.generate(), 2020))
         sendStartInnlesingKafka(innlesing.id.toString())
         sendBarnetrygdmottakerDataKafka(
             melding = KafkaMelding(

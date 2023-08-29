@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @Protected
 class WebApi(
     private val barnetrygdService: BarnetrygdService,
-    private val innlesingRepo: InnlesingRepo,
+    private val innlesingRepository: InnlesingRepository,
 ) {
     companion object {
         val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -29,7 +29,7 @@ class WebApi(
                 }
 
                 is HentBarnetygdmottakereResponse.Ok -> {
-                    innlesingRepo.bestilt(
+                    innlesingRepository.bestilt(
                         Innlesing(
                             id = it.innlesingId,
                             år = it.år

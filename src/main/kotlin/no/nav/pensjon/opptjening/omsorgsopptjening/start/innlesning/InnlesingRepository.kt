@@ -7,9 +7,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.stereotype.Component
 import java.sql.ResultSet
+import java.util.UUID
 
 @Component
-class InnlesingRepo(
+class InnlesingRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     fun bestilt(innlesing: Innlesing): Innlesing {
@@ -61,6 +62,17 @@ class InnlesingRepo(
             ),
             InnlesingRowMapper()
         ).singleOrNull()
+    }
+
+    fun invalider(id: UUID) {
+        jdbcTemplate.update(
+            """delete from innlesing where id = :id""",
+            MapSqlParameterSource(
+                mapOf<String, Any>(
+                    "id" to id.toString(),
+                ),
+            ),
+        )
     }
 
     private class InnlesingRowMapper : RowMapper<Innlesing> {

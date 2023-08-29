@@ -43,7 +43,7 @@ class BarnetrygdmottakerRepository(
                 ),
             ),
         )
-        return find(keyHolder.keys!!["id"] as UUID)
+        return find(keyHolder.keys!!["id"] as UUID)!!
     }
 
     fun updateStatus(melding: Barnetrygdmottaker) {
@@ -59,14 +59,14 @@ class BarnetrygdmottakerRepository(
         )
     }
 
-    fun find(id: UUID): Barnetrygdmottaker {
+    fun find(id: UUID): Barnetrygdmottaker? {
         return jdbcTemplate.query(
             """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.innlesing_id where b.id = :id""",
             mapOf<String, Any>(
                 "id" to id
             ),
             BarnetrygdmottakerRowMapper()
-        ).single()
+        ).singleOrNull()
     }
 
     /**

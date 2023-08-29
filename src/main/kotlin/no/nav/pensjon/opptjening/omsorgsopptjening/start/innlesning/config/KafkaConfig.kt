@@ -22,7 +22,10 @@ import java.time.Duration
 @EnableKafka
 @Configuration
 @Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
-class KafkaConfig(@Value("\${kafka.brokers}") private val aivenBootstrapServers: String) {
+class KafkaConfig(
+    @Value("\${kafka.brokers}") private val aivenBootstrapServers: String,
+    private val errorHandler: KafkaErrorHandler
+) {
     @Bean
     @Profile("dev-gcp", "prod-gcp")
     fun securityConfig(
@@ -52,6 +55,7 @@ class KafkaConfig(@Value("\${kafka.brokers}") private val aivenBootstrapServers:
                 StringDeserializer(),
                 StringDeserializer()
             )
+            setCommonErrorHandler(errorHandler)
         }
 
     private fun consumerConfig(): Map<String, Any> = mapOf(
