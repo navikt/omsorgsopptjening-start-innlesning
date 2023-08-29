@@ -12,7 +12,7 @@ import java.sql.ResultSet
 class InnlesingRepo(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-    fun forespurt(innlesing: Innlesing): Innlesing {
+    fun bestilt(innlesing: Innlesing): Innlesing {
         val keyHolder = GeneratedKeyHolder()
         jdbcTemplate.update(
             """insert into innlesing (id, år, forespurt_tidspunkt) values (:id, :ar, now())""",

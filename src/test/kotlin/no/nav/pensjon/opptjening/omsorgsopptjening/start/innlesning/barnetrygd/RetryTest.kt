@@ -62,7 +62,7 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val innlesing = innlesingRepo.forespurt(Innlesing(id = InnlesingId.generate(), år = 2023))
+        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
             .also { innlesingRepo.fullført(id = it.id.toString()) }
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.save(
@@ -104,7 +104,7 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val innlesing = innlesingRepo.forespurt(Innlesing(id = InnlesingId.generate(), år = 2023))
+        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
             .also { innlesingRepo.fullført(id = it.id.toString()) }
 
         wiremock.stubFor(
@@ -185,7 +185,7 @@ class RetryTest : SpringContextTest.NoKafka() {
          */
         given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
 
-        val innlesing = innlesingRepo.forespurt(Innlesing(id = InnlesingId.generate(), år = 2023))
+        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
             .also { innlesingRepo.fullført(id = it.id.toString()) }
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.save(

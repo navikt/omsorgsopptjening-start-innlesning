@@ -48,7 +48,7 @@ class BarnetrygdClient(
             .get()
             .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/$ar")
             .header(CorrelationId.identifier, UUID.randomUUID().toString())
-            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
             .retrieve()
             .onStatus(not202()) { Mono.empty() }
@@ -66,7 +66,7 @@ class BarnetrygdClient(
         return when (it.statusCode) {
             HttpStatus.ACCEPTED -> {
                 HentBarnetygdmottakereResponse.Ok(
-                    requestId = it.body!!,
+                    innlesingId = InnlesingId.fromString(it.body.toString()),
                     år = ar
                 )
             }
@@ -163,7 +163,7 @@ class BarnetrygdClient(
 }
 
 sealed class HentBarnetygdmottakereResponse {
-    data class Ok(val requestId: String, val år: Int) : HentBarnetygdmottakereResponse()
+    data class Ok(val innlesingId: InnlesingId, val år: Int) : HentBarnetygdmottakereResponse()
     data class Feil(val status: Int?, val body: String?) : HentBarnetygdmottakereResponse()
 }
 

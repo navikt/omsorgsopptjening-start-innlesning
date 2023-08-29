@@ -29,26 +29,36 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    fun `returner ok dersom kall til hent-barnetrygdmottakere går bra`() {
+    fun `returner ok dersom kall til bestill-personer-med-barnetrygd går bra`() {
         wiremock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
                 .withHeader(CorrelationId.identifier, AnythingPattern())
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_PLAIN_VALUE))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
-                .willReturn(WireMock.aResponse().withStatus(202).withBody("123enfinid"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withStatus(202)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                        .withBody("3d797c7d-6273-4be3-bd57-e13de35251f8")
+                )
         )
 
         client.bestillPersonerMedBarnetrygd(ar = 2020).also {
-            assertEquals(HentBarnetygdmottakereResponse.Ok("123enfinid", 2020), it)
+            assertEquals(
+                HentBarnetygdmottakereResponse.Ok(
+                    InnlesingId.fromString("3d797c7d-6273-4be3-bd57-e13de35251f8"),
+                    2020
+                ), it
+            )
         }
     }
 
     @Test
-    fun `returner feil med diverse informasjon dersom kall til hent-barnetrygdmottakere gir 500`() {
+    fun `returner feil med diverse informasjon dersom kall til bestill-personer-med-barnetrygd gir 500`() {
         wiremock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
                 .withHeader(CorrelationId.identifier, AnythingPattern())
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_PLAIN_VALUE))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
                 .willReturn(
                     WireMock.serverError()
@@ -93,11 +103,11 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    fun `returner feil dersom kall til hent-barnetrygdmottakere gir andre feil enn 500`() {
+    fun `returner feil dersom kall til bestill-personer-med-barnetrygd gir andre feil enn 500`() {
         wiremock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/2020"))
                 .withHeader(CorrelationId.identifier, AnythingPattern())
-                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_VALUE))
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_PLAIN_VALUE))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer test.token.test"))
                 .willReturn(
                     WireMock.forbidden().withBody("Forbidden!")

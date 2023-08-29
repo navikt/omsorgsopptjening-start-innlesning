@@ -25,7 +25,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `finner ingen meldinger som skal prosesseres før alle meldingene i forsendelsen er lest inn`() {
-        val innlesing = innlesingRepo.forespurt(Innlesing(id = InnlesingId.generate(), år = 2023))
+        val innlesing = innlesingRepo.bestilt(Innlesing(id = InnlesingId.generate(), år = 2023))
 
         barnetrygdmottakerRepository.save(
             melding = Barnetrygdmottaker(
@@ -44,7 +44,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `finnNesteUprosesserte låser raden slik at den ikke plukkes opp av andre connections`() {
-        val innlesing = innlesingRepo.forespurt(Innlesing(
+        val innlesing = innlesingRepo.bestilt(Innlesing(
             id = InnlesingId.generate(),
             år = 2023
         )).also { innlesingRepo.fullført(it.id.toString()) }

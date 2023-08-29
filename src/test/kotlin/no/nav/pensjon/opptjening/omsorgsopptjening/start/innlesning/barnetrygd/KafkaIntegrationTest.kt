@@ -62,7 +62,7 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
 
         )
 
-        val innlesing = innlesingRepo.forespurt(Innlesing(InnlesingId.generate(), 2020))
+        val innlesing = innlesingRepo.bestilt(Innlesing(InnlesingId.generate(), 2020))
         sendStartInnlesingKafka(innlesing.id.toString())
         sendBarnetrygdmottakerDataKafka(
             melding = KafkaMelding(
