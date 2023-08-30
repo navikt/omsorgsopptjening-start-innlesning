@@ -132,9 +132,9 @@ class BarnetrygdClient(
                     }
 
                     else -> {
-                        deserialize<List<Barnetrygdmelding.Sak>>(it.body!!).let {
+                        deserialize<FagsakWrapper>(it.body!!).let {
                             when {
-                                it.isEmpty() -> {
+                                it.fagsaker.isEmpty() -> {
                                     HentBarnetrygdResponse.Feil(
                                         status = status.value(),
                                         body = "Liste med barnetrygdsaker er tom"
@@ -143,7 +143,7 @@ class BarnetrygdClient(
 
                                 else -> {
                                     HentBarnetrygdResponse.Ok(
-                                        barnetrygdsaker = it
+                                        barnetrygdsaker = it.fagsaker
                                     )
                                 }
                             }
@@ -166,6 +166,10 @@ sealed class HentBarnetygdmottakereResponse {
     data class Ok(val innlesingId: InnlesingId, val år: Int) : HentBarnetygdmottakereResponse()
     data class Feil(val status: Int?, val body: String?) : HentBarnetygdmottakereResponse()
 }
+
+data class FagsakWrapper(
+    val fagsaker: List<Barnetrygdmelding.Sak>
+)
 
 sealed class HentBarnetrygdResponse {
     data class Ok(val barnetrygdsaker: List<Barnetrygdmelding.Sak>) : HentBarnetrygdResponse()

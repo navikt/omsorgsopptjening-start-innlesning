@@ -49,11 +49,13 @@ class KafkaIntegrationTest : SpringContextTest.WithKafka() {
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withBody(
                             serialize(
-                                listOf(
-                                    Barnetrygdmelding.Sak(
-                                        fagsakId = "1",
-                                        fagsakEiersIdent = "12345678910",
-                                        barnetrygdPerioder = emptyList()
+                                FagsakWrapper(
+                                    listOf(
+                                        Barnetrygdmelding.Sak(
+                                            fagsakId = "1",
+                                            fagsakEiersIdent = "12345678910",
+                                            barnetrygdPerioder = emptyList()
+                                        )
                                     )
                                 )
                             )

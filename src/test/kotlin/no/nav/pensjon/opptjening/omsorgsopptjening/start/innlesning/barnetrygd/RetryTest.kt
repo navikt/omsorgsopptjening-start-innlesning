@@ -1,6 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
-import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import com.fasterxml.jackson.core.JsonParseException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -124,11 +124,13 @@ class RetryTest : SpringContextTest.NoKafka() {
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withBody(
                             serialize(
-                                listOf(
-                                    Barnetrygdmelding.Sak(
-                                        fagsakId = "1",
-                                        fagsakEiersIdent = "12345678910",
-                                        barnetrygdPerioder = emptyList()
+                                FagsakWrapper(
+                                    listOf(
+                                        Barnetrygdmelding.Sak(
+                                            fagsakId = "1",
+                                            fagsakEiersIdent = "12345678910",
+                                            barnetrygdPerioder = emptyList()
+                                        )
                                     )
                                 )
                             )
@@ -201,7 +203,7 @@ class RetryTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
         )
 
-        assertThrows<MismatchedInputException> {
+        assertThrows<JsonParseException> {
             barnetrygdService.process()
         }
 

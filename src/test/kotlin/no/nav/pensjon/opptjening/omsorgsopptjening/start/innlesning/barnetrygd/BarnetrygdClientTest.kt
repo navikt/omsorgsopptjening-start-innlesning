@@ -140,11 +140,13 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                 .withBody(
                                     serialize(
-                                        listOf(
-                                            Barnetrygdmelding.Sak(
-                                                fagsakId = "1",
-                                                fagsakEiersIdent = "11",
-                                                barnetrygdPerioder = emptyList()
+                                        FagsakWrapper(
+                                            listOf(
+                                                Barnetrygdmelding.Sak(
+                                                    fagsakId = "1",
+                                                    fagsakEiersIdent = "11",
+                                                    barnetrygdPerioder = emptyList()
+                                                )
                                             )
                                         )
                                     )
