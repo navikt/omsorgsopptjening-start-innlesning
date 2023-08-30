@@ -1,25 +1,26 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepository
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.InvalidateInnlesingException
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.UkjentKafkaMeldingException
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.InvalidateOnExceptionWrapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.kafka.listener.RetryListener
 import org.springframework.stereotype.Component
-import org.springframework.util.backoff.FixedBackOff
+import org.springframework.util.backoff.BackOff
 import java.util.UUID
 
 @Component
 class KafkaErrorHandler(
-    private val innlesingRepository: InnlesingRepository
-) : DefaultErrorHandler(FixedBackOff(3000, 3)) {
+    innlesingRepository: InnlesingRepository,
+    backOff: BackOff
+) : DefaultErrorHandler(backOff) {
     init {
         this.setRetryListeners(InnlesingInvalidatingRetryListener(innlesingRepository))
-        this.addNotRetryableExceptions(InvalidateInnlesingException::class.java)
-        this.addNotRetryableExceptions(UkjentKafkaMeldingException::class.java)
+        this.addNotRetryableExceptions(InnlesingException.EksistererIkke::class.java)
+        this.addNotRetryableExceptions(InnlesingException.UgyldigTistand::class.java)
     }
 }
 
@@ -39,9 +40,9 @@ class InnlesingInvalidatingRetryListener(
         log.error("Processing and retries failed for record: $record, ex: $ex")
         ex.cause?.also { throwable ->
             when (throwable) {
-                is InvalidateInnlesingException -> {
+                is InvalidateOnExceptionWrapper -> {
                     if (!invalidated.contains(throwable.innlesingId)) {
-                        log.info("Invalidating innlesing with id: ${throwable.innlesingId} due to all records not being processed successfully.")
+                        log.info("Invalidating (deleting all related data) innlesing with id: ${throwable.innlesingId} due to all records not being processed successfully.")
                         innlesingRepository.invalider(throwable.innlesingId)
                             .also { invalidated.add(throwable.innlesingId) }
                         log.info("Invalidated id: ${throwable.innlesingId}")

@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -39,42 +40,57 @@ class BarnetrygdmottakerKafkaListener(
             throw UkjentKafkaMeldingException(consumerRecord, ex)
         }
 
-        try {
-            Mdc.scopedMdc(CorrelationId.generate()) { correlationId ->
-                Mdc.scopedMdc(InnlesingId.fromString(kafkaMelding.requestId.toString())) { innlesingId ->
-                    when (kafkaMelding.meldingstype) {
-                        KafkaMelding.Type.START -> {
-                            log.info("Starter ny innlesing, id: $innlesingId")
-                            innlesingRepository.start(innlesingId.toString())
-                        }
+        Mdc.scopedMdc(CorrelationId.generate()) { correlationId ->
+            Mdc.scopedMdc(InnlesingId.fromString(kafkaMelding.requestId.toString())) { innlesingId ->
+                try {
+                    innlesingRepository.finn(innlesingId.toString())
+                        ?.also { innlesing ->
+                            when (kafkaMelding.meldingstype) {
+                                KafkaMelding.Type.START -> {
+                                    if(!innlesing.kanStartes()) throw InnlesingException.UgyldigTistand(kafkaMelding.meldingstype, innlesing)
+                                    log.info("Starter ny innlesing, id: $innlesingId")
+                                    innlesingRepository.start(innlesingId.toString())
+                                }
 
-                        KafkaMelding.Type.DATA -> {
-                            log.info("Mottatt melding om barnetrygdmottaker")
-                            barnetrygdmottakerRepository.save(
-                                kafkaMelding.toBarnetrygdmottaker(
-                                    correlationId = correlationId,
-                                    innlesingId = innlesingId
-                                )
-                            )
-                            log.info("Melding prosessert")
-                        }
+                                KafkaMelding.Type.DATA -> {
+                                    if(!innlesing.kanMottaData()) throw InnlesingException.UgyldigTistand(kafkaMelding.meldingstype, innlesing)
+                                    log.info("Mottatt melding om barnetrygdmottaker")
+                                    barnetrygdmottakerRepository.save(
+                                        kafkaMelding.toBarnetrygdmottaker(
+                                            correlationId = correlationId,
+                                            innlesingId = innlesingId
+                                        )
+                                    )
+                                    log.info("Melding prosessert")
+                                }
 
-                        KafkaMelding.Type.SLUTT -> {
-                            log.info("Fullført innlesing, id: $innlesingId")
-                            innlesingRepository.fullført(innlesingId.toString())
-                        }
-                    }
+                                KafkaMelding.Type.SLUTT -> {
+                                    if(!innlesing.kanAvsluttes()) throw InnlesingException.UgyldigTistand(kafkaMelding.meldingstype, innlesing)
+                                    log.info("Fullført innlesing, id: $innlesingId")
+                                    innlesingRepository.fullført(innlesingId.toString())
+                                }
+                            }
+                            acknowledgment.acknowledge()
+
+                        } ?: throw InnlesingException.EksistererIkke(innlesingId.toString())
+                } catch (ex: InnlesingException.EksistererIkke) {
+                    //forventet dersom vi har invalidert innlesingen, hopp over
+                    log.info("Innlesing med id:${ex.id} eksisterer ikke i databasen - innlesingen er ikke bestilt eller invalidert grunnet feil, hopper over.")
+                    acknowledgment.acknowledge()
+                } catch (ex: Throwable) {
+                    //catch all for resterende feil, sørg for invalidering etter retries
+                    throw InvalidateOnExceptionWrapper(
+                        innlesingId = innlesingId.toUUID(),
+                        ex = ex
+                    )
                 }
             }
-            acknowledgment.acknowledge()
-        } catch (ex: Throwable) {
-            throw InvalidateInnlesingException(kafkaMelding.requestId, ex)
         }
     }
 }
 
 
-class InvalidateInnlesingException(val innlesingId: UUID, ex: Throwable) : RuntimeException(ex)
+class InvalidateOnExceptionWrapper(val innlesingId: UUID, ex: Throwable) : RuntimeException(ex)
 class UkjentKafkaMeldingException(val consumerRecord: ConsumerRecord<String, String>, ex: Throwable) :
     RuntimeException(ex)
 
