@@ -22,6 +22,7 @@ data class Barnetrygdmelding(
     data class Periode(
         val personIdent: String,
         val delingsprosentYtelse: Int,
+        val ytelseTypeEkstern: String?, //TODO returner json i tester, ikke seialisert objekt
         val utbetaltPerMnd: Int,
         val stønadFom: YearMonth,
         val stønadTom: YearMonth
