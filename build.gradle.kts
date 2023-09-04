@@ -24,6 +24,12 @@ apply(plugin = "io.spring.dependency-management")
 group = "no.nav.pensjon.opptjening"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
