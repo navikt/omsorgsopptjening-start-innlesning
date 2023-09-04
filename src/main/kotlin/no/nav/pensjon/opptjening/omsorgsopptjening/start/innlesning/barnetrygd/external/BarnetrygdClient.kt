@@ -1,8 +1,7 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -10,7 +9,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -40,9 +38,9 @@ class BarnetrygdClient(
      * Signaliserer til barnetrygd-systemet at de skal sende oss identen til alle mottakere av barnetrygd i året [ar]
      * og fremover. Barnetrydmottakerne publiseres til topic [no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics.BARNETRYGDMOTTAKER].
      */
-    fun bestillPersonerMedBarnetrygd(
+    fun bestillBarnetrygdmottakere(
         ar: Int
-    ): HentBarnetygdmottakereResponse {
+    ): BestillBarnetrygdmottakereResponse {
         log.info("Initiating sending of barnetrygdmottakere")
         return webClient
             .get()
@@ -53,31 +51,10 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not202()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { handleBestillResponse(it, ar) } ?: HentBarnetygdmottakereResponse.Feil(
+            .block()?.let { BestillBarnetrygdResponseHandler.handle(it, ar) } ?: BestillBarnetrygdmottakereResponse.Feil(
             null,
-            null
+            "Response var null"
         )
-    }
-
-    private fun not202(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.ACCEPTED))
-
-
-    private fun handleBestillResponse(it: ResponseEntity<String>, ar: Int): HentBarnetygdmottakereResponse {
-        return when (it.statusCode) {
-            HttpStatus.ACCEPTED -> {
-                HentBarnetygdmottakereResponse.Ok(
-                    innlesingId = InnlesingId.fromString(it.body.toString()),
-                    år = ar
-                )
-            }
-
-            else -> {
-                HentBarnetygdmottakereResponse.Feil(
-                    status = it.statusCode.value(),
-                    body = it.body.toString()
-                )
-            }
-        }
     }
 
     /**
@@ -96,8 +73,8 @@ class BarnetrygdClient(
         return webClient
             .post()
             .uri("/api/ekstern/pensjon/hent-barnetrygd")
-            .header(CorrelationId.identifier, Mdc.getCorrelationId())
-            .header(InnlesingId.identifier, Mdc.getInnlesingId())
+            .header(CorrelationId.identifier, Mdc.getCorrelationId().toString())
+            .header(InnlesingId.identifier, Mdc.getInnlesingId().toString())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
@@ -112,68 +89,15 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { handleHentBarnetrygd(it) } ?: HentBarnetrygdResponse.Feil(
+            .block()?.let { HentBarnetrygdResponseHandler.handle(it) } ?: HentBarnetrygdResponse.Feil(
             null,
-            null
+            "Response var null"
         )
     }
 
+    data class HentBarnetrygdRequest(val ident: String, val fraDato: String)
+
     private fun not200(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.OK))
+    private fun not202(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.ACCEPTED))
 
-    private fun handleHentBarnetrygd(it: ResponseEntity<String>): HentBarnetrygdResponse {
-        return when (val status = it.statusCode) {
-            HttpStatus.OK -> {
-                when {
-                    it.body == null -> {
-                        HentBarnetrygdResponse.Feil(
-                            status = it.statusCode.value(),
-                            body = null
-                        )
-                    }
-
-                    else -> {
-                        deserialize<FagsakWrapper>(it.body!!).let {
-                            when {
-                                it.fagsaker.isEmpty() -> {
-                                    HentBarnetrygdResponse.Feil(
-                                        status = status.value(),
-                                        body = "Liste med barnetrygdsaker er tom"
-                                    )
-                                }
-
-                                else -> {
-                                    HentBarnetrygdResponse.Ok(
-                                        barnetrygdsaker = it.fagsaker
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            else -> {
-                HentBarnetrygdResponse.Feil(
-                    status = it.statusCode.value(),
-                    body = it.body.toString()
-                )
-            }
-        }
-    }
 }
-
-sealed class HentBarnetygdmottakereResponse {
-    data class Ok(val innlesingId: InnlesingId, val år: Int) : HentBarnetygdmottakereResponse()
-    data class Feil(val status: Int?, val body: String?) : HentBarnetygdmottakereResponse()
-}
-
-data class FagsakWrapper(
-    val fagsaker: List<Barnetrygdmelding.Sak>
-)
-
-sealed class HentBarnetrygdResponse {
-    data class Ok(val barnetrygdsaker: List<Barnetrygdmelding.Sak>) : HentBarnetrygdResponse()
-    data class Feil(val status: Int?, val body: String?) : HentBarnetrygdResponse()
-}
-
-private data class HentBarnetrygdRequest(val ident: String, val fraDato: String)

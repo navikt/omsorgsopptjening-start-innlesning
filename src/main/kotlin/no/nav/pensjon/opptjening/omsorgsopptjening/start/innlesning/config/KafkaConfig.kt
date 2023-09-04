@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaErrorHandler
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -24,7 +25,7 @@ import java.time.Duration
 @Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
 class KafkaConfig(
     @Value("\${kafka.brokers}") private val aivenBootstrapServers: String,
-    private val errorHandler: KafkaErrorHandler
+    private val errorHandler: BarnetrygdmottakerKafkaErrorHandler
 ) {
     @Bean
     @Profile("dev-gcp", "prod-gcp")
@@ -44,27 +45,6 @@ class KafkaConfig(
     )
 
     class SecurityConfig(vararg input: Pair<String, Any>) : Map<String, Any> by input.toMap()
-
-    @Bean("listener")
-    fun listener(securityConfig: SecurityConfig): ConcurrentKafkaListenerContainerFactory<String, String>? =
-        ConcurrentKafkaListenerContainerFactory<String, String>().apply {
-            containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
-            containerProperties.setAuthExceptionRetryInterval(Duration.ofSeconds(4L))
-            consumerFactory = DefaultKafkaConsumerFactory(
-                consumerConfig() + securityConfig,
-                StringDeserializer(),
-                StringDeserializer()
-            )
-            setCommonErrorHandler(errorHandler)
-        }
-
-    private fun consumerConfig(): Map<String, Any> = mapOf(
-        ConsumerConfig.CLIENT_ID_CONFIG to "omsorgsopptjening-start-innlesning",
-        ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to aivenBootstrapServers,
-        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
-        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1,
-    )
 
     @Bean("producer")
     fun producer(securityConfig: SecurityConfig): KafkaTemplate<String, String> {

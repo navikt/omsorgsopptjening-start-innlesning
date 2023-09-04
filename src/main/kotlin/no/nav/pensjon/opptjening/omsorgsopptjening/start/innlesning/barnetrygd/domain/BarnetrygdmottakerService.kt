@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
@@ -7,6 +7,10 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.BarnetrygdClient
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.BestillBarnetrygdmottakereResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.HentBarnetrygdResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,7 +21,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class BarnetrygdService(
+class BarnetrygdmottakerService(
     private val client: BarnetrygdClient,
     private val repo: BarnetrygdmottakerRepository,
     private val kafkaProducer: KafkaTemplate<String, String>,
@@ -26,8 +30,8 @@ class BarnetrygdService(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    fun bestillPersonerMedBarnetrygd(ar: Int): HentBarnetygdmottakereResponse {
-        return client.bestillPersonerMedBarnetrygd(ar)
+    fun bestillPersonerMedBarnetrygd(ar: Int): BestillBarnetrygdmottakereResponse {
+        return client.bestillBarnetrygdmottakere(ar)
     }
 
     @Transactional(rollbackFor = [Throwable::class])
@@ -42,35 +46,11 @@ class BarnetrygdService(
                         client.hentBarnetrygd(
                             ident = barnetrygdmottaker.ident,
                             ar = barnetrygdmottaker.år!!,
-                        ).let { response ->
-                            when (response) {
-                                is HentBarnetrygdResponse.Feil -> {
-                                    """Feil ved henting av detaljer om barnetrygd, httpStatus: ${response.status}, body: ${response.body}""".let { melding ->
-                                        log.error(melding)
-                                        barnetrygdmottaker.retry(melding)
-                                            .also { repo.updateStatus(it) }
-                                    }
-                                }
-
-                                is HentBarnetrygdResponse.Ok -> {
-                                    log.info("Publiserer detaljer til topic:${Topics.Omsorgsopptjening.NAME}")
-                                    barnetrygdmottaker.ferdig()
-                                        .also {
-                                            kafkaProducer.send(
-                                                createKafkaMessage(
-                                                    barnetrygdmottaker = it,
-                                                    saker = response.barnetrygdsaker
-                                                )
-                                            ).get()
-                                            repo.updateStatus(it)
-                                            log.info("Prosessering fullført")
-                                        }
-
-                                }
-                            }
+                        ).let {
+                            barnetrygdmottaker.handle(it)
                         }
                     } catch (exception: Throwable) {
-                        log.error("Exception caught while processing id: ${barnetrygdmottaker.id}, exeption:$exception")
+                        log.warn("Exception caught while processing id: ${barnetrygdmottaker.id}, exeption:$exception")
                         statusoppdatering.markerForRetry(barnetrygdmottaker, exception)
                         throw exception
                     }
@@ -79,9 +59,39 @@ class BarnetrygdService(
         }
     }
 
+    private fun Barnetrygdmottaker.handle(response: HentBarnetrygdResponse): Barnetrygdmottaker {
+        return when (response) {
+            is HentBarnetrygdResponse.Feil -> {
+                """Feil ved henting av detaljer om barnetrygd, httpStatus: ${response.status}, body: ${response.body}""".let { melding ->
+                    log.warn(melding)
+                    retry(melding)
+                        .also { repo.updateStatus(it) }
+                }
+            }
+
+            is HentBarnetrygdResponse.Ok -> {
+                log.info("Publiserer detaljer til topic:${Topics.Omsorgsopptjening.NAME}")
+                ferdig()
+                    .also {
+                        repo.updateStatus(it)
+                        kafkaProducer.send(
+                            createKafkaMessage(
+                                barnetrygdmottaker = it,
+                                saker = response.barnetrygdsaker,
+                                rådataFraKilde = response.rådataFraKilde,
+                            )
+                        ).get()
+                        log.info("Prosessering fullført")
+                    }
+
+            }
+        }
+    }
+
     private fun createKafkaMessage(
         barnetrygdmottaker: Barnetrygdmottaker,
-        saker: List<Barnetrygdmelding.Sak>
+        saker: List<OmsorgsgrunnlagMelding.Sak>,
+        rådataFraKilde: RådataFraKilde
     ): ProducerRecord<String, String> {
         return ProducerRecord(
             Topics.Omsorgsopptjening.NAME,
@@ -96,20 +106,8 @@ class BarnetrygdService(
                     omsorgsyter = barnetrygdmottaker.ident,
                     omsorgstype = Omsorgstype.BARNETRYGD,
                     kilde = Kilde.BARNETRYGD,
-                    saker = saker.map { barnetrygdSak ->
-                        OmsorgsgrunnlagMelding.Sak(
-                            omsorgsyter = barnetrygdSak.fagsakEiersIdent,
-                            vedtaksperioder = barnetrygdSak.barnetrygdPerioder.map {
-                                OmsorgsgrunnlagMelding.VedtakPeriode(
-                                    fom = it.stønadFom,
-                                    tom = it.stønadTom,
-                                    prosent = it.delingsprosentYtelse,
-                                    omsorgsmottaker = it.personIdent
-                                )
-                            }
-                        )
-                    },
-                    rådata = RådataFraKilde(serialize(saker)),
+                    saker = saker,
+                    rådata = rådataFraKilde,
                     innlesingId = barnetrygdmottaker.innlesingId,
                     correlationId = barnetrygdmottaker.correlationId,
                 )

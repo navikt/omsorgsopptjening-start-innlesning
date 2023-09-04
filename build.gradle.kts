@@ -67,7 +67,7 @@ dependencies {
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.springframework.kafka:spring-kafka-test:$springKafkaTestVersion")
-
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
 }
 
 tasks.test {

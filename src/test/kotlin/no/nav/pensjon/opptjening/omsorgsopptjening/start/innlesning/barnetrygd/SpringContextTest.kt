@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Application
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaTopic
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaIntegrationTestConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -37,7 +39,7 @@ sealed class SpringContextTest {
     }
 
     @ActiveProfiles("kafkaIntegrationTest")
-    @EmbeddedKafka(partitions = 1, topics = [BarnetrygdTopic.NAME, Topics.Omsorgsopptjening.NAME])
+    @EmbeddedKafka(partitions = 1, topics = [BarnetrygdmottakerKafkaTopic.NAME, Topics.Omsorgsopptjening.NAME])
     @SpringBootTest(classes = [Application::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
@@ -52,12 +54,12 @@ sealed class SpringContextTest {
             requestId: String
         ) {
             val pr = ProducerRecord(
-                BarnetrygdTopic.NAME,
+                BarnetrygdmottakerKafkaTopic.NAME,
                 null,
                 "",
                 serialize(
-                    KafkaMelding(
-                        meldingstype = KafkaMelding.Type.START,
+                    BarnetrygdmottakerKafkaMelding(
+                        meldingstype = BarnetrygdmottakerKafkaMelding.Type.START,
                         requestId = UUID.fromString(requestId),
                         personident = null
                     )
@@ -67,10 +69,10 @@ sealed class SpringContextTest {
         }
 
         fun sendBarnetrygdmottakerDataKafka(
-            melding: KafkaMelding,
+            melding: BarnetrygdmottakerKafkaMelding,
         ) {
             val pr = ProducerRecord(
-                BarnetrygdTopic.NAME,
+                BarnetrygdmottakerKafkaTopic.NAME,
                 null,
                 null,
                 melding.personident,
@@ -79,16 +81,27 @@ sealed class SpringContextTest {
             kafkaProducer.send(pr).get()
         }
 
+        fun sendUgyldigMeldingKafka(){
+            val pr = ProducerRecord(
+                BarnetrygdmottakerKafkaTopic.NAME,
+                null,
+                null,
+                "",
+                """{"bogus":"format"}""",
+            )
+            kafkaProducer.send(pr).get()
+        }
+
         fun sendSluttInnlesingKafka(
             requestId: String
         ) {
             val pr = ProducerRecord(
-                BarnetrygdTopic.NAME,
+                BarnetrygdmottakerKafkaTopic.NAME,
                 null,
                 "",
                 serialize(
-                    KafkaMelding(
-                        meldingstype = KafkaMelding.Type.SLUTT,
+                    BarnetrygdmottakerKafkaMelding(
+                        meldingstype = BarnetrygdmottakerKafkaMelding.Type.SLUTT,
                         requestId = UUID.fromString(requestId),
                         personident = null
                     )

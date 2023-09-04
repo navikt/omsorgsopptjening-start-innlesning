@@ -13,11 +13,11 @@ object Mdc {
         return MDC.putCloseable(InnlesingId.identifier, innlesingId.toString()).use { block(innlesingId) }
     }
 
-    fun getCorrelationId(): String {
-        return MDC.get(CorrelationId.identifier).toString()
+    fun getCorrelationId(): CorrelationId {
+        return CorrelationId.fromString(MDC.get(CorrelationId.identifier).toString())
     }
 
-    fun getInnlesingId(): String? {
-        return MDC.get(InnlesingId.identifier).toString()
+    fun getInnlesingId(): InnlesingId {
+        return InnlesingId.fromString(MDC.get(InnlesingId.identifier).toString())
     }
 }

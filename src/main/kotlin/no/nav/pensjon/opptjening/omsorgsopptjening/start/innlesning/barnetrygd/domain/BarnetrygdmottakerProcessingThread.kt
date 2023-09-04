@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component
 
 @Component
 @Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
-class BarnetrygdmottakerProsesseringsTråd(
-    private val service: BarnetrygdService
+class BarnetrygdmottakerProcessingThread(
+    private val service: BarnetrygdmottakerService
 ) : Runnable {
 
     companion object {

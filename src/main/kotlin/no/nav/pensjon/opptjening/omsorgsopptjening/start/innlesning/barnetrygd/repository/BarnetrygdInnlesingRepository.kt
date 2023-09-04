@@ -1,6 +1,7 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -10,17 +11,18 @@ import java.sql.ResultSet
 import java.util.UUID
 
 @Component
-class InnlesingRepository(
+class BarnetrygdInnlesingRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-    fun bestilt(innlesing: Innlesing): Innlesing {
+    fun bestilt(innlesing: BarnetrygdInnlesing.Bestilt): BarnetrygdInnlesing {
         val keyHolder = GeneratedKeyHolder()
         jdbcTemplate.update(
-            """insert into innlesing (id, år, forespurt_tidspunkt) values (:id, :ar, now())""",
+            """insert into innlesing (id, år, forespurt_tidspunkt) values (:id, :ar, :forespurt_tidspunkt::timestamptz)""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to innlesing.id.toString(),
                     "ar" to innlesing.år,
+                    "forespurt_tidspunkt" to innlesing.forespurtTidspunkt.toString()
                 ),
             ),
             keyHolder
@@ -28,31 +30,33 @@ class InnlesingRepository(
         return finn(keyHolder.keys!!["id"] as String)!!
     }
 
-    fun start(id: String): Innlesing {
+    fun start(startet: BarnetrygdInnlesing.Startet): BarnetrygdInnlesing {
         jdbcTemplate.update(
-            """update innlesing set start_tidspunkt = now() where id = :id""",
+            """update innlesing set start_tidspunkt = :start_tidspunkt::timestamptz where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
-                    "id" to id,
+                    "id" to startet.id.toString(),
+                    "start_tidspunkt" to startet.startTidspunkt.toString()
                 ),
             ),
         )
-        return finn(id)!!
+        return finn(startet.id.toString())!!
     }
 
-    fun fullført(id: String): Innlesing {
+    fun fullført(ferdig: BarnetrygdInnlesing.Ferdig): BarnetrygdInnlesing {
         jdbcTemplate.update(
-            """update innlesing set ferdig_tidspunkt = now() where id = :id""",
+            """update innlesing set ferdig_tidspunkt = :ferdig_tidspunkt::timestamptz where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
-                    "id" to id,
+                    "id" to ferdig.id.toString(),
+                    "ferdig_tidspunkt" to ferdig.ferdigTidspunkt.toString()
                 ),
             ),
         )
-        return finn(id)!!
+        return finn(ferdig.id.toString())!!
     }
 
-    fun finn(id: String): Innlesing? {
+    fun finn(id: String): BarnetrygdInnlesing? {
         return jdbcTemplate.query(
             """select * from innlesing where id = :id""",
             MapSqlParameterSource(
@@ -75,9 +79,9 @@ class InnlesingRepository(
         )
     }
 
-    private class InnlesingRowMapper : RowMapper<Innlesing> {
-        override fun mapRow(rs: ResultSet, rowNum: Int): Innlesing? {
-            return Innlesing(
+    private class InnlesingRowMapper : RowMapper<BarnetrygdInnlesing> {
+        override fun mapRow(rs: ResultSet, rowNum: Int): BarnetrygdInnlesing {
+            return BarnetrygdInnlesing.of(
                 id = InnlesingId.fromString(rs.getString("id")),
                 år = rs.getInt("år"),
                 forespurtTidspunkt = rs.getTimestamp("forespurt_tidspunkt").toInstant(),

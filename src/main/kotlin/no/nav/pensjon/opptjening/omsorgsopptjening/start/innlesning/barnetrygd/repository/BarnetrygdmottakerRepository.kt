@@ -1,10 +1,11 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -20,15 +21,15 @@ class BarnetrygdmottakerRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    fun save(melding: Barnetrygdmottaker): Barnetrygdmottaker {
+    fun insert(barnetrygdmottaker: Barnetrygdmottaker): Barnetrygdmottaker {
         val keyHolder = GeneratedKeyHolder()
         jdbcTemplate.update(
             """insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) values (:ident, :correlation_id, :innlesing_id)""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
-                    "ident" to melding.ident,
-                    "correlation_id" to melding.correlationId.toString(),
-                    "innlesing_id" to melding.innlesingId.toString(),
+                    "ident" to barnetrygdmottaker.ident,
+                    "correlation_id" to barnetrygdmottaker.correlationId.toString(),
+                    "innlesing_id" to barnetrygdmottaker.innlesingId.toString(),
                 ),
             ),
             keyHolder
@@ -38,22 +39,22 @@ class BarnetrygdmottakerRepository(
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to keyHolder.keys!!["id"] as UUID,
-                    "status" to serialize(melding.status),
-                    "statushistorikk" to melding.statushistorikk.serializeList()
+                    "status" to serialize(barnetrygdmottaker.status),
+                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList()
                 ),
             ),
         )
         return find(keyHolder.keys!!["id"] as UUID)!!
     }
 
-    fun updateStatus(melding: Barnetrygdmottaker) {
+    fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker) {
         jdbcTemplate.update(
             """update barnetrygdmottaker_status set status = to_json(:status::json), statushistorikk = to_json(:statushistorikk::json) where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
-                    "id" to melding.id!!,
-                    "status" to serialize(melding.status),
-                    "statushistorikk" to melding.statushistorikk.serializeList()
+                    "id" to barnetrygdmottaker.id!!,
+                    "status" to serialize(barnetrygdmottaker.status),
+                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList()
                 ),
             ),
         )

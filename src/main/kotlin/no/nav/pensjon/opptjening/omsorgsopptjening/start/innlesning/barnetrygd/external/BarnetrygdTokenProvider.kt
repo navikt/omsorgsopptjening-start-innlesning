@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.AzureAdTokenClientConfig
 import org.springframework.beans.factory.annotation.Value
