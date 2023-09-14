@@ -13,18 +13,16 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 class BarnetrygdmottakerService(
     private val client: BarnetrygdClient,
     private val repo: BarnetrygdmottakerRepository,
     private val kafkaProducer: KafkaTemplate<String, String>,
+    private val transactionTemplate: TransactionTemplate,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
@@ -34,25 +32,34 @@ class BarnetrygdmottakerService(
         return client.bestillBarnetrygdmottakere(ar)
     }
 
-    @Transactional(rollbackFor = [Throwable::class])
     fun process(): Barnetrygdmottaker? {
-        return repo.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
-            Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
-                Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
-                    try {
-                        log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
+        return transactionTemplate.execute {
+            repo.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
+                Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
+                    Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
+                        try {
+                            transactionTemplate.execute {
+                                log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
 
-                        log.info("Henter detaljer")
-                        client.hentBarnetrygd(
-                            ident = barnetrygdmottaker.ident,
-                            ar = barnetrygdmottaker.år!!,
-                        ).let {
-                            barnetrygdmottaker.handle(it)
+                                log.info("Henter detaljer")
+                                client.hentBarnetrygd(
+                                    ident = barnetrygdmottaker.ident,
+                                    ar = barnetrygdmottaker.år!!,
+                                ).let {
+                                    barnetrygdmottaker.handle(it)
+                                }
+                            }
+                        } catch (ex: Throwable) {
+                            transactionTemplate.execute {
+                                barnetrygdmottaker.retry(ex.toString()).let {
+                                    if (it.status is Barnetrygdmottaker.Status.Feilet) {
+                                        log.error("Gir opp videre prosessering av melding")
+                                    }
+                                    repo.updateStatus(it)
+                                }
+                            }
+                            throw ex
                         }
-                    } catch (exception: Throwable) {
-                        log.warn("Exception caught while processing id: ${barnetrygdmottaker.id}, exeption:$exception")
-                        statusoppdatering.markerForRetry(barnetrygdmottaker, exception)
-                        throw exception
                     }
                 }
             }
@@ -113,32 +120,5 @@ class BarnetrygdmottakerService(
                 )
             )
         )
-    }
-
-    @Autowired
-    private lateinit var statusoppdatering: Statusoppdatering
-
-    /**
-     * https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html
-     *
-     * "In proxy mode (which is the default), only external method calls coming in through the proxy are intercepted.
-     * This means that self-invocation (in effect, a method within the target object calling another method of the target object)
-     * does not lead to an actual transaction at runtime even if the invoked method is marked with @Transactional.
-     * Also, the proxy must be fully initialized to provide the expected behavior, so you should not rely on this feature
-     * in your initialization code - for example, in a @PostConstruct method."
-     */
-    @Component
-    private class Statusoppdatering(
-        private val repo: BarnetrygdmottakerRepository,
-    ) {
-        @Transactional(rollbackFor = [Throwable::class], propagation = Propagation.REQUIRES_NEW)
-        fun markerForRetry(barnetrygdmottaker: Barnetrygdmottaker, exception: Throwable) {
-            barnetrygdmottaker.retry(exception.toString()).let {
-                if (it.status is Barnetrygdmottaker.Status.Feilet) {
-                    log.error("Gir opp videre prosessering av melding")
-                }
-                repo.updateStatus(it)
-            }
-        }
     }
 }

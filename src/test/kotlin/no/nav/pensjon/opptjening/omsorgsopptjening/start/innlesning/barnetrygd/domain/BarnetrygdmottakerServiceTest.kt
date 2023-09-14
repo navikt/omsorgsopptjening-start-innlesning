@@ -1,6 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
-import com.fasterxml.jackson.core.JsonParseException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -13,6 +12,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.BDDMockito.any
 import org.mockito.BDDMockito.given
@@ -21,6 +21,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
+import java.lang.reflect.UndeclaredThrowableException
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -207,7 +208,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
         )
 
-        org.junit.jupiter.api.assertThrows<JsonParseException> {
+        assertThrows<UndeclaredThrowableException> {
             barnetrygdService.process()
         }
 
