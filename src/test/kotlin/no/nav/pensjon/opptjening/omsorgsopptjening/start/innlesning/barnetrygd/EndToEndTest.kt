@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
@@ -58,8 +59,6 @@ class EndToEndTest : SpringContextTest.WithKafka() {
             )
             deserialize<OmsorgsgrunnlagMelding>(consumerRecord.value()).also {
                 assertEquals("12345678910", it.omsorgsyter)
-                assertEquals("BARNETRYGD", it.omsorgstype.toString())
-                assertEquals("BARNETRYGD", it.kilde.toString())
                 assertEquals(
                     listOf(
                         OmsorgsgrunnlagMelding.Sak(
@@ -69,7 +68,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     fom = YearMonth.of(2020, Month.JANUARY),
                                     tom = YearMonth.of(2025, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
-                                    prosent = 100,
+                                    omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                 )
                             )
                         )

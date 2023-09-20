@@ -2,15 +2,14 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.BarnetrygdClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.BestillBarnetrygdmottakereResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.HentBarnetrygdResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.HjelpestønadRepo
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -23,6 +22,7 @@ class BarnetrygdmottakerService(
     private val repo: BarnetrygdmottakerRepository,
     private val kafkaProducer: KafkaTemplate<String, String>,
     private val transactionTemplate: TransactionTemplate,
+    private val hjelpestønadRepo: HjelpestønadRepo,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
@@ -84,7 +84,7 @@ class BarnetrygdmottakerService(
                         kafkaProducer.send(
                             createKafkaMessage(
                                 barnetrygdmottaker = it,
-                                saker = response.barnetrygdsaker,
+                                saker =  hjelpestønadRepo.leggTilEventuellHjelpestønad(response.barnetrygdsaker),
                                 rådataFraKilde = response.rådataFraKilde,
                             )
                         ).get()
@@ -111,8 +111,6 @@ class BarnetrygdmottakerService(
             serialize(
                 OmsorgsgrunnlagMelding(
                     omsorgsyter = barnetrygdmottaker.ident,
-                    omsorgstype = Omsorgstype.BARNETRYGD,
-                    kilde = Kilde.BARNETRYGD,
                     saker = saker,
                     rådata = rådataFraKilde,
                     innlesingId = barnetrygdmottaker.innlesingId,

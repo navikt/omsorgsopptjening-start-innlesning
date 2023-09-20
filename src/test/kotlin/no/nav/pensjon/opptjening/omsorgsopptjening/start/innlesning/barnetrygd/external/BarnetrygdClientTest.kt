@@ -6,6 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -79,7 +80,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                         vedtaksperioder = listOf(
                                             OmsorgsgrunnlagMelding.VedtakPeriode(
                                                 omsorgsmottaker = "09876543210",
-                                                prosent = 100,
+                                                omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                                 fom = YearMonth.of(2020, Month.JANUARY),
                                                 tom = YearMonth.of(2025, Month.DECEMBER)
                                             )
