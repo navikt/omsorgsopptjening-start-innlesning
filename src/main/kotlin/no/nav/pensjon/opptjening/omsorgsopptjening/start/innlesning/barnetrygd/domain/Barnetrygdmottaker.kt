@@ -9,35 +9,42 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 
-data class Barnetrygdmottaker(
-    val id: UUID? = null,
-    var opprettet: Instant? = null,
-    var ident: String,
-    var år: Int? = null,
-    var correlationId: CorrelationId,
-    val statushistorikk: List<Status> = listOf(Status.Klar()),
-    val innlesingId: InnlesingId
-) {
-    constructor(
-        ident: String,
-        correlationId: CorrelationId,
-        innlesingId: InnlesingId
-    ) : this(
-        id = null,
-        opprettet = null,
-        år = null,
-        ident = ident,
-        correlationId = correlationId,
-        innlesingId = innlesingId
-    )
-
-    val status: Status get() = statushistorikk.last()
-    fun ferdig(): Barnetrygdmottaker {
-        return copy(statushistorikk = statushistorikk + status.ferdig())
+sealed class Barnetrygdmottaker {
+    abstract val id: UUID?
+    abstract val opprettet: Instant?
+    abstract val ident: String
+    abstract val correlationId: CorrelationId
+    abstract val statushistorikk: List<Status>
+    abstract val innlesingId: InnlesingId
+    data class Transient(
+        override val ident: String,
+        override val correlationId: CorrelationId,
+        override val innlesingId: InnlesingId,
+    ) : Barnetrygdmottaker() {
+        override val id = null
+        override val opprettet = null
+        override val statushistorikk: List<Status> = listOf(Status.Klar())
+        val status: Status get() = statushistorikk.last()
     }
 
-    fun retry(melding: String): Barnetrygdmottaker {
-        return copy(statushistorikk = statushistorikk + status.retry(melding))
+    data class Mottatt(
+        override val id: UUID,
+        override val opprettet: Instant,
+        override val ident: String,
+        override val correlationId: CorrelationId,
+        override val innlesingId: InnlesingId,
+        override val statushistorikk: List<Status> = listOf(Status.Klar()),
+        val år: Int
+    ) : Barnetrygdmottaker() {
+        val status: Status get() = statushistorikk.last()
+
+        fun ferdig(): Mottatt {
+            return copy(statushistorikk = statushistorikk + status.ferdig())
+        }
+
+        fun retry(melding: String): Mottatt {
+            return copy(statushistorikk = statushistorikk + status.retry(melding))
+        }
     }
 
     @JsonTypeInfo(

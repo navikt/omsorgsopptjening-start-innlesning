@@ -54,8 +54,8 @@ class BarnetrygdmottakerMessageHandler(
             log.info("Mottatt melding om barnetrygdmottaker")
             mottaData().also {
                 barnetrygdmottakerRepository.insert(
-                    toBarnetrygdmottaker(
-                        personident = melding.personIdent,
+                    Barnetrygdmottaker.Transient(
+                        ident = melding.personIdent,
                         correlationId = melding.correlationId,
                         innlesingId = melding.innlesingId
                     )
@@ -74,18 +74,6 @@ class BarnetrygdmottakerMessageHandler(
         } catch (ex: BarnetrygdInnlesing.UgyldigTilstand) {
             throw BarnetrygdInnlesingException.UgyldigTistand(this.id.toString(), melding::class.java.simpleName)
         }
-    }
-
-    private fun toBarnetrygdmottaker(
-        personident: String,
-        correlationId: CorrelationId,
-        innlesingId: InnlesingId,
-    ): Barnetrygdmottaker {
-        return Barnetrygdmottaker(
-            ident = personident,
-            correlationId = correlationId,
-            innlesingId = innlesingId
-        )
     }
 }
 

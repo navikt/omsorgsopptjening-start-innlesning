@@ -19,31 +19,22 @@ object HentBarnetrygdResponseHandler {
             HttpStatus.OK -> {
                 when {
                     response.body == null -> {
-                        HentBarnetrygdResponse.Feil(
-                            status = response.statusCode.value(),
-                            body = null
-                        )
+                        throw HentBarnetrygdException("Liste med barnetrygdsaker er null")
                     }
 
                     else -> {
                         deserialize<FagsakListeWrapper>(response.body!!).let { wrapper ->
                             when {
                                 wrapper.fagsaker.isEmpty() -> {
-                                    HentBarnetrygdResponse.Feil(
-                                        status = status.value(),
-                                        body = "Liste med barnetrygdsaker er tom"
-                                    )
+                                    throw HentBarnetrygdException("Liste med barnetrygdsaker er tom")
                                 }
 
                                 wrapper.fagsaker.any { it.barnetrygdPerioder.isEmpty() } -> {
-                                    HentBarnetrygdResponse.Feil(
-                                        status = status.value(),
-                                        body = "En eller flere av barnetrygdsakene mangler perioder"
-                                    )
+                                    throw HentBarnetrygdException("En eller flere av barnetrygdsakene mangler perioder")
                                 }
 
                                 else -> {
-                                    HentBarnetrygdResponse.Ok(
+                                    HentBarnetrygdResponse(
                                         barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker),
                                         rådataFraKilde = RådataFraKilde(response.body!!)
                                     )
@@ -55,26 +46,18 @@ object HentBarnetrygdResponseHandler {
             }
 
             else -> {
-                HentBarnetrygdResponse.Feil(
-                    status = response.statusCode.value(),
-                    body = response.body.toString()
-                )
+                throw HentBarnetrygdException("Ukjent feil, status: $status, body:${response.body.toString()}")
             }
         }
     }
 }
 
-sealed class HentBarnetrygdResponse {
-    data class Ok(
-        val barnetrygdsaker: List<OmsorgsgrunnlagMelding.Sak>,
-        val rådataFraKilde: RådataFraKilde
-    ) : HentBarnetrygdResponse()
+data class HentBarnetrygdResponse(
+    val barnetrygdsaker: List<OmsorgsgrunnlagMelding.Sak>,
+    val rådataFraKilde: RådataFraKilde
+)
 
-    data class Feil(
-        val status: Int?,
-        val body: String?
-    ) : HentBarnetrygdResponse()
-}
+data class HentBarnetrygdException(val msg: String) : RuntimeException(msg)
 
 
 private data class FagsakListeWrapper(

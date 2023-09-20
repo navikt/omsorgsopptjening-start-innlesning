@@ -8,23 +8,22 @@ object BestillBarnetrygdResponseHandler {
     fun handle(response: ResponseEntity<String>, år: Int): BestillBarnetrygdmottakereResponse {
         return when (response.statusCode) {
             HttpStatus.ACCEPTED -> {
-                BestillBarnetrygdmottakereResponse.Ok(
+                BestillBarnetrygdmottakereResponse(
                     innlesingId = InnlesingId.fromString(response.body.toString()),
                     år = år
                 )
             }
 
             else -> {
-                BestillBarnetrygdmottakereResponse.Feil(
-                    status = response.statusCode.value(),
-                    melding = response.body.toString()
-                )
+                throw BestillBarnetrygdMottakereException("Ukjent feil, status: ${response.statusCode.value()}, body: ${response.body.toString()}")
             }
         }
     }
 }
 
-sealed class BestillBarnetrygdmottakereResponse {
-    data class Ok(val innlesingId: InnlesingId, val år: Int) : BestillBarnetrygdmottakereResponse()
-    data class Feil(val status: Int?, val melding: String?) : BestillBarnetrygdmottakereResponse()
-}
+data class BestillBarnetrygdmottakereResponse(
+    val innlesingId: InnlesingId,
+    val år: Int
+)
+
+data class BestillBarnetrygdMottakereException(val msg: String) : RuntimeException(msg)

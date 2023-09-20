@@ -10,35 +10,17 @@ import java.util.UUID
 
 @Component
 class HjelpestønadRepo {
-    fun leggTilEventuellHjelpestønad(saker: List<OmsorgsgrunnlagMelding.Sak>): List<OmsorgsgrunnlagMelding.Sak> {
-        return saker
-            .map { it to it.hentOmsorgsmottakere() }
-            .map { (sak, omsorgsmottakere) -> sak to omsorgsmottakere.mapNotNull { finnHjelpestønadz(it) }.flatten() }
-            .flatMap { (sak, hjelpestønadvedtak) ->
-                hjelpestønadvedtak.map {
-                    sak.leggTilVedtaksperiode(
-                        OmsorgsgrunnlagMelding.VedtakPeriode(
-                            fom = it.fom,
-                            tom = it.tom,
-                            omsorgstype = it.omsorgstype,
-                            omsorgsmottaker = it.ident,
-                        )
-                    )
-                }
-            }
-    }
-}
-
-fun finnHjelpestønadz(ident: String): List<HjelpestønadVedtak>? {
-    """select * from tabell where barnfnr = $ident"""
-    return listOf(
-        HjelpestønadVedtak(
-            id = UUID.randomUUID(),
-            ident = "1234568910",
-            fom = YearMonth.of(2020, Month.JANUARY),
-            tom = YearMonth.of(2030, Month.JANUARY),
-            omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
-            kilde = Kilde.INFOTRYGD
+    fun hentHjelpestønad(fnr: String): List<HjelpestønadVedtak>? {
+        //TODO hjelpestønad sql + fnr
+        return listOf(
+            HjelpestønadVedtak(
+                id = UUID.randomUUID(),
+                ident = "1234568910",
+                fom = YearMonth.of(2020, Month.JANUARY),
+                tom = YearMonth.of(2030, Month.JANUARY),
+                omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
+                kilde = Kilde.INFOTRYGD
+            )
         )
-    )
+    }
 }

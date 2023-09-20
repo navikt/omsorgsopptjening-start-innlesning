@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.HentBarnetrygdException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -64,7 +65,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         val innlesing = lagreFullførtInnlesing()
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
-            Barnetrygdmottaker(
+            Barnetrygdmottaker.Transient(
                 ident = "12345678910",
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
@@ -72,23 +73,32 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         )
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
-        barnetrygdService.process()
-        barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.also {
+        assertThrows<HentBarnetrygdException> {
+            barnetrygdService.process()
+        }
+        barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
                 kotlin.test.assertEquals(1, it.antallForsøk)
                 kotlin.test.assertEquals(3, it.maxAntallForsøk)
             }
         }
-        barnetrygdService.process()
-        barnetrygdService.process()
-        barnetrygdService.process()
+
+        assertThrows<HentBarnetrygdException> {
+            barnetrygdService.process()
+        }
+        assertThrows<HentBarnetrygdException> {
+            barnetrygdService.process()
+        }
+        assertThrows<HentBarnetrygdException> {
+            barnetrygdService.process()
+        }
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Feilet::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
     }
 
@@ -105,7 +115,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         val innlesing = lagreFullførtInnlesing()
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
-            Barnetrygdmottaker(
+            Barnetrygdmottaker.Transient(
                 ident = "12345678910",
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
@@ -154,11 +164,13 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
-        barnetrygdService.process()
-        barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).let {
+        assertThrows<HentBarnetrygdException> {
+            barnetrygdService.process()
+        }
+        barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
                 kotlin.test.assertEquals(1, it.antallForsøk)
                 kotlin.test.assertEquals(3, it.maxAntallForsøk)
@@ -168,7 +180,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         barnetrygdService.process()
         assertInstanceOf(
             Barnetrygdmottaker.Status.Ferdig::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
     }
 
@@ -196,7 +208,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         val innlesing = lagreFullførtInnlesing()
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
-            Barnetrygdmottaker(
+            Barnetrygdmottaker.Transient(
                 ident = "12345678910",
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
@@ -205,14 +217,14 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
-            barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!)!!.status
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
         assertThrows<UndeclaredThrowableException> {
             barnetrygdService.process()
         }
 
-        barnetrygdmottakerRepository.find(barnetrygdmottaker.id!!).also {
+        barnetrygdmottakerRepository.find(barnetrygdmottaker.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
                 kotlin.test.assertEquals(1, it.antallForsøk)
                 kotlin.test.assertEquals(3, it.maxAntallForsøk)

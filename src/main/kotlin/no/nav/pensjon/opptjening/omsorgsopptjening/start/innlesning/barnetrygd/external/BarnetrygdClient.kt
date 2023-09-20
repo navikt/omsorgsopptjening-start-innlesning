@@ -51,10 +51,8 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not202()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { BestillBarnetrygdResponseHandler.handle(it, ar) } ?: BestillBarnetrygdmottakereResponse.Feil(
-            null,
-            "Response var null"
-        )
+            .block()?.let { BestillBarnetrygdResponseHandler.handle(it, ar) }
+            ?: throw BestillBarnetrygdMottakereException("Response var null")
     }
 
     /**
@@ -89,10 +87,8 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { HentBarnetrygdResponseHandler.handle(it) } ?: HentBarnetrygdResponse.Feil(
-            null,
-            "Response var null"
-        )
+            .block()?.let { HentBarnetrygdResponseHandler.handle(it) }
+            ?: throw HentBarnetrygdException("Response var null")
     }
 
     data class HentBarnetrygdRequest(val ident: String, val fraDato: String)

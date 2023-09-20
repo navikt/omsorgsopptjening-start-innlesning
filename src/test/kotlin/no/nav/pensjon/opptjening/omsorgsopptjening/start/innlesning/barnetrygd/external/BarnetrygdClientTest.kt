@@ -12,10 +12,12 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Month
 import java.time.YearMonth
+import kotlin.test.assertContains
 
 class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
@@ -37,7 +39,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
             client.bestillBarnetrygdmottakere(ar = 2020).also {
                 assertEquals(
-                    BestillBarnetrygdmottakereResponse.Ok(
+                    BestillBarnetrygdmottakereResponse(
                         InnlesingId.fromString("3d797c7d-6273-4be3-bd57-e13de35251f8"),
                         2020
                     ), it
@@ -46,16 +48,14 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         }
 
         @Test
-        fun `returner feil med diverse informasjon dersom kall til bestill-personer-med-barnetrygd svarer med noe annet enn accepted`() {
+        fun `kaster exception dersom kall til bestill-personer-med-barnetrygd svarer med noe annet enn accepted`() {
             wiremock.`bestill-personer-med-barnetrygd internal server error`()
 
-            client.bestillBarnetrygdmottakere(ar = 2020).also {
-                assertEquals(
-                    BestillBarnetrygdmottakereResponse.Feil(
-                        500,
-                        """{whatever this may contain}"""
-                    ), it
-                )
+            assertThrows<BestillBarnetrygdMottakereException> {
+                client.bestillBarnetrygdmottakere(ar = 2020)
+            }.also {
+                assertContains(it.msg, "500")
+                assertContains(it.msg, "{whatever this may contain}")
             }
         }
     }
@@ -73,7 +73,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                         ar = 2020
                     ).also {
                         assertEquals(
-                            HentBarnetrygdResponse.Ok(
+                            HentBarnetrygdResponse(
                                 barnetrygdsaker = listOf(
                                     OmsorgsgrunnlagMelding.Sak(
                                         omsorgsyter = "12345678910",
@@ -117,70 +117,55 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         }
 
         @Test
-        fun `returner feil med diverse informasjon dersom kall til hent-barnetrygd svarer med noe annet enn 200`() {
+        fun `kaster exception dersom kall til hent-barnetrygd svarer med noe annet enn 200`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
                     wiremock.`hent-barnetrygd internal server error`()
 
-                    client.hentBarnetrygd(
-                        ident = "123",
-                        ar = 2020
-                    ).also {
-                        assertEquals(
-                            HentBarnetrygdResponse.Feil(
-                                500,
-                                """
-                                    [
-                                        {
-                                           "status":"FUNKSJONELL_FEIL",
-                                           "melding":"Dette gikk ikke så bra"
-                                        }
-                                    ]
-                            """.trimIndent()
-                            ), it
+                    assertThrows<HentBarnetrygdException> {
+                        client.hentBarnetrygd(
+                            ident = "123",
+                            ar = 2020
                         )
+                    }.also {
+                        assertContains(it.msg, "FUNKSJONELL_FEIL")
+                        assertContains(it.msg, "Dette gikk ikke så bra")
                     }
                 }
             }
         }
 
         @Test
-        fun `returner feil dersom kall til hent-barnetrygd svarer med 200 ok med tom liste`() {
+        fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok med tom liste`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
                     wiremock.`hent-barnetrygd ok uten fagsaker`()
 
-                    client.hentBarnetrygd(
-                        ident = "123",
-                        ar = 2020
-                    ).also {
-                        assertEquals(
-                            HentBarnetrygdResponse.Feil(
-                                200,
-                                "Liste med barnetrygdsaker er tom"
-                            ), it
+                    assertThrows<HentBarnetrygdException> {
+                        client.hentBarnetrygd(
+                            ident = "123",
+                            ar = 2020
                         )
+                    }.also {
+                        assertContains(it.msg, "Liste med barnetrygdsaker er tom")
                     }
                 }
             }
         }
 
         @Test
-        fun `returner feil dersom kall til hent-barnetrygd svarer med 200 ok og saker mangler barnetrygdperioder`() {
+        fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok og saker mangler barnetrygdperioder`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
                     wiremock.`hent-barnetrygd ok uten barnetrygdperioder`()
 
-                    client.hentBarnetrygd(
-                        ident = "123",
-                        ar = 2020
-                    ).also {
-                        assertEquals(
-                            HentBarnetrygdResponse.Feil(
-                                200,
-                                "En eller flere av barnetrygdsakene mangler perioder"
-                            ), it
+                    assertThrows<HentBarnetrygdException> {
+                        client.hentBarnetrygd(
+                            ident = "123",
+                            ar = 2020
                         )
+                    }.also {
+                        assertContains(it.msg, "En eller flere av barnetrygdsakene mangler perioder")
                     }
                 }
             }

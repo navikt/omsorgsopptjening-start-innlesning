@@ -47,7 +47,7 @@ class BarnetrygdInnlesingRepositoryTest : SpringContextTest.NoKafka() {
             forespurtTidspunkt = Instant.EPOCH
         )
 
-        val b = Barnetrygdmottaker(
+        val b = Barnetrygdmottaker.Transient(
             ident = "12345678910",
             correlationId = CorrelationId.generate(),
             innlesingId = bestilt.id
@@ -57,9 +57,9 @@ class BarnetrygdInnlesingRepositoryTest : SpringContextTest.NoKafka() {
         val bb = barnetrygdmottakerRepository.insert(b)
 
         assertEquals(aa, innlesingRepository.finn(bestilt.id.toString()))
-        assertEquals(bb, barnetrygdmottakerRepository.find(bb.id!!))
+        assertEquals(bb, barnetrygdmottakerRepository.find(bb.id))
 
         innlesingRepository.invalider(aa.id.toUUID())
-        assertNull(barnetrygdmottakerRepository.find(bb.id!!))
+        assertNull(barnetrygdmottakerRepository.find(bb.id))
     }
 }

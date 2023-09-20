@@ -21,7 +21,7 @@ class BarnetrygdmottakerRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    fun insert(barnetrygdmottaker: Barnetrygdmottaker): Barnetrygdmottaker {
+    fun insert(barnetrygdmottaker: Barnetrygdmottaker.Transient): Barnetrygdmottaker.Mottatt {
         val keyHolder = GeneratedKeyHolder()
         jdbcTemplate.update(
             """insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) values (:ident, :correlation_id, :innlesing_id)""",
@@ -47,12 +47,12 @@ class BarnetrygdmottakerRepository(
         return find(keyHolder.keys!!["id"] as UUID)!!
     }
 
-    fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker) {
+    fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
         jdbcTemplate.update(
             """update barnetrygdmottaker_status set status = to_json(:status::json), statushistorikk = to_json(:statushistorikk::json) where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
-                    "id" to barnetrygdmottaker.id!!,
+                    "id" to barnetrygdmottaker.id,
                     "status" to serialize(barnetrygdmottaker.status),
                     "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList()
                 ),
@@ -60,7 +60,7 @@ class BarnetrygdmottakerRepository(
         )
     }
 
-    fun find(id: UUID): Barnetrygdmottaker? {
+    fun find(id: UUID): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
             """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.innlesing_id where b.id = :id""",
             mapOf<String, Any>(
@@ -75,7 +75,7 @@ class BarnetrygdmottakerRepository(
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en
      * annen connection (pod) så lenge transaksjonen lever.
      */
-    fun finnNesteUprosesserte(): Barnetrygdmottaker? {
+    fun finnNesteUprosesserte(): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
             """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.innlesing_id where i.ferdig_tidspunkt is not null and (bs.status->>'type' = 'Klar') or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz) fetch first row only for update of b skip locked""",
             mapOf(
@@ -85,9 +85,9 @@ class BarnetrygdmottakerRepository(
         ).singleOrNull()
     }
 
-    internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker> {
-        override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker {
-            return Barnetrygdmottaker(
+    internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {
+        override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker.Mottatt {
+            return Barnetrygdmottaker.Mottatt(
                 id = UUID.fromString(rs.getString("id")),
                 opprettet = rs.getTimestamp("opprettet").toInstant(),
                 ident = rs.getString("ident"),
