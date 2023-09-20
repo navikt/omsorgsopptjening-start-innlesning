@@ -3,10 +3,12 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestøn
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
+import org.springframework.stereotype.Component
 import java.time.Month
 import java.time.YearMonth
 import java.util.UUID
 
+@Component
 class HjelpestønadRepo {
     fun leggTilEventuellHjelpestønad(saker: List<OmsorgsgrunnlagMelding.Sak>): List<OmsorgsgrunnlagMelding.Sak> {
         return saker

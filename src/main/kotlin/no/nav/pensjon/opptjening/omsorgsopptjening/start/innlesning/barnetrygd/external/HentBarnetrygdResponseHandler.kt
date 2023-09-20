@@ -93,8 +93,7 @@ data class Periode(
     val ytelseTypeEkstern: String?,
     val utbetaltPerMnd: Int,
     val stønadFom: YearMonth,
-    val stønadTom: YearMonth,
-    val kilde: String
+    val stønadTom: YearMonth
 ) {
     @JsonIgnore
     val periode: no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.periode.Periode =

@@ -69,6 +69,12 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     tom = YearMonth.of(2025, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.FULL_BARNETRYGD,
+                                ),
+                                OmsorgsgrunnlagMelding.VedtakPeriode(
+                                    fom = YearMonth.of(2020, Month.JANUARY),
+                                    tom = YearMonth.of(2030, Month.JANUARY),
+                                    omsorgsmottaker = "1234568910",
+                                    omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
                                 )
                             )
                         )

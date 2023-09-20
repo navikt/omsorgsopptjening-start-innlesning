@@ -85,7 +85,7 @@ class BarnetrygdmottakerService(
                             createKafkaMessage(
                                 barnetrygdmottaker = it,
                                 saker =  hjelpestønadRepo.leggTilEventuellHjelpestønad(response.barnetrygdsaker),
-                                rådataFraKilde = response.rådataFraKilde,
+                                rådataFraKilde = response.rådataFraKilde, //TODO legg til hjelpestønad i rådata
                             )
                         ).get()
                         log.info("Prosessering fullført")
