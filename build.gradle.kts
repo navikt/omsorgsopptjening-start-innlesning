@@ -8,10 +8,11 @@ val hibernateValidatorVersion = "8.0.0.Final"
 val logbackEncoderVersion = "7.2"
 val postgresqlVersion = "42.5.1"
 val flywayCoreVersion = "9.11.0"
-val testcontainersVersion = "1.17.6"
+val testcontainersVersion = "1.19.0"
 val jacksonVersion = "2.14.1"
 val springKafkaTestVersion = "3.0.5"
 val azureAdClient = "0.0.7"
+val assertjVersion = "3.24.2"
 
 plugins {
     kotlin("jvm") version "1.8.0"
@@ -68,6 +69,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.springframework.kafka:spring-kafka-test:$springKafkaTestVersion")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.assertj:assertj-core:$assertjVersion")
 }
 
 tasks.test {

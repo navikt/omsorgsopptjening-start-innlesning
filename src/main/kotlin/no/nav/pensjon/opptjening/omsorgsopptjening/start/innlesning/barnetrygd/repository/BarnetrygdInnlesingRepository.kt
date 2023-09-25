@@ -68,6 +68,13 @@ class BarnetrygdInnlesingRepository(
         ).singleOrNull()
     }
 
+    fun finnSisteInnlesing(): BarnetrygdInnlesing? {
+        return jdbcTemplate.query(
+            """select * from innlesing order by forespurt_tidspunkt desc limit 1""",
+            InnlesingRowMapper()
+        ).singleOrNull()
+    }
+
     fun invalider(id: UUID) {
         jdbcTemplate.update(
             """delete from innlesing where id = :id""",
