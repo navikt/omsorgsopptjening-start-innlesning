@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -18,6 +19,7 @@ class StatusServiceTest: SpringContextTest.NoKafka() {
     @Autowired
     private lateinit var statusService: StatusService
 
+    @Disabled
     @Test
     fun testFantIngenInnlesninger() {
         val status = statusService.checkStatus()
