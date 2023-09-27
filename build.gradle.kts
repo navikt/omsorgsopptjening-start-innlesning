@@ -5,7 +5,7 @@ val domeneVersion = "1.0.58"
 val springVersion = "3.1.4"
 val navTokenSupportVersion = "3.0.2"
 val hibernateValidatorVersion = "8.0.1.Final"
-val logbackEncoderVersion = "7.2"
+val logbackEncoderVersion = "7.4"
 val postgresqlVersion = "42.5.1"
 val flywayCoreVersion = "9.22.2"
 val testcontainersVersion = "1.19.0"
@@ -63,7 +63,7 @@ dependencies {
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:4.0.0")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:4.0.4")
     testImplementation(kotlin("test"))
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
