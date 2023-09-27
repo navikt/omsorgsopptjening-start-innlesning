@@ -2,22 +2,22 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "1.0.58"
-val springVersion = "3.0.0"
+val springVersion = "3.1.4"
 val navTokenSupportVersion = "3.0.2"
-val hibernateValidatorVersion = "8.0.0.Final"
+val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "7.2"
 val postgresqlVersion = "42.5.1"
-val flywayCoreVersion = "9.11.0"
+val flywayCoreVersion = "9.22.2"
 val testcontainersVersion = "1.19.0"
-val jacksonVersion = "2.14.1"
-val springKafkaTestVersion = "3.0.5"
+val jacksonVersion = "2.15.2"
+val springKafkaTestVersion = "3.0.11"
 val azureAdClient = "0.0.7"
 val assertjVersion = "3.24.2"
 
 plugins {
-    kotlin("jvm") version "1.8.0"
-    kotlin("plugin.spring") version "1.8.0"
-    id("org.springframework.boot") version "3.0.1"
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.spring") version "1.9.10"
+    id("org.springframework.boot") version "3.1.4"
 }
 
 apply(plugin = "io.spring.dependency-management")
