@@ -10,7 +10,6 @@ import java.time.Instant.now
 @Service
 class StatusService(
     private val repo: BarnetrygdInnlesingRepository,
-    private val transactionTemplate: TransactionTemplate,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)

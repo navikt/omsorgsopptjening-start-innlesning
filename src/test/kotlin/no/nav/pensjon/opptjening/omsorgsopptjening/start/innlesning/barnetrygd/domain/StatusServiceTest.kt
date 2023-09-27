@@ -35,7 +35,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         flyway.migrate()
         innlesingRepository =
             BarnetrygdInnlesingRepository(NamedParameterJdbcTemplate(dataSource))
-        statusService = StatusService(innlesingRepository, TransactionTemplate())
+        statusService = StatusService(innlesingRepository)
     }
 
     //    @Disabled
