@@ -4,6 +4,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.Duration
+import java.time.Instant.now
 
 @Service
 class StatusService(
@@ -15,8 +17,23 @@ class StatusService(
     }
 
     fun checkStatus(): ApplicationStatus {
-        if (repo.finnSisteInnlesing() == null) return ApplicationStatus.IkkeKjort
-        return ApplicationStatus.Feil(listOf("a", "b"))
+        val innlesing = repo.finnSisteInnlesing()
+        if (innlesing == null) return ApplicationStatus.IkkeKjort
+        else if (forGammel(innlesing)) return ApplicationStatus.Feil(listOf("For lenge siden siste innlesing"))
+        else if (ikkeProsessert(innlesing)) return ApplicationStatus.Feil(listOf("Innlesing er ikke prosessert"))
+        return ApplicationStatus.OK
+    }
+
+    private fun ikkeProsessert(innlesing: BarnetrygdInnlesing): Boolean {
+        val maksProsesseringsTid = now().minus(Duration.ofHours(2))
+        val burdeVærtProsessert = innlesing.forespurtTidspunkt < maksProsesseringsTid
+        val erIkkeProsessert = innlesing.ferdigTidspunkt != null
+        return burdeVærtProsessert || erIkkeProsessert
+    }
+
+    private fun forGammel(innlesing: BarnetrygdInnlesing): Boolean {
+        val minimumTidspunkt = now().minus(Duration.ofDays(400))
+        return innlesing.forespurtTidspunkt < minimumTidspunkt
     }
 }
 
