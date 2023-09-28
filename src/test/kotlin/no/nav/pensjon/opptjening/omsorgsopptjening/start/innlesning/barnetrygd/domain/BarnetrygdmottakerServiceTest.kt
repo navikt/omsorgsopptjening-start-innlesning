@@ -277,6 +277,37 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         }
     }
 
+    @Test
+    fun `omsorgsgrunnlag sender bare barnetrygd dersom hjelpestønad ikke eksisterer`() {
+        val captor = argumentCaptor<ProducerRecord<String, String>> { }
+        given(kafkaTemplate.send(captor.capture())).willAnswer {
+            CompletableFuture.completedFuture(it.arguments[0])
+        }
+        given(clock.instant()).willReturn(Instant.now())
+
+        val innlesing = lagreFullførtInnlesing()
+
+        barnetrygdmottakerRepository.insert(
+            Barnetrygdmottaker.Transient(
+                ident = "12345678910",
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            )
+        )
+
+        wiremock.`hent-barnetrygd ok`()
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        barnetrygdService.process()
+
+        deserialize<OmsorgsgrunnlagMelding>(captor.allValues.single().value()).also { omsorgsgrunnlagMelding ->
+            omsorgsgrunnlagMelding.saker.single().also { sak ->
+                assertEquals(1, sak.vedtaksperioder.count())
+                assertEquals(1, sak.vedtaksperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
+            }
+        }
+    }
+
     private fun lagreFullførtInnlesing(): BarnetrygdInnlesing {
         val bestilt = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(

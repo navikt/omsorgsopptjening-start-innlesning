@@ -55,14 +55,15 @@ class BarnetrygdmottakerService(
                                         ident = barnetrygdmottaker.ident,
                                         ar = barnetrygdmottaker.år,
                                     )
-                                    val barnetrygdOgHjelpestønad = barnetrygd.barnetrygdsaker.flatMap { sak ->
+                                    val barnetrygdOgHjelpestønad = barnetrygd.barnetrygdsaker.map { sak ->
                                         val minMaxDatePerOmsorgsmottaker =
                                             sak.hentOmsorgsmottakere().associateWith { mottaker ->
                                                 sak.vedtaksperioder.filter { it.omsorgsmottaker == mottaker }
                                                     .let { vedtaksperioder -> vedtaksperioder.minOf { it.fom } to vedtaksperioder.maxOf { it.tom } }
                                             }
-                                        hjelpestønadService.hentForOmsorgsmottakere(minMaxDatePerOmsorgsmottaker)
-                                            .map { sak.leggTilVedtaksperiode(it) }
+                                        val hjelpestønad =
+                                            hjelpestønadService.hentForOmsorgsmottakere(minMaxDatePerOmsorgsmottaker)
+                                        sak.copy(vedtaksperioder = sak.vedtaksperioder + hjelpestønad)
                                     }
                                     kafkaProducer.send(
                                         createKafkaMessage(
