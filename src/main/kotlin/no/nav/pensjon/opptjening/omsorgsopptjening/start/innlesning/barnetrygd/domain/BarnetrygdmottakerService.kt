@@ -8,7 +8,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.BarnetrygdClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.HjelpestønadService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -56,7 +56,12 @@ class BarnetrygdmottakerService(
                                         ar = barnetrygdmottaker.år,
                                     )
                                     val barnetrygdOgHjelpestønad = barnetrygd.barnetrygdsaker.flatMap { sak ->
-                                        hjelpestønadService.hentForOmsorgsmottakere(sak.hentOmsorgsmottakere())
+                                        val minMaxDatePerOmsorgsmottaker =
+                                            sak.hentOmsorgsmottakere().associateWith { mottaker ->
+                                                sak.vedtaksperioder.filter { it.omsorgsmottaker == mottaker }
+                                                    .let { vedtaksperioder -> vedtaksperioder.minOf { it.fom } to vedtaksperioder.maxOf { it.tom } }
+                                            }
+                                        hjelpestønadService.hentForOmsorgsmottakere(minMaxDatePerOmsorgsmottaker)
                                             .map { sak.leggTilVedtaksperiode(it) }
                                     }
                                     kafkaProducer.send(

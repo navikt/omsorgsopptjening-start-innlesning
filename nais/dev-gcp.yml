@@ -38,11 +38,17 @@ spec:
     - name: BARNETRYGD_API_ID
 #      value: dev-gcp.pensjonopptjening.omsorgsarbeid-ba-mock
       value: dev-gcp.teamfamilie.familie-ba-sak
+    - name: HJELPESTONAD_URL
+      value: https://omsorgsopptjening-hjelpestonad-db-proxy.dev-fss-pub.nais.io
+    - name: HJELPESTONAD_API_ID
+      value: dev-fss.pensjonopptjening.omsorgsopptjening-hjelpestonad-db-proxy
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no
   accessPolicy:
     outbound:
+      external:
+        - host: omsorgsopptjening-hjelpestonad-db-proxy.dev-fss-pub.nais.io
       rules:
         - application: omsorgsarbeid-ba-mock
         - application: familie-ba-sak

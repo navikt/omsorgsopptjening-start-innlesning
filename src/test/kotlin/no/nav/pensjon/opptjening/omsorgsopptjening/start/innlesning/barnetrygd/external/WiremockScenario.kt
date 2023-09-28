@@ -8,6 +8,7 @@ import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerServiceTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 
@@ -138,6 +139,44 @@ fun WireMockExtension.`hent-barnetrygd internal server error`(): StubMapping {
                                            "melding":"Dette gikk ikke så bra"
                                         }
                                     ]
+                            """.trimIndent()
+                    )
+            )
+    )
+}
+
+fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(): StubMapping {
+    return this.stubFor(
+            WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
+                .willReturn(
+                    WireMock.ok()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            """
+                                []
+                            """.trimIndent()
+                        )
+                )
+            )
+}
+
+fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(): StubMapping {
+    return this.stubFor(
+        WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
+            .willReturn(
+                WireMock.ok()
+                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .withBody(
+                        """
+                                [
+                                    {
+                                        "id":"123",
+                                        "ident":"09876543210",
+                                        "fom":"2022-01",
+                                        "tom":"2025-12",
+                                        "omsorgstype":"FORHØYET_SATS_3"
+                                    }
+                                ]
                             """.trimIndent()
                     )
             )

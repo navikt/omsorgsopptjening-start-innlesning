@@ -6,8 +6,15 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.mapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.HentBarnetrygdException
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - ingen hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -17,6 +24,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.BDDMockito.any
 import org.mockito.BDDMockito.given
+import org.mockito.kotlin.argumentCaptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders
@@ -27,6 +35,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
+import kotlin.test.assertEquals
 
 class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     @Autowired
@@ -81,8 +90,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
-                kotlin.test.assertEquals(1, it.antallForsøk)
-                kotlin.test.assertEquals(3, it.maxAntallForsøk)
+                assertEquals(1, it.antallForsøk)
+                assertEquals(3, it.maxAntallForsøk)
             }
         }
 
@@ -162,6 +171,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                 )
         )
 
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
         assertInstanceOf(
             Barnetrygdmottaker.Status.Klar::class.java,
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
@@ -172,8 +183,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                kotlin.test.assertEquals(1, it.antallForsøk)
-                kotlin.test.assertEquals(3, it.maxAntallForsøk)
+                assertEquals(1, it.antallForsøk)
+                assertEquals(3, it.maxAntallForsøk)
             }
         }
 
@@ -226,8 +237,42 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                kotlin.test.assertEquals(1, it.antallForsøk)
-                kotlin.test.assertEquals(3, it.maxAntallForsøk)
+                assertEquals(1, it.antallForsøk)
+                assertEquals(3, it.maxAntallForsøk)
+            }
+        }
+    }
+
+    @Test
+    fun `omsorgsgrunnlag berikes med hjelpestønad dersom det eksisterer`() {
+        val captor = argumentCaptor<ProducerRecord<String, String>> { }
+        given(kafkaTemplate.send(captor.capture())).willAnswer {
+            CompletableFuture.completedFuture(it.arguments[0])
+        }
+        given(clock.instant()).willReturn(Instant.now())
+
+        val innlesing = lagreFullførtInnlesing()
+
+        barnetrygdmottakerRepository.insert(
+            Barnetrygdmottaker.Transient(
+                ident = "12345678910",
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            )
+        )
+
+        wiremock.`hent-barnetrygd ok`()
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`()
+
+        barnetrygdService.process()
+
+        deserialize<OmsorgsgrunnlagMelding>(captor.allValues.single().value()).also { omsorgsgrunnlagMelding ->
+            omsorgsgrunnlagMelding.saker.single().also { sak ->
+                assertEquals(2, sak.vedtaksperioder.count())
+                assertEquals(1, sak.vedtaksperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
+                assertEquals(
+                    1,
+                    sak.vedtaksperioder.count { it.omsorgstype == Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3 })
             }
         }
     }

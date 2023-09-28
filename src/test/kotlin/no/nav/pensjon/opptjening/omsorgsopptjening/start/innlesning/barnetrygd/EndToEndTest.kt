@@ -5,7 +5,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerServiceTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - ingen hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.BarnetrygdWebApi
@@ -37,6 +40,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
     fun `leser melding fra barnetryd topic, prosesserer meldingen og sender ny melding til intern topic`() {
         wiremock.`bestill-personer-med-barnetrygd accepted`()
         wiremock.`hent-barnetrygd ok`()
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 
         val innlesingId = webApi.startInnlesning(2020).body!!
 
@@ -71,9 +75,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                 ),
                                 OmsorgsgrunnlagMelding.VedtakPeriode(
-                                    fom = YearMonth.of(2020, Month.JANUARY),
-                                    tom = YearMonth.of(2030, Month.JANUARY),
-                                    omsorgsmottaker = "1234568910",
+                                    fom = YearMonth.of(2022, Month.JANUARY),
+                                    tom = YearMonth.of(2025, Month.DECEMBER),
+                                    omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
                                 )
                             )
