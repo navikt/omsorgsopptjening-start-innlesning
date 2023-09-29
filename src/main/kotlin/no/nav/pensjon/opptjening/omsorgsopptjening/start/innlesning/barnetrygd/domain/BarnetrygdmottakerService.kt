@@ -10,11 +10,13 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.aspectj.weaver.bcel.asm.AsmDetector.rootCause
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
+import java.util.Objects
 
 @Service
 class BarnetrygdmottakerService(
@@ -77,7 +79,7 @@ class BarnetrygdmottakerService(
                             }
                         } catch (ex: Throwable) {
                             transactionTemplate.execute {
-                                barnetrygdmottaker.retry(ex.toString()).let {
+                                barnetrygdmottaker.retry(ex.stackTraceToString()).let {
                                     if (it.status is Barnetrygdmottaker.Status.Feilet) {
                                         log.error("Gir opp videre prosessering av melding")
                                     }
