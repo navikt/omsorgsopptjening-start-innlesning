@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "1.0.58"
 val springVersion = "3.1.4"
-val navTokenSupportVersion = "3.0.2"
+val navTokenSupportVersion = "3.1.5"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "7.4"
 val postgresqlVersion = "42.5.1"
@@ -18,6 +18,7 @@ plugins {
     kotlin("jvm") version "1.9.10"
     kotlin("plugin.spring") version "1.9.10"
     id("org.springframework.boot") version "3.1.4"
+    id("com.github.ben-manes.versions") version "0.48.0"
 }
 
 apply(plugin = "io.spring.dependency-management")
@@ -70,6 +71,7 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test:$springKafkaTestVersion")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
+    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 tasks.test {
