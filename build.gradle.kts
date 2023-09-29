@@ -55,6 +55,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
+    implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
 
 
     // DB

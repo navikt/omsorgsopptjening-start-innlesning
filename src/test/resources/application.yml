@@ -4,9 +4,10 @@ HJELPESTONAD_URL: http://localhost:9991
 HJELPESTONAD_API_ID: dev-fss.hjelpestonad.id
 
 no.nav.security.jwt:
-  issuer.aad:
-    discoveryurl: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
-    accepted_audience: testaud
+  issuer:
+    azure:
+      discoveryurl: http://localhost:${mock-oauth2-server.port}/azure/.well-known/openid-configuration
+      accepted_audience: appClientId
 
 spring.datasource:
   driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
@@ -15,4 +16,4 @@ spring.datasource:
   password: test
 
 kafka:
-  brokers: ${spring.embedded.kafka.brokers}
+    brokers: ${spring.embedded.kafka.brokers}
