@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class StatusConfig {
 
     @Bean
-    fun statusCheckTask() {
-        StatusCheckTask()
+    fun statusCheckTask() : StatusCheckTask {
+        return StatusCheckTask()
     }
 }
