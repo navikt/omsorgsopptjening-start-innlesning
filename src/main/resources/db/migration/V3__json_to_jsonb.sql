@@ -1,0 +1,2 @@
+alter table barnetrygdmottaker_status alter column status set data type jsonb using status::jsonb;
+alter table barnetrygdmottaker_status alter column statushistorikk set data type jsonb using statushistorikk::jsonb;

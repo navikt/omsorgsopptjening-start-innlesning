@@ -35,7 +35,7 @@ class BarnetrygdmottakerRepository(
             keyHolder
         )
         jdbcTemplate.update(
-            """insert into barnetrygdmottaker_status (id, status, statushistorikk) values (:id, to_json(:status::json), to_json(:statushistorikk::json))""",
+            """insert into barnetrygdmottaker_status (id, status, statushistorikk) values (:id, to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb))""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to keyHolder.keys!!["id"] as UUID,
@@ -49,7 +49,7 @@ class BarnetrygdmottakerRepository(
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
         jdbcTemplate.update(
-            """update barnetrygdmottaker_status set status = to_json(:status::json), statushistorikk = to_json(:statushistorikk::json) where id = :id""",
+            """update barnetrygdmottaker_status set status = to_jsonb(:status::jsonb), statushistorikk = to_jsonb(:statushistorikk::jsonb) where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to barnetrygdmottaker.id,
