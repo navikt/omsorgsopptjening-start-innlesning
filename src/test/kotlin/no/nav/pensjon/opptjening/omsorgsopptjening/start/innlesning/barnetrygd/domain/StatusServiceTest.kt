@@ -9,7 +9,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.*
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
-import org.springframework.transaction.support.TransactionTemplate
 import java.time.Duration
 import java.time.Instant
 
@@ -17,11 +16,7 @@ import java.time.Instant
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 object StatusServiceTest : SpringContextTest.NoKafka() {
 
-    //    companion object {
     private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
-
-    private lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository
-
     private lateinit var statusService: StatusService
 
     @BeforeAll
@@ -58,7 +53,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         assertThat(status)
             .isInstanceOf(ApplicationStatus.Feil::class.java)
             .extracting("feil")
-            .isEqualTo(listOf("For lenge siden siste innlesing"))
+            .isEqualTo("For lenge siden siste innlesing")
     }
 
     @Test
@@ -73,7 +68,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         assertThat(status)
             .isInstanceOf(ApplicationStatus.Feil::class.java)
             .extracting("feil")
-            .isEqualTo(listOf("Innlesing er ikke prosessert"))
+            .isEqualTo("Innlesing er ikke prosessert")
     }
 
 }

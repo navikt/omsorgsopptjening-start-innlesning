@@ -3,14 +3,13 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.transaction.support.TransactionTemplate
 import java.time.Duration
 import java.time.Instant.now
 
 @Service
 class StatusService(
     private val repo: BarnetrygdInnlesingRepository,
-) {
+    ) {
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
     }
@@ -18,8 +17,8 @@ class StatusService(
     fun checkStatus(): ApplicationStatus {
         val innlesing = repo.finnSisteInnlesing()
         if (innlesing == null) return ApplicationStatus.IkkeKjort
-        else if (forGammel(innlesing)) return ApplicationStatus.Feil(listOf("For lenge siden siste innlesing"))
-        else if (ikkeProsessert(innlesing)) return ApplicationStatus.Feil(listOf("Innlesing er ikke prosessert"))
+        else if (forGammel(innlesing)) return ApplicationStatus.Feil("For lenge siden siste innlesing")
+        else if (ikkeProsessert(innlesing)) return ApplicationStatus.Feil("Innlesing er ikke prosessert")
         return ApplicationStatus.OK
     }
 
@@ -39,5 +38,5 @@ class StatusService(
 sealed class ApplicationStatus {
     object OK : ApplicationStatus()
     object IkkeKjort : ApplicationStatus()
-    class Feil(val feil: List<String>) : ApplicationStatus()
+    class Feil(val feil: String) : ApplicationStatus()
 }
