@@ -19,7 +19,7 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
             .tags("pensjonopptjening","omsorgsopptjening-start-innlesning")
             .register(registry)
         Gauge
-            .builder("applikasjonsstatus.ukjent") { antallFeil() }
+            .builder("applikasjonsstatus.ukjent") { antallMangler() }
             .tags("pensjonopptjening","omsorgsopptjening-start-innlesning")
             .register(registry)
     }
@@ -37,6 +37,7 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
     }
 
     fun antallMangler() : Int {
+        println("antallMangler status=$status")
         val mangler = (status == null || status is ApplicationStatus.IkkeKjort)
         return if (mangler) 1 else 0
     }
