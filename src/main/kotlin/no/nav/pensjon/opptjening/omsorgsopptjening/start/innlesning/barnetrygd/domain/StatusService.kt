@@ -3,8 +3,10 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.Duration
 import java.time.Instant.now
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
 
 @Service
 class StatusService(
@@ -23,14 +25,14 @@ class StatusService(
     }
 
     private fun ikkeProsessert(innlesing: BarnetrygdInnlesing): Boolean {
-        val maksProsesseringsTid = now().minus(Duration.ofHours(2))
+        val maksProsesseringsTid = now().minus(2.hours.toJavaDuration())
         val burdeVærtProsessert = innlesing.forespurtTidspunkt < maksProsesseringsTid
         val erIkkeProsessert = innlesing.ferdigTidspunkt != null
         return burdeVærtProsessert || erIkkeProsessert
     }
 
     private fun forGammel(innlesing: BarnetrygdInnlesing): Boolean {
-        val minimumTidspunkt = now().minus(Duration.ofDays(400))
+        val minimumTidspunkt = now().minus(400.days.toJavaDuration())
         return innlesing.forespurtTidspunkt < minimumTidspunkt
     }
 }
