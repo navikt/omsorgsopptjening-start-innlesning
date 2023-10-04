@@ -70,7 +70,7 @@ class MicrometerStatusMalereTest {
         målere.oppdater(ApplicationStatus.OK)
         målere.oppdater(ApplicationStatus.OK)
         målere.oppdater(ApplicationStatus.OK)
-        val okCount = registry.get("applikasjonsstatus.ok").gauge().value().toInt()
+        val okCount = registry.get("pensjonopptjening_ªapplikasjonsstatus_ok").gauge().value().toInt()
         assertThat(okCount).isOne()
     }
 
@@ -79,9 +79,9 @@ class MicrometerStatusMalereTest {
         val målere = MicrometerStatusMalere(registry)
         målere.oppdater(ApplicationStatus.OK)
         målere.oppdater(ApplicationStatus.IkkeKjort)
-        val okCount = registry.get("applikasjonsstatus.ok").gauge().value().toInt()
+        val okCount = registry.get("pensjonopptjening_applikasjonsstatus_ok").gauge().value().toInt()
         assertThat(okCount).isZero()
-        val manglerCount = registry.get("applikasjonsstatus.ukjent").gauge().value().toInt()
+        val manglerCount = registry.get("pensjonopptjening_applikasjonsstatus_ukjent").gauge().value().toInt()
         println("Mangler: $manglerCount")
         assertThat(manglerCount).isOne()
     }
