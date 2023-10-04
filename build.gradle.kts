@@ -13,6 +13,8 @@ val jacksonVersion = "2.15.2"
 val springKafkaTestVersion = "3.0.11"
 val azureAdClient = "0.0.7"
 val assertjVersion = "3.24.2"
+val awaitilityVersion = "4.2.0"
+val wiremockVersion = "3.2.0"
 
 plugins {
     kotlin("jvm") version "1.9.10"
@@ -71,8 +73,8 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test:$springKafkaTestVersion")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
-    testImplementation("org.awaitility:awaitility:4.2.0")
-    testImplementation("org.wiremock:wiremock:3.2.0")
+    testImplementation("org.awaitility:awaitility:$awaitilityVersion")
+    testImplementation("org.wiremock:wiremock:$wiremockVersion")
 }
 
 tasks.test {

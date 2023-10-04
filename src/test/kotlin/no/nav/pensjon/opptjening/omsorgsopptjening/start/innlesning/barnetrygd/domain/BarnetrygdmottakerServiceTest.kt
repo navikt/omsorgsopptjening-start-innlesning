@@ -54,8 +54,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
 
     companion object {
+        @JvmField
         @RegisterExtension
-        private val wiremock = WireMockExtension.newInstance()
+        val wiremock = WireMockExtension.newInstance()
             .options(WireMockConfiguration.wireMockConfig().port(WIREMOCK_PORT))
             .build()!!
     }
