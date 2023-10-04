@@ -7,6 +7,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import okhttp3.internal.http.hasBody
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.given
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
+import kotlin.test.assertContains
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,21 +42,19 @@ class PrometheusWebApiTest {
         ).andExpect(status().isOk())
     }
 
-
-    private fun token(
-        issuerId: String,
-        audience: String
-    ): String {
-        return "Bearer " + oauth2Server.issueToken(
-            issuerId,
-            "theclientid",
-            DefaultOAuth2TokenCallback(
-                issuerId,
-                "subject",
-                JOSEObjectType.JWT.type,
-                listOf(audience), emptyMap(),
-                3600
-            )
-        ).serialize()
+    @Test
+    fun `prometheus-url'en returnerer json`() {
+        mvc.perform(
+            get("/actuator/prometheus")
+        ).andExpect(content().contentType("application/json"))
+    }
+    @Test
+    fun `prometheus-url'en returnerer faktisk json`() {
+        val body = mvc.perform(
+            get("/actuator/prometheus")
+        ).andReturn().response.contentAsString
+        assertThat(body)
+            .startsWith("{")
+            .contains("omsorgsopptjening-start-innlesning")
     }
 }
