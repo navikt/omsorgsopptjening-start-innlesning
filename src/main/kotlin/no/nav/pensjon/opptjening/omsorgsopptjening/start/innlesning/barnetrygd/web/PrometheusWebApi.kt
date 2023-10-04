@@ -28,6 +28,7 @@ class PrometheusWebApi(
 
     @GetMapping("/actuator/prometheus", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getPrometheusData(): ResponseEntity<String> {
+        log.info("Prometheus hentet data")
         return ResponseEntity.ok(registry.mapToJson())
     }
 }
