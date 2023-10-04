@@ -1,14 +1,14 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val domeneVersion = "1.0.58"
+val domeneVersion = "1.0.59"
 val springVersion = "3.1.4"
-val navTokenSupportVersion = "3.1.5"
+val navTokenSupportVersion = "3.1.7"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "7.4"
 val postgresqlVersion = "42.6.0"
 val flywayCoreVersion = "9.22.2"
-val testcontainersVersion = "1.19.0"
+val testcontainersVersion = "1.19.1"
 val jacksonVersion = "2.15.2"
 val springKafkaTestVersion = "3.0.11"
 val azureAdClient = "0.0.7"
