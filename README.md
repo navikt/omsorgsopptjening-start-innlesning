@@ -1,5 +1,5 @@
 # omsorgsopptjening-start-innlesning
-Bestiller overlevering av alle barnetrygdmottakere for et gitt år fra [barnetrygdsystemet](#https://github.com/navikt/familie-ba-sak), og innhenter nødvendig grunnlagsdata om barnetrygd og hjepestønad for disse. Data fra kildesystemet transformeres til internt format før det publiseres videre til intern kafkatopic for videre prosessering.
+Bestiller overlevering av alle barnetrygdmottakere for et gitt år fra [barnetrygdsystemet](https://github.com/navikt/familie-ba-sak), og innhenter nødvendig grunnlagsdata om barnetrygd og hjepestønad for disse. Data fra kildesystemet transformeres til internt format før det publiseres videre til intern kafkatopic for videre prosessering.
 
 ## Kom i gang
 
