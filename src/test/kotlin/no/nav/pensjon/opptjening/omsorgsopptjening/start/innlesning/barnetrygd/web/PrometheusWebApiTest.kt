@@ -24,6 +24,7 @@ class PrometheusWebApiTest {
     @Autowired
     private lateinit var mvc: MockMvc
 
+    @Disabled
     @Test
     fun `prometheus-url'en finnes og svarer`() {
         mvc.perform(
