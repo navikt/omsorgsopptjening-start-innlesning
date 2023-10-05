@@ -19,7 +19,7 @@ class PrometheusWebApi(
         val log: Logger = LoggerFactory.getLogger(this::class.java)
     }
 
-    @GetMapping("/actuator/prometheus", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping("/actuator-x/prometheus-json", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getPrometheusData(): ResponseEntity<String> {
         log.info("Prometheus hentet data")
         return ResponseEntity.ok(registry.mapToJson())
