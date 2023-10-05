@@ -50,6 +50,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.11.4")
     implementation("org.springframework:spring-aspects")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
 
