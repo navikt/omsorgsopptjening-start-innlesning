@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
@@ -72,12 +73,14 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     tom = YearMonth.of(2025, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.FULL_BARNETRYGD,
+                                    kilde = Kilde.BARNETRYGD,
                                 ),
                                 OmsorgsgrunnlagMelding.VedtakPeriode(
                                     fom = YearMonth.of(2022, Month.JANUARY),
                                     tom = YearMonth.of(2025, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
+                                    kilde = Kilde.INFOTRYGD,
                                 )
                             )
                         )
@@ -98,7 +101,8 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                             "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
                                             "utbetaltPerMnd":2000,
                                             "stønadFom": "2020-01",
-                                            "stønadTom": "2025-12"                                            
+                                            "stønadTom": "2025-12",
+                                            "kilde":"BA"                                                                                            
                                         }                                                                                          
                                     ]
                                 }

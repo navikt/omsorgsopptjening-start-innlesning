@@ -20,7 +20,6 @@ import pensjon.opptjening.azure.ad.client.TokenProvider
 import reactor.core.publisher.Mono
 import java.time.LocalDate
 import java.time.YearMonth
-import java.util.UUID
 import java.util.function.Predicate
 
 @Component
@@ -51,6 +50,7 @@ class HjelpestønadClient(
                             HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4
                         },
                         omsorgsmottaker = it.ident,
+                        kilde = Kilde.INFOTRYGD,
                     )
                 }
             }

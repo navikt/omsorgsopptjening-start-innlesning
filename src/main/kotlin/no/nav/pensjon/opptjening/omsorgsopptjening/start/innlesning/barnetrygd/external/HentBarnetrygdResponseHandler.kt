@@ -75,11 +75,17 @@ internal data class BarnetrygdPeriode(
     val ytelseTypeEkstern: String?,
     val utbetaltPerMnd: Int,
     val stønadFom: YearMonth,
-    val stønadTom: YearMonth
+    val stønadTom: YearMonth,
+    val kilde: BarnetrygdKilde
 )
 
 internal enum class DelingsprosentYtelse {
     FULL, //full barnetrygd
     DELT, //delt barnetrygd
     USIKKER //ikke nok data til å avgjøre, kan være tilfelle på gamle saker fra Infotrygd
+}
+
+internal enum class BarnetrygdKilde {
+    BA, //barnetrygdsystemet
+    INFOTRYGD
 }

@@ -9,7 +9,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.mapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.HentBarnetrygdException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
@@ -161,7 +160,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                                                 "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
                                                 "utbetaltPerMnd":2000,
                                                 "stønadFom": "2020-01",
-                                                "stønadTom": "2025-12"                                            
+                                                "stønadTom": "2025-12",
+                                                "kilde":"BA"                                                                                                                                                
                                             }                                                                                          
                                         ]
                                     }

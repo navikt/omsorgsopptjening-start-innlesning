@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 
@@ -21,7 +22,11 @@ internal object HentBarnetrygdDomainMapper {
                         DelingsprosentYtelse.DELT -> Omsorgstype.DELT_BARNETRYGD
                         DelingsprosentYtelse.USIKKER -> Omsorgstype.USIKKER_BARNETRYGD
                     },
-                    omsorgsmottaker = it.personIdent
+                    omsorgsmottaker = it.personIdent,
+                    kilde = when (it.kilde) {
+                        BarnetrygdKilde.BA -> Kilde.BARNETRYGD
+                        BarnetrygdKilde.INFOTRYGD -> Kilde.INFOTRYGD
+                    }
                 )
             }
         )

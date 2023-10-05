@@ -70,7 +70,8 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
                                                 "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
                                                 "utbetaltPerMnd":2000,
                                                 "stønadFom": "2020-01",
-                                                "stønadTom": "2025-12"                                            
+                                                "stønadTom": "2025-12",
+                                                "kilde":"BA"                                                                                            
                                             }                                                                                          
                                         ]
                                     }
