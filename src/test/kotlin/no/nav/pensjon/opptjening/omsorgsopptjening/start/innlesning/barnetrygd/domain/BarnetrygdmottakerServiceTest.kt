@@ -7,8 +7,8 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.HentBarnetrygdException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
@@ -267,13 +267,13 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdService.process()
 
-        deserialize<OmsorgsgrunnlagMelding>(captor.allValues.single().value()).also { omsorgsgrunnlagMelding ->
-            omsorgsgrunnlagMelding.saker.single().also { sak ->
-                assertEquals(2, sak.vedtaksperioder.count())
-                assertEquals(1, sak.vedtaksperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
+        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
+            PersongrunnlagMelding.persongrunnlag.single().also { sak ->
+                assertEquals(2, sak.omsorgsperioder.count())
+                assertEquals(1, sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
                 assertEquals(
                     1,
-                    sak.vedtaksperioder.count { it.omsorgstype == Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3 })
+                    sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3 })
             }
         }
     }
@@ -301,10 +301,10 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdService.process()
 
-        deserialize<OmsorgsgrunnlagMelding>(captor.allValues.single().value()).also { omsorgsgrunnlagMelding ->
-            omsorgsgrunnlagMelding.saker.single().also { sak ->
-                assertEquals(1, sak.vedtaksperioder.count())
-                assertEquals(1, sak.vedtaksperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
+        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
+            PersongrunnlagMelding.persongrunnlag.single().also { sak ->
+                assertEquals(1, sak.omsorgsperioder.count())
+                assertEquals(1, sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
             }
         }
     }

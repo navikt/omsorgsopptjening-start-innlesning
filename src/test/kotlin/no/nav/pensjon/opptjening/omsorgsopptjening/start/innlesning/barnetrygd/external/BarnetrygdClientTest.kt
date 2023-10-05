@@ -6,8 +6,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -77,10 +77,10 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                         assertEquals(
                             HentBarnetrygdResponse(
                                 barnetrygdsaker = listOf(
-                                    OmsorgsgrunnlagMelding.Sak(
+                                    PersongrunnlagMelding.Persongrunnlag(
                                         omsorgsyter = "12345678910",
-                                        vedtaksperioder = listOf(
-                                            OmsorgsgrunnlagMelding.VedtakPeriode(
+                                        omsorgsperioder = listOf(
+                                            PersongrunnlagMelding.Omsorgsperiode(
                                                 omsorgsmottaker = "09876543210",
                                                 omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                                 fom = YearMonth.of(2020, Month.JANUARY),

@@ -4,8 +4,8 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
@@ -61,21 +61,21 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 """.trimIndent(),
                 consumerRecord.key()
             )
-            deserialize<OmsorgsgrunnlagMelding>(consumerRecord.value()).also {
+            deserialize<PersongrunnlagMelding>(consumerRecord.value()).also {
                 assertEquals("12345678910", it.omsorgsyter)
                 assertEquals(
                     listOf(
-                        OmsorgsgrunnlagMelding.Sak(
+                        PersongrunnlagMelding.Persongrunnlag(
                             omsorgsyter = "12345678910",
-                            vedtaksperioder = listOf(
-                                OmsorgsgrunnlagMelding.VedtakPeriode(
+                            omsorgsperioder = listOf(
+                                PersongrunnlagMelding.Omsorgsperiode(
                                     fom = YearMonth.of(2020, Month.JANUARY),
                                     tom = YearMonth.of(2025, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                     kilde = Kilde.BARNETRYGD,
                                 ),
-                                OmsorgsgrunnlagMelding.VedtakPeriode(
+                                PersongrunnlagMelding.Omsorgsperiode(
                                     fom = YearMonth.of(2022, Month.JANUARY),
                                     tom = YearMonth.of(2025, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
@@ -85,7 +85,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                             )
                         )
                     ),
-                    it.saker
+                    it.persongrunnlag
                 )
                 assertEquals(
                     """

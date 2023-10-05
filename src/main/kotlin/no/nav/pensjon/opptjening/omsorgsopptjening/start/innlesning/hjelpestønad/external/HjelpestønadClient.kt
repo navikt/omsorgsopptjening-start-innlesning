@@ -4,7 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.springframework.beans.factory.annotation.Qualifier
@@ -29,7 +29,7 @@ class HjelpestønadClient(
 ) {
     private val webClient: WebClient = WebClient.builder().baseUrl(baseUrl).build()
 
-    fun hentHjelpestønad(fnr: String, fom: LocalDate, tom: LocalDate): List<OmsorgsgrunnlagMelding.VedtakPeriode>? {
+    fun hentHjelpestønad(fnr: String, fom: LocalDate, tom: LocalDate): List<PersongrunnlagMelding.Omsorgsperiode>? {
         return webClient
             .get()
             .uri("/api/hjelpestonad?fnr=$fnr&fom=$fom&tom=$tom")
@@ -42,7 +42,7 @@ class HjelpestønadClient(
             .toEntity<String>()
             .block()?.let { response ->
                 response.body?.deserializeList<HjelpestønadVedtak>()?.map {
-                    OmsorgsgrunnlagMelding.VedtakPeriode(
+                    PersongrunnlagMelding.Omsorgsperiode(
                         fom = it.fom,
                         tom = it.tom,
                         omsorgstype = when (it.omsorgstype) {

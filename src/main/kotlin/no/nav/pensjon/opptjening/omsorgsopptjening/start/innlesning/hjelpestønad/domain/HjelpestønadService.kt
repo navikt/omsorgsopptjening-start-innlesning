@@ -1,6 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadClient
 import org.springframework.stereotype.Component
 import java.time.YearMonth
@@ -9,7 +9,7 @@ import java.time.YearMonth
 class HjelpestønadService(
     private val hjelpestønadClient: HjelpestønadClient
 ) {
-    fun hentForOmsorgsmottakere(omsorgsmottakere: Map<String, Pair<YearMonth, YearMonth>>): List<OmsorgsgrunnlagMelding.VedtakPeriode> {
+    fun hentForOmsorgsmottakere(omsorgsmottakere: Map<String, Pair<YearMonth, YearMonth>>): List<PersongrunnlagMelding.Omsorgsperiode> {
         return omsorgsmottakere
             .mapNotNull { (fnr, minMaxDate) ->
                 hjelpestønadClient.hentHjelpestønad(

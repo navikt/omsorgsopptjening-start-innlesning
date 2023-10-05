@@ -2,7 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.BarnetrygdClient
@@ -10,13 +10,11 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.aspectj.weaver.bcel.asm.AsmDetector.rootCause
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
-import java.util.Objects
 
 @Service
 class BarnetrygdmottakerService(
@@ -57,20 +55,20 @@ class BarnetrygdmottakerService(
                                         ident = barnetrygdmottaker.ident,
                                         ar = barnetrygdmottaker.år,
                                     )
-                                    val barnetrygdOgHjelpestønad = barnetrygd.barnetrygdsaker.map { sak ->
+                                    val barnetrygdOgHjelpestønad = barnetrygd.barnetrygdsaker.map { persongrunnlag ->
                                         val minMaxDatePerOmsorgsmottaker =
-                                            sak.hentOmsorgsmottakere().associateWith { mottaker ->
-                                                sak.vedtaksperioder.filter { it.omsorgsmottaker == mottaker }
+                                            persongrunnlag.hentOmsorgsmottakere().associateWith { mottaker ->
+                                                persongrunnlag.omsorgsperioder.filter { it.omsorgsmottaker == mottaker }
                                                     .let { vedtaksperioder -> vedtaksperioder.minOf { it.fom } to vedtaksperioder.maxOf { it.tom } }
                                             }
                                         val hjelpestønad =
                                             hjelpestønadService.hentForOmsorgsmottakere(minMaxDatePerOmsorgsmottaker)
-                                        sak.copy(vedtaksperioder = sak.vedtaksperioder + hjelpestønad)
+                                        persongrunnlag.copy(omsorgsperioder = persongrunnlag.omsorgsperioder + hjelpestønad)
                                     }
                                     kafkaProducer.send(
                                         createKafkaMessage(
                                             barnetrygdmottaker = barnetrygdmottaker,
-                                            saker = barnetrygdOgHjelpestønad,
+                                            persongrunnlag = barnetrygdOgHjelpestønad,
                                             rådataFraKilde = barnetrygd.rådataFraKilde, //TODO legg til hjelpestønad i rådata
                                         )
                                     ).get()
@@ -96,7 +94,7 @@ class BarnetrygdmottakerService(
 
     private fun createKafkaMessage(
         barnetrygdmottaker: Barnetrygdmottaker,
-        saker: List<OmsorgsgrunnlagMelding.Sak>,
+        persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
         rådataFraKilde: RådataFraKilde
     ): ProducerRecord<String, String> {
         return ProducerRecord(
@@ -108,9 +106,9 @@ class BarnetrygdmottakerService(
                 )
             ),
             serialize(
-                OmsorgsgrunnlagMelding(
+                PersongrunnlagMelding(
                     omsorgsyter = barnetrygdmottaker.ident,
-                    saker = saker,
+                    persongrunnlag = persongrunnlag,
                     rådata = rådataFraKilde,
                     innlesingId = barnetrygdmottaker.innlesingId,
                     correlationId = barnetrygdmottaker.correlationId,

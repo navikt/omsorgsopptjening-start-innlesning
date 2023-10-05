@@ -2,7 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import java.time.YearMonth
@@ -52,7 +52,7 @@ object HentBarnetrygdResponseHandler {
 }
 
 data class HentBarnetrygdResponse(
-    val barnetrygdsaker: List<OmsorgsgrunnlagMelding.Sak>,
+    val barnetrygdsaker: List<PersongrunnlagMelding.Persongrunnlag>,
     val rådataFraKilde: RådataFraKilde
 )
 
