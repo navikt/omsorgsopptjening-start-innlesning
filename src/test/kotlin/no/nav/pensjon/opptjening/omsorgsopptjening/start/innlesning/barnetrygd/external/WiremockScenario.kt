@@ -8,7 +8,6 @@ import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerServiceTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 
@@ -67,7 +66,7 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
                                         "barnetrygdPerioder":[
                                             {
                                                 "personIdent":"09876543210",
-                                                "delingsprosentYtelse":100,
+                                                "delingsprosentYtelse":"FULL",
                                                 "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
                                                 "utbetaltPerMnd":2000,
                                                 "stønadFom": "2020-01",

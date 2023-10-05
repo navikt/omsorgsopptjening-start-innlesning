@@ -1,6 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.OmsorgsgrunnlagMelding
@@ -61,24 +60,26 @@ data class HentBarnetrygdException(val msg: String) : RuntimeException(msg)
 
 
 private data class FagsakListeWrapper(
-    val fagsaker: List<Sak>
+    val fagsaker: List<BarnetrygdSak>
 )
 
-data class Sak(
+internal data class BarnetrygdSak(
     val fagsakId: String,
     val fagsakEiersIdent: String,
-    val barnetrygdPerioder: List<Periode>,
+    val barnetrygdPerioder: List<BarnetrygdPeriode>,
 )
 
-data class Periode(
+internal data class BarnetrygdPeriode(
     val personIdent: String,
-    val delingsprosentYtelse: Int,
+    val delingsprosentYtelse: DelingsprosentYtelse,
     val ytelseTypeEkstern: String?,
     val utbetaltPerMnd: Int,
     val stønadFom: YearMonth,
     val stønadTom: YearMonth
-) {
-    @JsonIgnore
-    val periode: no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.periode.Periode =
-        no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.periode.Periode(stønadFom, stønadTom)
+)
+
+internal enum class DelingsprosentYtelse {
+    FULL, //full barnetrygd
+    DELT, //delt barnetrygd
+    USIKKER //ikke nok data til å avgjøre, kan være tilfelle på gamle saker fra Infotrygd
 }

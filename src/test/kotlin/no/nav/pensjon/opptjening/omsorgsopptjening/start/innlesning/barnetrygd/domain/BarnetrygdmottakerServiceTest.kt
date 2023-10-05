@@ -157,7 +157,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                                         "barnetrygdPerioder":[
                                             {
                                                 "personIdent":"09876543210",
-                                                "delingsprosentYtelse":100,
+                                                "delingsprosentYtelse":"FULL",
                                                 "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
                                                 "utbetaltPerMnd":2000,
                                                 "stønadFom": "2020-01",
