@@ -32,6 +32,13 @@ class PrometheusWebApiTest {
         ).andExpect(status().isOk())
     }
 
+    @Test
+    fun `metrics-url'en finnes og svarer`() {
+        mvc.perform(
+            get("/actuator/metrics")
+        ).andExpect(status().isOk())
+    }
+
     @Disabled
     @Test
     fun `prometheus-url'en returnerer json`() {
