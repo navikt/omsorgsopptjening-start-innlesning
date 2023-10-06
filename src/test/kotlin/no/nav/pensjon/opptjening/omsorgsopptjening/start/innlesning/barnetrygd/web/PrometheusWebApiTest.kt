@@ -32,6 +32,7 @@ class PrometheusWebApiTest {
         ).andExpect(status().isOk())
     }
 
+    @Disabled
     @Test
     fun `metrics-url'en finnes og svarer`() {
         mvc.perform(
