@@ -26,7 +26,7 @@ class BarnetrygdInnlesingRepositoryTest : SpringContextTest.NoKafka() {
             år = 2023,
             forespurtTidspunkt = Instant.now()
         )
-        val startet = bestilt.startet()
+        val startet = bestilt.startet(1)
         val ferdig = startet.ferdig()
 
         val b = innlesingRepository.bestilt(bestilt)

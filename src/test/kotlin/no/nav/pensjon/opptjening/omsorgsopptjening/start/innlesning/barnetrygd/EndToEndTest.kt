@@ -49,7 +49,8 @@ class EndToEndTest : SpringContextTest.WithKafka() {
             melding = BarnetrygdmottakerKafkaMelding(
                 meldingstype = BarnetrygdmottakerKafkaMelding.Type.DATA,
                 requestId = UUID.fromString(innlesingId),
-                personident = "12345678910"
+                personident = "12345678910",
+                antallIdenterTotalt = 1,
             )
         )
         sendSluttInnlesingKafka(innlesingId)

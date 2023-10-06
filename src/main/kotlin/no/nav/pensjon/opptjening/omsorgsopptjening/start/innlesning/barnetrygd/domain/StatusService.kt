@@ -27,7 +27,7 @@ class StatusService(
     private fun ikkeProsessert(innlesing: BarnetrygdInnlesing): Boolean {
         val maksProsesseringsTid = now().minus(2.hours.toJavaDuration())
         val burdeVærtProsessert = innlesing.forespurtTidspunkt < maksProsesseringsTid
-        val erIkkeProsessert = innlesing.ferdigTidspunkt != null
+        val erIkkeProsessert = innlesing !is BarnetrygdInnlesing.Ferdig
         return burdeVærtProsessert || erIkkeProsessert
     }
 

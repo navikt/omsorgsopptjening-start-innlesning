@@ -317,7 +317,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                 forespurtTidspunkt = Instant.now()
             )
         )
-        val startet = innlesingRepository.start(bestilt.startet())
+        val startet = innlesingRepository.start(bestilt.startet(1))
         return innlesingRepository.fullført(startet.ferdig())
     }
 }

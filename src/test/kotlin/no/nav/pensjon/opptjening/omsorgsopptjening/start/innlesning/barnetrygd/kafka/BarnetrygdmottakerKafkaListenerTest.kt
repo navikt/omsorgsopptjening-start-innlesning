@@ -269,19 +269,22 @@ class BarnetrygdmottakerKafkaListenerTest {
                 melding = BarnetrygdmottakerKafkaMelding(
                     meldingstype = BarnetrygdmottakerKafkaMelding.Type.DATA,
                     requestId = UUID.fromString(innlesing.id.toString()),
-                    personident = "12345678910"
+                    personident = "12345678910",
+                    antallIdenterTotalt = 1
                 )
             )
             sendSluttInnlesingKafka(innlesing.id.toString())
 
             Thread.sleep(500)
 
-            innlesingRepository.finn(innlesing.id.toString())!!.also {
-                assertEquals(innlesing.id, it.id)
-                assertEquals(innlesing.år, 2020)
-                assertNotNull(it.forespurtTidspunkt)
-                assertNotNull(it.startTidspunkt)
-                assertNotNull(it.ferdigTidspunkt)
+            innlesingRepository.finn(innlesing.id.toString())!!.also { barnetrygdInnlesing ->
+                assertInstanceOf(BarnetrygdInnlesing.Ferdig::class.java, barnetrygdInnlesing).also {
+                    assertEquals(innlesing.id, it.id)
+                    assertEquals(innlesing.år, 2020)
+                    assertNotNull(it.forespurtTidspunkt)
+                    assertNotNull(it.startTidspunkt)
+                    assertNotNull(it.ferdigTidspunkt)
+                }
             }
         }
 

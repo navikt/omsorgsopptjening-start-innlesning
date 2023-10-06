@@ -1,6 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
@@ -43,7 +42,7 @@ class BarnetrygdmottakerMessageHandler(
     private fun BarnetrygdInnlesing.håndterStartmelding(melding: BarnetrygdmottakerMelding.Start) {
         try {
             log.info("Starter ny innlesing, id: ${this.id}")
-            innlesingRepository.start(startet())
+            innlesingRepository.start(startet(melding.forventetAntallIdenter))
         } catch (ex: BarnetrygdInnlesing.UgyldigTilstand) {
             throw BarnetrygdInnlesingException.UgyldigTistand(this.id.toString(), melding::class.java.simpleName)
         }
@@ -70,7 +69,12 @@ class BarnetrygdmottakerMessageHandler(
     private fun BarnetrygdInnlesing.håndterSluttmelding(melding: BarnetrygdmottakerMelding.Slutt) {
         try {
             log.info("Fullført innlesing, id:  ${this.id}")
-            innlesingRepository.fullført(ferdig())
+            ferdig().also {
+                if(it.antallIdenterLest != melding.forventetAntallIdenter){
+                    throw BarnetrygdInnlesing.UgyldigTilstand(it.id.toString(), melding::class.java.simpleName)
+                }
+                innlesingRepository.fullført(it)
+            }
         } catch (ex: BarnetrygdInnlesing.UgyldigTilstand) {
             throw BarnetrygdInnlesingException.UgyldigTistand(this.id.toString(), melding::class.java.simpleName)
         }

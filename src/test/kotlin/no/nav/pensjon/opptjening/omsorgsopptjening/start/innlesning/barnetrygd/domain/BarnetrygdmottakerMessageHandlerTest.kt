@@ -24,18 +24,21 @@ class BarnetrygdmottakerMessageHandlerTest {
 
     private val startmelding = BarnetrygdmottakerMelding.Start(
         correlationId = CorrelationId.generate(),
-        innlesingId = InnlesingId.generate()
+        innlesingId = InnlesingId.generate(),
+        forventetAntallIdenter = 1,
     )
 
     private val datamelding = BarnetrygdmottakerMelding.Data(
         personIdent = "12345",
         correlationId = CorrelationId.generate(),
-        innlesingId = InnlesingId.generate()
+        innlesingId = InnlesingId.generate(),
+        forventetAntallIdenter = 1
     )
 
     private val sluttmelding = BarnetrygdmottakerMelding.Slutt(
         correlationId = CorrelationId.generate(),
-        innlesingId = InnlesingId.generate()
+        innlesingId = InnlesingId.generate(),
+        forventetAntallIdenter = 1
     )
 
     @Test
@@ -55,6 +58,7 @@ class BarnetrygdmottakerMessageHandlerTest {
                 år = 6624,
                 forespurtTidspunkt = Instant.now(),
                 startTidspunkt = Instant.now(),
+                antallIdenterLest = 1,
             )
         )
         handler.handle(datamelding)
@@ -70,6 +74,7 @@ class BarnetrygdmottakerMessageHandlerTest {
                 år = 6624,
                 forespurtTidspunkt = Instant.now(),
                 startTidspunkt = Instant.now(),
+                antallIdenterLest = 1,
             )
         )
         handler.handle(sluttmelding)
@@ -85,7 +90,8 @@ class BarnetrygdmottakerMessageHandlerTest {
                 år = 6624,
                 forespurtTidspunkt = Instant.now(),
                 startTidspunkt = Instant.now(),
-                ferdigTidspunkt = Instant.now()
+                ferdigTidspunkt = Instant.now(),
+                antallIdenterLest = 1,
             )
         )
         assertThrows<BarnetrygdInnlesingException.UgyldigTistand> {
@@ -103,9 +109,30 @@ class BarnetrygdmottakerMessageHandlerTest {
                 år = 6624,
                 forespurtTidspunkt = Instant.now(),
                 startTidspunkt = Instant.now(),
-                ferdigTidspunkt = Instant.now()
+                ferdigTidspunkt = Instant.now(),
+                antallIdenterLest = 1
             )
         )
+        assertThrows<BarnetrygdInnlesingException.UgyldigTistand> {
+            handler.handle(sluttmelding)
+        }
+        verify(innlesingRepository).finn(any())
+        verifyNoInteractions(barnetrygdmottakerRepository)
+    }
+
+    @Test
+    fun `gitt at forventet antall identer ikke stemmer overens med antall leste identer kastes exception`() {
+        given(innlesingRepository.finn(any())).willReturn(
+            BarnetrygdInnlesing.Ferdig(
+                id = InnlesingId.generate(),
+                år = 6624,
+                forespurtTidspunkt = Instant.now(),
+                startTidspunkt = Instant.now(),
+                ferdigTidspunkt = Instant.now(),
+                antallIdenterLest = 2,
+            )
+        )
+
         assertThrows<BarnetrygdInnlesingException.UgyldigTistand> {
             handler.handle(sluttmelding)
         }

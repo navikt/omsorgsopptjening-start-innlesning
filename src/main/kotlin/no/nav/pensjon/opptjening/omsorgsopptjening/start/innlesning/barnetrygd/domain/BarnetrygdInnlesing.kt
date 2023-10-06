@@ -7,10 +7,8 @@ sealed class BarnetrygdInnlesing {
     abstract val id: InnlesingId
     abstract val år: Int
     abstract val forespurtTidspunkt: Instant
-    open val startTidspunkt: Instant? = null
-    open val ferdigTidspunkt: Instant? = null
 
-    open fun startet(): Startet = throw UgyldigTilstand(
+    open fun startet(antallIdenter: Int): Startet = throw UgyldigTilstand(
         fra = this::class.java.simpleName,
         til = Startet::class.java.simpleName
     )
@@ -30,8 +28,8 @@ sealed class BarnetrygdInnlesing {
         override val år: Int,
         override val forespurtTidspunkt: Instant
     ) : BarnetrygdInnlesing() {
-        override fun startet(): Startet {
-            return Startet(id, år, forespurtTidspunkt, Instant.now())
+        override fun startet(antallIdenter: Int): Startet {
+            return Startet(id, år, forespurtTidspunkt, Instant.now(), antallIdenter)
         }
     }
 
@@ -39,7 +37,8 @@ sealed class BarnetrygdInnlesing {
         override val id: InnlesingId,
         override val år: Int,
         override val forespurtTidspunkt: Instant,
-        override val startTidspunkt: Instant,
+        val startTidspunkt: Instant,
+        val antallIdenterLest: Int
     ) : BarnetrygdInnlesing() {
 
         override fun mottaData(): Startet {
@@ -47,7 +46,14 @@ sealed class BarnetrygdInnlesing {
         }
 
         override fun ferdig(): Ferdig {
-            return Ferdig(id, år, forespurtTidspunkt, startTidspunkt, Instant.now())
+            return Ferdig(
+                id = id,
+                år = år,
+                forespurtTidspunkt = forespurtTidspunkt,
+                startTidspunkt = startTidspunkt,
+                ferdigTidspunkt = Instant.now(),
+                antallIdenterLest = antallIdenterLest,
+            )
         }
     }
 
@@ -55,8 +61,9 @@ sealed class BarnetrygdInnlesing {
         override val id: InnlesingId,
         override val år: Int,
         override val forespurtTidspunkt: Instant,
-        override val startTidspunkt: Instant,
-        override val ferdigTidspunkt: Instant
+        val startTidspunkt: Instant,
+        val ferdigTidspunkt: Instant,
+        val antallIdenterLest: Int
     ) : BarnetrygdInnlesing()
 
     companion object Factory {
@@ -65,12 +72,13 @@ sealed class BarnetrygdInnlesing {
             år: Int,
             forespurtTidspunkt: Instant,
             startTidspunkt: Instant?,
-            ferdigTidspunkt: Instant?
+            ferdigTidspunkt: Instant?,
+            antallIdenterLest: Int?
         ): BarnetrygdInnlesing {
-            return if (ferdigTidspunkt != null && startTidspunkt != null) {
-                Ferdig(id, år, forespurtTidspunkt, startTidspunkt, ferdigTidspunkt)
-            } else if (ferdigTidspunkt == null && startTidspunkt != null) {
-                Startet(id, år, forespurtTidspunkt, startTidspunkt)
+            return if (ferdigTidspunkt != null && startTidspunkt != null && antallIdenterLest != null) {
+                Ferdig(id, år, forespurtTidspunkt, startTidspunkt, ferdigTidspunkt, antallIdenterLest)
+            } else if (ferdigTidspunkt == null && startTidspunkt != null && antallIdenterLest != null) {
+                Startet(id, år, forespurtTidspunkt, startTidspunkt, antallIdenterLest)
             } else {
                 Bestilt(id, år, forespurtTidspunkt)
             }

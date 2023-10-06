@@ -58,7 +58,7 @@ class BarnetrygdInnlesingRepository(
 
     fun finn(id: String): BarnetrygdInnlesing? {
         return jdbcTemplate.query(
-            """select * from innlesing where id = :id""",
+            """select i.*, count(b) as antallLesteIdenter from innlesing i left join barnetrygdmottaker b on i.id = b.innlesing_id group by i.id having i.id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to id
@@ -70,7 +70,7 @@ class BarnetrygdInnlesingRepository(
 
     fun finnSisteInnlesing(): BarnetrygdInnlesing? {
         return jdbcTemplate.query(
-            """select * from innlesing order by forespurt_tidspunkt desc limit 1""",
+            """select i.*, count(b) as antallLesteIdenter from innlesing i left join barnetrygdmottaker b on i.id = b.innlesing_id group by i.id order by i.forespurt_tidspunkt desc limit 1""",
             InnlesingRowMapper()
         ).singleOrNull()
     }
@@ -93,7 +93,8 @@ class BarnetrygdInnlesingRepository(
                 år = rs.getInt("år"),
                 forespurtTidspunkt = rs.getTimestamp("forespurt_tidspunkt").toInstant(),
                 startTidspunkt = rs.getTimestamp("start_tidspunkt")?.toInstant(),
-                ferdigTidspunkt = rs.getTimestamp("ferdig_tidspunkt")?.toInstant()
+                ferdigTidspunkt = rs.getTimestamp("ferdig_tidspunkt")?.toInstant(),
+                antallIdenterLest = rs.getInt("antallLesteIdenter")
             )
         }
     }

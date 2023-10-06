@@ -4,9 +4,9 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -71,15 +71,15 @@ class BarnetrygdmottakerKafkaListener(
     ): BarnetrygdmottakerMelding {
         return when (meldingstype) {
             BarnetrygdmottakerKafkaMelding.Type.START -> {
-                BarnetrygdmottakerMelding.Start(correlationId, innlesingId)
+                BarnetrygdmottakerMelding.Start(correlationId, innlesingId, antallIdenterTotalt)
             }
 
             BarnetrygdmottakerKafkaMelding.Type.DATA -> {
-                BarnetrygdmottakerMelding.Data(personident!!, correlationId, innlesingId)
+                BarnetrygdmottakerMelding.Data(personident!!, correlationId, innlesingId, antallIdenterTotalt)
             }
 
             BarnetrygdmottakerKafkaMelding.Type.SLUTT -> {
-                BarnetrygdmottakerMelding.Slutt(correlationId, innlesingId)
+                BarnetrygdmottakerMelding.Slutt(correlationId, innlesingId, antallIdenterTotalt)
             }
         }
     }

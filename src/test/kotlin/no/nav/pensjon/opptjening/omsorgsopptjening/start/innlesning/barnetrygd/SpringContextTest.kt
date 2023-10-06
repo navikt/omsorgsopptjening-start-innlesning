@@ -1,11 +1,10 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Application
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaTopic
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaTopic
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaIntegrationTestConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -48,8 +47,6 @@ sealed class SpringContextTest {
         @Autowired
         lateinit var kafkaProducer: KafkaTemplate<String, String>
 
-        @Autowired
-        lateinit var objectMapper: ObjectMapper
         fun sendStartInnlesingKafka(
             requestId: String
         ) {
@@ -61,7 +58,8 @@ sealed class SpringContextTest {
                     BarnetrygdmottakerKafkaMelding(
                         meldingstype = BarnetrygdmottakerKafkaMelding.Type.START,
                         requestId = UUID.fromString(requestId),
-                        personident = null
+                        personident = null,
+                        antallIdenterTotalt = 1
                     )
                 ),
             )
@@ -103,7 +101,8 @@ sealed class SpringContextTest {
                     BarnetrygdmottakerKafkaMelding(
                         meldingstype = BarnetrygdmottakerKafkaMelding.Type.SLUTT,
                         requestId = UUID.fromString(requestId),
-                        personident = null
+                        personident = null,
+                        antallIdenterTotalt = 1
                     )
                 ),
             )

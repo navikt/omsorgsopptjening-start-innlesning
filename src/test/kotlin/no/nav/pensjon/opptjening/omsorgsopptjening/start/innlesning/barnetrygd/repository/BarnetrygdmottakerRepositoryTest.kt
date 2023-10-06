@@ -41,7 +41,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
                 år = 2023,
                 forespurtTidspunkt = Instant.now(),
             )
-        ).let { innlesingRepository.start(it.startet()) }
+        ).let { innlesingRepository.start(it.startet(1)) }
 
         given(clock.instant()).willReturn(Instant.now())
 
@@ -134,7 +134,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
                 forespurtTidspunkt = Instant.now()
             )
         )
-        val startet = innlesingRepository.start(bestilt.startet())
+        val startet = innlesingRepository.start(bestilt.startet(1))
         return innlesingRepository.fullført(startet.ferdig())
     }
 }
