@@ -63,7 +63,7 @@ spec:
     initialDelay: 50
   prometheus:
     enabled: true
-    port: 8080
+    port: "8080"
     path: /actuator/prometheus
   replicas:
     min: 1
