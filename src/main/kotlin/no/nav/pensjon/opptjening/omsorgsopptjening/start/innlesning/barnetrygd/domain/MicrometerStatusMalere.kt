@@ -12,15 +12,15 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
     init {
         Gauge
             .builder("pensjonopptjening_applikasjonsstatus_ok") { antallOk() }
-            .tags("pensjonopptjening","omsorgsopptjening-start-innlesning")
+            .tag("status","ok")
             .register(registry)
         Gauge
             .builder("pensjonopptjening_applikasjonsstatus_feil") { antallFeil() }
-            .tags("pensjonopptjening","omsorgsopptjening-start-innlesning")
+            .tag("status","feil")
             .register(registry)
         Gauge
             .builder("pensjonopptjening_applikasjonsstatus_ukjent") { antallMangler() }
-            .tags("pensjonopptjening","omsorgsopptjening-start-innlesning")
+            .tag("status","ukjent")
             .register(registry)
     }
 
