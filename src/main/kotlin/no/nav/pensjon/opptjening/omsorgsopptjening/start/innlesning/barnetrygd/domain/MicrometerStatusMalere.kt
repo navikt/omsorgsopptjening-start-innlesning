@@ -17,6 +17,7 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
         Gauge
             .builder("pensjonopptjening_applikasjonsstatus_feil") { antallFeil() }
             .tag("status","feil")
+            .tag("feilmelding",feilmelding())
             .register(registry)
         Gauge
             .builder("pensjonopptjening_applikasjonsstatus_ukjent") { antallMangler() }
