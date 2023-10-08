@@ -16,6 +16,9 @@ val assertjVersion = "3.24.2"
 val awaitilityVersion = "4.2.0"
 val wiremockVersion = "3.2.0"
 
+val snappyJavaVersion = "1.1.10.5"
+val snakeYamlVersion = "2.2"
+
 plugins {
     kotlin("jvm") version "1.9.10"
     kotlin("plugin.spring") version "1.9.10"
@@ -64,6 +67,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+
+    // These are transitive dependencies, but overriding them on top level due to vulnerabilities
+    // (and in some cases, the wrong version being picked)
+    implementation("org.xerial.snappy:snappy-java:$snappyJavaVersion")
+    implementation("org.yaml:snakeyaml:$snakeYamlVersion")
 
     // Test - setup
     testImplementation("org.springframework.boot:spring-boot-starter-test")
