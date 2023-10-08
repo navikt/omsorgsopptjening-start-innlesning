@@ -29,7 +29,7 @@ class MicrometerStatusMalereTest {
     fun testOK() {
         val målere = MicrometerStatusMalere(registry)
         målere.oppdater(ApplicationStatus.OK)
-        assertThat(målere.antallOk()).isOne()
+        assertThat(målere.antallOk()).isEqualTo(9)
         assertThat(målere.antallFeil()).isZero()
         assertThat(målere.antallMangler()).isZero()
         assertThat(målere.feilmelding()).isEmpty()
@@ -40,7 +40,7 @@ class MicrometerStatusMalereTest {
         val målere = MicrometerStatusMalere(registry)
         målere.oppdater(ApplicationStatus.Feil("Dette er en feil"))
         assertThat(målere.antallOk()).isZero()
-        assertThat(målere.antallFeil()).isOne()
+        assertThat(målere.antallFeil()).isEqualTo(10)
         assertThat(målere.antallMangler()).isZero()
         assertThat(målere.feilmelding()).isEqualTo("Dette er en feil")
     }
@@ -65,13 +65,13 @@ class MicrometerStatusMalereTest {
     }
 
     @Test
-    fun testMikrometerIkkeMerEnnEn() {
+    fun testMikrometerØkerIkke() {
         val målere = MicrometerStatusMalere(registry)
         målere.oppdater(ApplicationStatus.OK)
         målere.oppdater(ApplicationStatus.OK)
         målere.oppdater(ApplicationStatus.OK)
         val okCount = registry.get("pensjonopptjening_applikasjonsstatus_ok").gauge().value().toInt()
-        assertThat(okCount).isOne()
+        assertThat(okCount).isEqualTo(9)
     }
 
     @Test

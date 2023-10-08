@@ -30,11 +30,11 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
     }
 
     fun antallOk() : Int {
-        return if (status == ApplicationStatus.OK) 1 else 0
+        return if (status == ApplicationStatus.OK) 9 else 0
     }
 
     fun antallFeil() : Int {
-        return if (status is ApplicationStatus.Feil) 1 else 0
+        return if (status is ApplicationStatus.Feil) 10 else 0
     }
 
     fun antallMangler() : Int {
