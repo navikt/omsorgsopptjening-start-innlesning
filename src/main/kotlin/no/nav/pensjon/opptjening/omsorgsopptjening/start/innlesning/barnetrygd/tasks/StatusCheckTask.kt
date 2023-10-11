@@ -11,7 +11,7 @@ class StatusCheckTask(private val statusRapporteringsService: StatusRapportering
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    @Scheduled(fixedDelay = 300 /* 120000 */, initialDelay = 0 /* 60000 */)
+    @Scheduled(fixedDelay = 120000, initialDelay = 20000)
     fun check() {
         log.info("Sjekker og oppdaterer status for overvåking")
         val status = statusRapporteringsService.oppdaterRapporterbarStatus()
