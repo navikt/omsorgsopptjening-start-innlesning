@@ -15,6 +15,8 @@ val azureAdClient = "0.0.7"
 val assertjVersion = "3.24.2"
 val awaitilityVersion = "4.2.0"
 val wiremockVersion = "3.2.0"
+val micrometerRegistryPrometheusVersion = "1.11.5"
+val mockitoKotlinVersion = "5.1.0"
 
 val snappyJavaVersion = "1.1.10.5"
 val snakeYamlVersion = "2.2"
@@ -53,7 +55,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.11.4")
+    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("org.springframework:spring-aspects")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
 
@@ -61,7 +63,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
-    implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
+    implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
 
     // DB
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
@@ -79,7 +81,7 @@ dependencies {
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.springframework.kafka:spring-kafka-test:$springKafkaTestVersion")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
     testImplementation("org.wiremock:wiremock:$wiremockVersion")
