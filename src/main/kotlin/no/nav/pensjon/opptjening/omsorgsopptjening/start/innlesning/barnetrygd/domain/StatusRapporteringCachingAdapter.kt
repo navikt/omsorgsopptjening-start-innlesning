@@ -4,7 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Service
 
 @Service
-class StatusRapporteringsService (
+class StatusRapporteringCachingAdapter (
     private val statusService: StatusService,
     private val registry: MeterRegistry,
 ) {

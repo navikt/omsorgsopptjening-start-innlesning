@@ -17,3 +17,15 @@ spring.datasource:
 
 kafka:
     brokers: ${spring.embedded.kafka.brokers}
+management:
+  endpoints:
+    metrics:
+      enabled: true
+    web:
+      exposure:
+        include: info, health, metrics, prometheus
+    export:
+      prometheus:
+        enabled: true
+    prometheus:
+      enabled: true
