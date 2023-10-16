@@ -17,7 +17,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -91,8 +90,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
-                assertThat(it.antallForsøk).isOne()
-                assertThat(it.maxAntallForsøk).isEqualTo(3)
+                assertEquals(1, it.antallForsøk)
+                assertEquals(3, it.maxAntallForsøk)
             }
         }
 
@@ -185,8 +184,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                assertThat(it.antallForsøk).isOne()
-                assertThat(it.maxAntallForsøk).isEqualTo(3)
+                assertEquals(1, it.antallForsøk)
+                assertEquals(3, it.maxAntallForsøk)
             }
         }
 

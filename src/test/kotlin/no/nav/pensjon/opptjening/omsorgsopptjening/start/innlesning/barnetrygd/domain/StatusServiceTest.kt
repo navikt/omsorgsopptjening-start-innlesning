@@ -5,7 +5,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer2
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.*
@@ -22,7 +21,13 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
 
     @BeforeAll
     fun beforeAll() {
-        val dataSource = PostgresqlTestContainer2.dataSource
+        val dataSource = PostgresqlTestContainer.createInstance("test-status")
+        val flyway =
+            Flyway.configure()
+            .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+        flyway.migrate()
         innlesingRepository =
             BarnetrygdInnlesingRepository(NamedParameterJdbcTemplate(dataSource))
         statusService = StatusService(innlesingRepository)
@@ -30,7 +35,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
 
     //    @Disabled
     @Test
-    @Disabled
     @Order(0)
     fun testFantIngenInnlesinger() {
         val status = statusService.checkStatus()
@@ -38,7 +42,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    @Disabled
     @Order(1)
     fun testSisteInnlesingForGammel() {
         innlesingRepository.bestilt(BarnetrygdInnlesing.Bestilt(
@@ -54,7 +57,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    @Disabled
     @Order(2)
     fun testSisteInnlesingIkkeProsessert() {
         innlesingRepository.bestilt(BarnetrygdInnlesing.Bestilt(

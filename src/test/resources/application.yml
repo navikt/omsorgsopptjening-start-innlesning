@@ -10,17 +10,10 @@ no.nav.security.jwt:
       accepted_audience: appClientId
 
 spring.datasource:
-  test:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:postgresql:14:///test
-    username: test
-    password: test
-  testmonitoring:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:postgresql:14:///testmonitoring
-    username: test
-    password: test
-
+  driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  url: jdbc:tc:postgresql:14:///test
+  username: test
+  password: test
 
 kafka:
     brokers: ${spring.embedded.kafka.brokers}
@@ -36,5 +29,3 @@ management:
         enabled: true
     prometheus:
       enabled: true
-spring.autoconfigure:
-  exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
