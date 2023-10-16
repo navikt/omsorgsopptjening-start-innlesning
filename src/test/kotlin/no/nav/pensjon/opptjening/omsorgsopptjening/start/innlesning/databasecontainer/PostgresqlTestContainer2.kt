@@ -7,7 +7,7 @@ import org.testcontainers.containers.wait.strategy.Wait
 import javax.sql.DataSource
 
 
-class PostgresqlTestContainer private constructor(image: String) : PostgreSQLContainer<PostgresqlTestContainer>(image) {
+class PostgresqlTestContainer2 private constructor(image: String) : PostgreSQLContainer<PostgresqlTestContainer2>(image) {
 
     init {
         start()
@@ -35,9 +35,9 @@ class PostgresqlTestContainer private constructor(image: String) : PostgreSQLCon
     }
 
     companion object {
-        val instance: PostgresqlTestContainer = PostgresqlTestContainer("postgres:14.7-alpine")
+        private val instance: PostgresqlTestContainer2 = PostgresqlTestContainer2("postgres:14.7-alpine")
         val dataSource = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = "jdbc:tc:postgresql:14:///test"
+            jdbcUrl = "jdbc:tc:postgresql:14:///testmonitoring"
             username = instance.username
             password = instance.password
         })

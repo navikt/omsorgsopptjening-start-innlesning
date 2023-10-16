@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.given
@@ -53,11 +54,11 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+        assertThat(barnetrygdmottakerRepository.finnNesteUprosesserte()).isNull()
 
         innlesingRepository.fullført(innlesing.ferdig())
 
-        assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+        assertThat(barnetrygdmottakerRepository.finnNesteUprosesserte()).isNotNull()
     }
 
     @Test
