@@ -1,9 +1,10 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.mapToJson
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.ApplicationStatus
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.MicrometerStatusMalere
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach

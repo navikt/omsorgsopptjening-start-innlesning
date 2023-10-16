@@ -1,6 +1,5 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.tasks
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.StatusRapporteringCachingAdapter
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 

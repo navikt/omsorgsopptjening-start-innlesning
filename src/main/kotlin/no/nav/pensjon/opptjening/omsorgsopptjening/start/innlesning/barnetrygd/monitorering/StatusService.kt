@@ -1,5 +1,6 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
