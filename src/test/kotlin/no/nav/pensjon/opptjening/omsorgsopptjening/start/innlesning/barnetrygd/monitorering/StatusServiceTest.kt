@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
@@ -17,6 +18,7 @@ import java.time.Instant
 object StatusServiceTest : SpringContextTest.NoKafka() {
 
     private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
+    private lateinit var mottakerRepository: BarnetrygdmottakerRepository
     private lateinit var statusService: StatusService
 
     @BeforeAll
@@ -30,7 +32,9 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         flyway.migrate()
         innlesingRepository =
             BarnetrygdInnlesingRepository(NamedParameterJdbcTemplate(dataSource))
-        statusService = StatusService(innlesingRepository)
+        mottakerRepository =
+            BarnetrygdmottakerRepository(NamedParameterJdbcTemplate(dataSource))
+        statusService = StatusService(innlesingRepository, mottakerRepository)
     }
 
     //    @Disabled
@@ -65,7 +69,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
                 år = 2001,
-                forespurtTidspunkt = Instant.now().minus(Duration.ofHours(3))
+                forespurtTidspunkt = Instant.now().minus(Duration.ofHours(4))
             )
         )
         val status = statusService.checkStatus()
@@ -74,5 +78,27 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
             .extracting("feil")
             .isEqualTo("Innlesing er ikke prosessert")
     }
+
+    @Test
+    @Order(3)
+    @Disabled
+    fun testMottakereIkkeProsessert() {
+        val innlesing = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = 2001,
+                forespurtTidspunkt = Instant.now().minus(Duration.ofHours(3))
+            )
+        )
+        val startet = innlesingRepository.start(innlesing.startet(10))
+        innlesingRepository.fullført(startet.ferdig())
+        val status = statusService.checkStatus()
+        assertThat(status)
+            .isInstanceOf(ApplicationStatus.Feil::class.java)
+            .extracting("feil")
+            .isEqualTo("Alle mottakere er ikke prosessert")
+    }
+
+
 
 }

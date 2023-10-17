@@ -32,11 +32,12 @@ class BarnetrygdInnlesingRepository(
 
     fun start(startet: BarnetrygdInnlesing.Startet): BarnetrygdInnlesing {
         jdbcTemplate.update(
-            """update innlesing set start_tidspunkt = :start_tidspunkt::timestamptz where id = :id""",
+            """update innlesing set start_tidspunkt = :start_tidspunkt::timestamptz, antall_identiteter = :antall_identiteter where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to startet.id.toString(),
-                    "start_tidspunkt" to startet.startTidspunkt.toString()
+                    "start_tidspunkt" to startet.startTidspunkt.toString(),
+                    "antall_identiteter" to startet.antallIdenterLest,
                 ),
             ),
         )

@@ -54,6 +54,8 @@ sealed class Barnetrygdmottaker {
     )
     sealed class Status {
 
+        abstract val kortStatus : KortStatus
+
         open fun ferdig(): Ferdig {
             throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Ferdig")
         }
@@ -66,6 +68,7 @@ sealed class Barnetrygdmottaker {
         data class Klar(
             val tidspunkt: Instant = Instant.now()
         ) : Status() {
+            override val kortStatus = KortStatus.KLAR
             override fun ferdig(): Ferdig {
                 return Ferdig()
             }
@@ -78,7 +81,9 @@ sealed class Barnetrygdmottaker {
         @JsonTypeName("Ferdig")
         data class Ferdig(
             val tidspunkt: Instant = Instant.now(),
-        ) : Status()
+        ) : Status() {
+            override val kortStatus = KortStatus.FERDIG
+        }
 
         @JsonTypeName("Retry")
         data class Retry(
@@ -88,6 +93,7 @@ sealed class Barnetrygdmottaker {
             val karanteneTil: Instant = tidspunkt.plus(5, ChronoUnit.HOURS),
             val melding: String,
         ) : Status() {
+            override val kortStatus = KortStatus.RETRY
             override fun ferdig(): Ferdig {
                 return Ferdig()
             }
@@ -116,7 +122,12 @@ sealed class Barnetrygdmottaker {
         @JsonTypeName("Feilet")
         data class Feilet(
             val tidspunkt: Instant = Instant.now(),
-        ) : Status()
+        ) : Status() {
+            override val kortStatus = KortStatus.FEILET
+        }
     }
 
+    enum class KortStatus {
+        KLAR, FERDIG, RETRY, FEILET
+    }
 }

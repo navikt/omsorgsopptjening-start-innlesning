@@ -35,12 +35,13 @@ class BarnetrygdmottakerRepository(
             keyHolder
         )
         jdbcTemplate.update(
-            """insert into barnetrygdmottaker_status (id, status, statushistorikk) values (:id, to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb))""",
+            """insert into barnetrygdmottaker_status (id, status, statushistorikk, kort_status) values (:id, to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb),:kort_status)""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to keyHolder.keys!!["id"] as UUID,
                     "status" to serialize(barnetrygdmottaker.status),
-                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList()
+                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList(),
+                    "kort_status" to barnetrygdmottaker.status.kortStatus.toString(),
                 ),
             ),
         )
@@ -48,13 +49,15 @@ class BarnetrygdmottakerRepository(
     }
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
+        println("XXXX ${serialize(barnetrygdmottaker.status)}")
         jdbcTemplate.update(
-            """update barnetrygdmottaker_status set status = to_jsonb(:status::jsonb), statushistorikk = to_jsonb(:statushistorikk::jsonb) where id = :id""",
+            """update barnetrygdmottaker_status set status = to_jsonb(:status::jsonb), statushistorikk = to_jsonb(:statushistorikk::jsonb),kort_status = :kort_status where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to barnetrygdmottaker.id,
                     "status" to serialize(barnetrygdmottaker.status),
-                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList()
+                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList(),
+                    "kort_status" to barnetrygdmottaker.status.kortStatus.toString(),
                 ),
             ),
         )
@@ -83,6 +86,23 @@ class BarnetrygdmottakerRepository(
             ),
             BarnetrygdmottakerRowMapper()
         ).singleOrNull()
+    }
+
+    fun finnAntallMottakereMedStatusForInnlesing(kortStatus: Barnetrygdmottaker.KortStatus, innlesingId: InnlesingId): Long? {
+        return jdbcTemplate.queryForObject(
+            """select count(*) 
+                |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i
+                |where b.id = bs.id 
+                |and b.innlesing_id = i.id 
+                |and i.id = :innlesingId 
+                |and bs.kort_status = :kort_status """.trimMargin(),
+            mapOf(
+                "now" to Instant.now(clock).toString(),
+                "innlesingId" to innlesingId.toString(),
+                "kort_status" to kortStatus.toString(),
+            ),
+            Long::class.java,
+        )
     }
 
     internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {
