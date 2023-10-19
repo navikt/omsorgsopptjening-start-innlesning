@@ -1,0 +1,1 @@
+alter table innlesing rename column antall_identiteter to forventet_antall_identiteter;

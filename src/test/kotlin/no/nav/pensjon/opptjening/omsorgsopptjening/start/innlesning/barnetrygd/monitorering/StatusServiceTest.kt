@@ -1,8 +1,10 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.*
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -81,7 +84,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     @Order(3)
-    @Disabled
     fun testMottakereIkkeProsessert() {
         val innlesing = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
@@ -92,13 +94,24 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         )
         val startet = innlesingRepository.start(innlesing.startet(10))
         innlesingRepository.fullført(startet.ferdig())
+
+        val barnetrygdmottaker = Barnetrygdmottaker.Transient(
+            ident = "12345123451",
+            correlationId = CorrelationId(UUID.randomUUID()),
+            innlesingId = innlesing.id,
+        )
+
+        val mottatt = mottakerRepository.insert(barnetrygdmottaker)
+        mottakerRepository.updateStatus(mottatt.ferdig())
+        println("X MOTTATT: $mottatt")
+
+        val antallFerdig = mottakerRepository.finnAntallMottakereMedStatusForInnlesing(Barnetrygdmottaker.KortStatus.FERDIG, innlesing.id)
+
+        println(";;; $antallFerdig / ${startet.forventetAntallIdentiteter}")
         val status = statusService.checkStatus()
         assertThat(status)
             .isInstanceOf(ApplicationStatus.Feil::class.java)
             .extracting("feil")
             .isEqualTo("Alle mottakere er ikke prosessert")
     }
-
-
-
 }

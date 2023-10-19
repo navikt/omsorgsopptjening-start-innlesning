@@ -42,7 +42,7 @@ class BarnetrygdmottakerMessageHandler(
     private fun BarnetrygdInnlesing.håndterStartmelding(melding: BarnetrygdmottakerMelding.Start) {
         try {
             log.info("Starter ny innlesing, id: ${this.id}")
-            innlesingRepository.start(startet(melding.forventetAntallIdenter))
+            innlesingRepository.start(startet(melding.forventetAntallIdenter.toLong()))
         } catch (ex: BarnetrygdInnlesing.UgyldigTilstand) {
             throw BarnetrygdInnlesingException.UgyldigTistand(this.id.toString(), melding::class.java.simpleName)
         }

@@ -7,8 +7,9 @@ sealed class BarnetrygdInnlesing {
     abstract val id: InnlesingId
     abstract val år: Int
     abstract val forespurtTidspunkt: Instant
+    abstract val forventetAntallIdentiteter: Long?
 
-    open fun startet(antallIdenter: Int): Startet = throw UgyldigTilstand(
+    open fun startet(forventetAntallIdenter: Long): Startet = throw UgyldigTilstand(
         fra = this::class.java.simpleName,
         til = Startet::class.java.simpleName
     )
@@ -26,10 +27,11 @@ sealed class BarnetrygdInnlesing {
     data class Bestilt(
         override val id: InnlesingId,
         override val år: Int,
-        override val forespurtTidspunkt: Instant
+        override val forespurtTidspunkt: Instant,
     ) : BarnetrygdInnlesing() {
-        override fun startet(antallIdenter: Int): Startet {
-            return Startet(id, år, forespurtTidspunkt, Instant.now(), antallIdenter)
+        override val forventetAntallIdentiteter: Long? = null
+        override fun startet(forventetAntallIdenter: Long): Startet {
+            return Startet(id, år, forespurtTidspunkt, Instant.now(), null, forventetAntallIdenter)
         }
     }
 
@@ -38,7 +40,8 @@ sealed class BarnetrygdInnlesing {
         override val år: Int,
         override val forespurtTidspunkt: Instant,
         val startTidspunkt: Instant,
-        val antallIdenterLest: Int
+        val antallIdenterLest: Int?,
+        override val forventetAntallIdentiteter: Long? = null
     ) : BarnetrygdInnlesing() {
 
         override fun mottaData(): Startet {
@@ -53,6 +56,7 @@ sealed class BarnetrygdInnlesing {
                 startTidspunkt = startTidspunkt,
                 ferdigTidspunkt = Instant.now(),
                 antallIdenterLest = antallIdenterLest,
+                forventetAntallIdentiteter = forventetAntallIdentiteter
             )
         }
     }
@@ -63,7 +67,8 @@ sealed class BarnetrygdInnlesing {
         override val forespurtTidspunkt: Instant,
         val startTidspunkt: Instant,
         val ferdigTidspunkt: Instant,
-        val antallIdenterLest: Int
+        val antallIdenterLest: Int?,
+        override val forventetAntallIdentiteter: Long?,
     ) : BarnetrygdInnlesing()
 
     companion object Factory {
@@ -73,12 +78,22 @@ sealed class BarnetrygdInnlesing {
             forespurtTidspunkt: Instant,
             startTidspunkt: Instant?,
             ferdigTidspunkt: Instant?,
-            antallIdenterLest: Int?
+            antallIdenterLest: Int?,
+            forventetAntallIdentiteter: Long?,
         ): BarnetrygdInnlesing {
+            println("X4 BarnetrygdInnlesing.of(..): forventet:$forventetAntallIdentiteter")
             return if (ferdigTidspunkt != null && startTidspunkt != null && antallIdenterLest != null) {
-                Ferdig(id, år, forespurtTidspunkt, startTidspunkt, ferdigTidspunkt, antallIdenterLest)
+                Ferdig(
+                    id,
+                    år,
+                    forespurtTidspunkt,
+                    startTidspunkt,
+                    ferdigTidspunkt,
+                    antallIdenterLest,
+                    forventetAntallIdentiteter,
+                )
             } else if (ferdigTidspunkt == null && startTidspunkt != null && antallIdenterLest != null) {
-                Startet(id, år, forespurtTidspunkt, startTidspunkt, antallIdenterLest)
+                Startet(id, år, forespurtTidspunkt, startTidspunkt, antallIdenterLest,forventetAntallIdentiteter)
             } else {
                 Bestilt(id, år, forespurtTidspunkt)
             }

@@ -92,6 +92,7 @@ class BarnetrygdmottakerMessageHandlerTest {
                 startTidspunkt = Instant.now(),
                 ferdigTidspunkt = Instant.now(),
                 antallIdenterLest = 1,
+                forventetAntallIdentiteter = 1,
             )
         )
         assertThrows<BarnetrygdInnlesingException.UgyldigTistand> {
@@ -110,7 +111,8 @@ class BarnetrygdmottakerMessageHandlerTest {
                 forespurtTidspunkt = Instant.now(),
                 startTidspunkt = Instant.now(),
                 ferdigTidspunkt = Instant.now(),
-                antallIdenterLest = 1
+                antallIdenterLest = 1,
+                forventetAntallIdentiteter = 1,
             )
         )
         assertThrows<BarnetrygdInnlesingException.UgyldigTistand> {
@@ -130,6 +132,7 @@ class BarnetrygdmottakerMessageHandlerTest {
                 startTidspunkt = Instant.now(),
                 ferdigTidspunkt = Instant.now(),
                 antallIdenterLest = 2,
+                forventetAntallIdentiteter = 2,
             )
         )
 

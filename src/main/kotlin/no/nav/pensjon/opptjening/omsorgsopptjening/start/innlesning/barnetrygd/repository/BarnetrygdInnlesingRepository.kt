@@ -31,17 +31,26 @@ class BarnetrygdInnlesingRepository(
     }
 
     fun start(startet: BarnetrygdInnlesing.Startet): BarnetrygdInnlesing {
+        println("X0: $startet")
         jdbcTemplate.update(
-            """update innlesing set start_tidspunkt = :start_tidspunkt::timestamptz, antall_identiteter = :antall_identiteter where id = :id""",
+            """update innlesing set start_tidspunkt = :start_tidspunkt::timestamptz, forventet_antall_identiteter = :forventet_antall_identiteter where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to startet.id.toString(),
                     "start_tidspunkt" to startet.startTidspunkt.toString(),
-                    "antall_identiteter" to startet.antallIdenterLest,
-                ),
+                ).let {
+                    println("X1: ${startet.forventetAntallIdentiteter}")
+                    val x = if (startet.forventetAntallIdentiteter == null) it
+                            else it.plus("forventet_antall_identiteter" to (startet.forventetAntallIdentiteter))
+                    println("X2 $x")
+                    x
+                }
+                //"antall_identiteter" to startet.antallIdenterLest,
             ),
         )
-        return finn(startet.id.toString())!!
+        val z = finn(startet.id.toString())!! //TODO
+        println("X3 $z")
+        return z
     }
 
     fun fullført(ferdig: BarnetrygdInnlesing.Ferdig): BarnetrygdInnlesing {
@@ -59,7 +68,7 @@ class BarnetrygdInnlesingRepository(
 
     fun finn(id: String): BarnetrygdInnlesing? {
         return jdbcTemplate.query(
-            """select i.*, count(b) as antallLesteIdenter from innlesing i left join barnetrygdmottaker b on i.id = b.innlesing_id group by i.id having i.id = :id""",
+            """select i.*, forventet_antall_identiteter, count(b) as antallLesteIdenter from innlesing i left join barnetrygdmottaker b on i.id = b.innlesing_id group by i.id having i.id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to id
@@ -89,13 +98,15 @@ class BarnetrygdInnlesingRepository(
 
     private class InnlesingRowMapper : RowMapper<BarnetrygdInnlesing> {
         override fun mapRow(rs: ResultSet, rowNum: Int): BarnetrygdInnlesing {
+            println("Xrs: $rs")
             return BarnetrygdInnlesing.of(
                 id = InnlesingId.fromString(rs.getString("id")),
                 år = rs.getInt("år"),
                 forespurtTidspunkt = rs.getTimestamp("forespurt_tidspunkt").toInstant(),
                 startTidspunkt = rs.getTimestamp("start_tidspunkt")?.toInstant(),
                 ferdigTidspunkt = rs.getTimestamp("ferdig_tidspunkt")?.toInstant(),
-                antallIdenterLest = rs.getInt("antallLesteIdenter")
+                antallIdenterLest = rs.getInt("antallLesteIdenter"),
+                forventetAntallIdentiteter = rs.getLong("forventet_antall_identiteter")
             )
         }
     }

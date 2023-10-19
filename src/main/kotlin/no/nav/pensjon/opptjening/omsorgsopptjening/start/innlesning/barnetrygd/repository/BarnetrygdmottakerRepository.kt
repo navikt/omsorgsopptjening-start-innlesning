@@ -88,7 +88,7 @@ class BarnetrygdmottakerRepository(
         ).singleOrNull()
     }
 
-    fun finnAntallMottakereMedStatusForInnlesing(kortStatus: Barnetrygdmottaker.KortStatus, innlesingId: InnlesingId): Long? {
+    fun finnAntallMottakereMedStatusForInnlesing(kortStatus: Barnetrygdmottaker.KortStatus, innlesingId: InnlesingId): Long {
         return jdbcTemplate.queryForObject(
             """select count(*) 
                 |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i
@@ -102,7 +102,7 @@ class BarnetrygdmottakerRepository(
                 "kort_status" to kortStatus.toString(),
             ),
             Long::class.java,
-        )
+        )!!
     }
 
     internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {
