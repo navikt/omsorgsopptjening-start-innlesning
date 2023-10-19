@@ -53,11 +53,11 @@ class StatusService(
 
     private fun mottakereIkkeProsessert(innlesing: BarnetrygdInnlesing, antallFerdigeMottakere: Long): Boolean {
         val forventetAntallIdentiteter = innlesing.forventetAntallIdentiteter
-        if (forventetAntallIdentiteter == null) {
+        return if (forventetAntallIdentiteter == null) {
             log.error("Innlesing ${innlesing.id} mangler forventet antall mottakere")
-            return true
+            true
         } else {
-            return forventetAntallIdentiteter.toLong() != antallFerdigeMottakere
+            forventetAntallIdentiteter.toLong() != antallFerdigeMottakere
         }
     }
 
@@ -71,7 +71,7 @@ class StatusService(
 }
 
 sealed class ApplicationStatus {
-    object OK : ApplicationStatus()
-    object IkkeKjort : ApplicationStatus()
+    data object OK : ApplicationStatus()
+    data object IkkeKjort : ApplicationStatus()
     class Feil(val feil: String) : ApplicationStatus()
 }

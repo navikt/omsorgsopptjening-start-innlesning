@@ -9,7 +9,7 @@ class StatusRapporteringCachingAdapter (
     private val registry: MeterRegistry,
 ) {
     companion object {
-        private lateinit var statusMalere : MicrometerStatusMalere;
+        private lateinit var statusMalere : MicrometerStatusMalere
     }
     init {
         statusMalere = MicrometerStatusMalere(registry)

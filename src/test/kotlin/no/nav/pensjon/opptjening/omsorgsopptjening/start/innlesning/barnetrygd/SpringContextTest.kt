@@ -33,9 +33,7 @@ sealed class SpringContextTest {
 
     @SpringBootTest(classes = [Application::class])
     @EnableMockOAuth2Server
-    class NoKafka : SpringContextTest() {
-
-    }
+    class NoKafka : SpringContextTest()
 
     @ActiveProfiles("kafkaIntegrationTest")
     @EmbeddedKafka(partitions = 1, topics = [BarnetrygdmottakerKafkaTopic.NAME, Topics.Omsorgsopptjening.NAME])

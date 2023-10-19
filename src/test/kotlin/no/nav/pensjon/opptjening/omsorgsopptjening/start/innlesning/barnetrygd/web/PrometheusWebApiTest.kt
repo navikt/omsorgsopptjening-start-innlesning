@@ -19,9 +19,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 class PrometheusWebApiTest {
 
     @Autowired
-    private lateinit var oauth2Server: MockOAuth2Server
-
-    @Autowired
     private lateinit var mvc: MockMvc
 
     @Disabled

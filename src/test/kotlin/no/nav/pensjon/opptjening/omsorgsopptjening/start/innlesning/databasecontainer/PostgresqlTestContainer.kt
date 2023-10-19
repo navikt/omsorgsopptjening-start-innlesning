@@ -43,7 +43,7 @@ class PostgresqlTestContainer private constructor(image: String) : PostgreSQLCon
         })
 
         fun createInstance(name: String): DataSource {
-            val instance: PostgresqlTestContainer = PostgresqlTestContainer("postgres:14.7-alpine")
+            val instance = PostgresqlTestContainer("postgres:14.7-alpine")
             val dataSource = HikariDataSource(HikariConfig().apply {
                 jdbcUrl = "jdbc:tc:postgresql:14:///$name"
                 username = instance.username
