@@ -103,7 +103,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
 
         val mottatt = mottakerRepository.insert(barnetrygdmottaker)
         mottakerRepository.updateStatus(mottatt.ferdig())
-        println("X MOTTATT: $mottatt")
 
         val antallFerdig = mottakerRepository.finnAntallMottakereMedStatusForInnlesing(Barnetrygdmottaker.KortStatus.FERDIG, innlesing.id)
 
@@ -114,4 +113,46 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
             .extracting("feil")
             .isEqualTo("Alle mottakere er ikke prosessert")
     }
+
+    @Test
+    @Order(3)
+    fun testFeiledeMottakere() {
+        // en ny innlesing for ikke å trigge andre feil
+        val innlesingGammel = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = 2001,
+                forespurtTidspunkt = Instant.now().minus(Duration.ofDays(5))
+            )
+        )
+
+        val innlesingNy = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = 2001,
+                forespurtTidspunkt = Instant.now().minus(Duration.ofMinutes(5))
+            )
+        )
+
+        val barnetrygdmottaker = Barnetrygdmottaker.Transient(
+            ident = "12345123451",
+            correlationId = CorrelationId(UUID.randomUUID()),
+            innlesingId = innlesingGammel.id, // tilhører ikke siste innlesing
+        )
+
+        val mottatt = mottakerRepository.insert(barnetrygdmottaker)
+        mottakerRepository.updateStatus(mottatt.retry("1"))
+        mottakerRepository.updateStatus(mottatt.retry("2"))
+        mottakerRepository.updateStatus(mottatt.retry("3"))
+        mottakerRepository.updateStatus(mottatt.retry("feilet"))
+        val feilet = mottakerRepository.find(mottatt.id)
+        println("X5 $feilet")
+
+        val status = statusService.checkStatus()
+        assertThat(status)
+            .isInstanceOf(ApplicationStatus.Feil::class.java)
+            .extracting("feil")
+            .isEqualTo("Alle mottakere er ikke prosessert")
+    }
+
 }

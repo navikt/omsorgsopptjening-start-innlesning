@@ -105,6 +105,22 @@ class BarnetrygdmottakerRepository(
         )!!
     }
 
+    fun finnAntallMottakereMedStatus(kortStatus: Barnetrygdmottaker.KortStatus): Long {
+        return jdbcTemplate.queryForObject(
+            """select count(*) 
+                |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i
+                |where b.id = bs.id 
+                |and b.innlesing_id = i.id 
+                |and bs.kort_status = :kort_status """.trimMargin(),
+            mapOf(
+                "now" to Instant.now(clock).toString(),
+                "kort_status" to kortStatus.toString(),
+            ),
+            Long::class.java,
+        )!!
+    }
+
+
     internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {
         override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker.Mottatt {
             return Barnetrygdmottaker.Mottatt(

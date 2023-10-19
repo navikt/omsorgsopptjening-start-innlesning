@@ -34,6 +34,7 @@ class StatusService(
                     antallFerdigeMottakere
                 )
             ) return ApplicationStatus.Feil("Alle mottakere er ikke prosessert")
+            else if (harFeilededMottakere()) return ApplicationStatus.Feil("Det finnes feilede mottakere")
             return ApplicationStatus.OK
         }
     }
@@ -58,6 +59,10 @@ class StatusService(
         } else {
             return forventetAntallIdentiteter.toLong() != antallFerdigeMottakere
         }
+    }
+
+    private fun harFeilededMottakere() : Boolean {
+        return mottakerRepo.finnAntallMottakereMedStatus(KortStatus.FEILET) > 0
     }
 
     private fun getBurdeVærtProsessert(sisteInnlesing: BarnetrygdInnlesing) =
