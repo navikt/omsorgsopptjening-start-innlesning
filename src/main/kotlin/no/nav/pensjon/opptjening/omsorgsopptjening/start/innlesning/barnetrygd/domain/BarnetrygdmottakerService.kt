@@ -51,25 +51,28 @@ class BarnetrygdmottakerService(
                                 log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
                                 barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
                                     barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
-                                    val barnetrygd = client.hentBarnetrygd(
+
+                                    val barnetrygdResponse = client.hentBarnetrygd(
                                         ident = barnetrygdmottaker.ident,
                                         ar = barnetrygdmottaker.år,
                                     )
-                                    val barnetrygdOgHjelpestønad = barnetrygd.barnetrygdsaker.map { persongrunnlag ->
-                                        val minMaxDatePerOmsorgsmottaker =
-                                            persongrunnlag.hentOmsorgsmottakere().associateWith { mottaker ->
-                                                persongrunnlag.omsorgsperioder.filter { it.omsorgsmottaker == mottaker }
-                                                    .let { vedtaksperioder -> vedtaksperioder.minOf { it.fom } to vedtaksperioder.maxOf { it.tom } }
-                                            }
-                                        val hjelpestønad =
-                                            hjelpestønadService.hentForOmsorgsmottakere(minMaxDatePerOmsorgsmottaker)
-                                        persongrunnlag.copy(omsorgsperioder = persongrunnlag.omsorgsperioder + hjelpestønad)
-                                    }
+
+                                    val barnetrygdOgHjelpestønad = barnetrygdResponse.barnetrygdsaker
+                                        .associateBy { it.omsorgsyter }
+                                        .mapValues { (_, v) ->
+                                            v.copy(
+                                                omsorgsperioder = v.omsorgsperioder + hjelpestønadService.hentHjelpestønad(
+                                                    v
+                                                )
+                                            )
+                                        }
+                                        .map { it.value }
+
                                     kafkaProducer.send(
                                         createKafkaMessage(
                                             barnetrygdmottaker = barnetrygdmottaker,
                                             persongrunnlag = barnetrygdOgHjelpestønad,
-                                            rådataFraKilde = barnetrygd.rådataFraKilde, //TODO legg til hjelpestønad i rådata
+                                            rådataFraKilde = barnetrygdResponse.rådataFraKilde, //TODO legg til hjelpestønad i rådata
                                         )
                                     ).get()
                                     log.info("Prosessering fullført")

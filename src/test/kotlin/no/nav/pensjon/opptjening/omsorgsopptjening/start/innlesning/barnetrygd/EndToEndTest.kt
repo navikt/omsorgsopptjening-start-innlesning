@@ -4,6 +4,8 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.MedlemIFolketrygden
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
@@ -75,6 +77,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                     kilde = Kilde.BARNETRYGD,
+                                    medlemskap = MedlemIFolketrygden.Ukjent,
+                                    utbetalt = 2000,
+                                    landstilknytning = Landstilknytning.NORGE,
                                 ),
                                 PersongrunnlagMelding.Omsorgsperiode(
                                     fom = YearMonth.of(2022, Month.JANUARY),
@@ -82,6 +87,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
                                     kilde = Kilde.INFOTRYGD,
+                                    medlemskap = MedlemIFolketrygden.Ukjent,
+                                    utbetalt = 2000,
+                                    landstilknytning = Landstilknytning.NORGE,
                                 )
                             )
                         )
@@ -90,25 +98,28 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 )
                 assertEquals(
                     """
-                        {
-                            "fagsaker": [
-                                {
-                                    "fagsakId":"1",
-                                    "fagsakEiersIdent":"12345678910",
-                                    "barnetrygdPerioder":[
-                                        {
-                                            "personIdent":"09876543210",
-                                            "delingsprosentYtelse":"FULL",
-                                            "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
-                                            "utbetaltPerMnd":2000,
-                                            "stønadFom": "2020-01",
-                                            "stønadTom": "2025-12",
-                                            "kilde":"BA"                                                                                            
-                                        }                                                                                          
-                                    ]
-                                }
-                            ]
-                        }
+                            {
+                                "fagsaker": [
+                                    {
+                                        "fagsakId":"1",
+                                        "fagsakEiersIdent":"12345678910",
+                                        "barnetrygdPerioder":[
+                                            {
+                                                "personIdent":"09876543210",
+                                                "delingsprosentYtelse":"FULL",
+                                                "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
+                                                "utbetaltPerMnd":2000,
+                                                "stønadFom": "2020-01",
+                                                "stønadTom": "2025-12",
+                                                "sakstypeEkstern":"NASJONAL",
+                                                "kildesystem":"BA",
+                                                "pensjonstrygdet":null,
+                                                "norgeErSekundærlandMedNullUtbetaling":false
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
                     """.trimIndent(),
                     it.rådata.toString()
                 )

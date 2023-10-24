@@ -6,6 +6,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.MedlemIFolketrygden
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
@@ -85,7 +87,10 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                                 omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                                 fom = YearMonth.of(2020, Month.JANUARY),
                                                 tom = YearMonth.of(2025, Month.DECEMBER),
-                                                kilde = Kilde.BARNETRYGD
+                                                kilde = Kilde.BARNETRYGD,
+                                                medlemskap = MedlemIFolketrygden.Ukjent,
+                                                utbetalt = 2000,
+                                                landstilknytning = Landstilknytning.NORGE
                                             )
                                         )
                                     )
@@ -105,8 +110,11 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                                 "utbetaltPerMnd":2000,
                                                 "stønadFom": "2020-01",
                                                 "stønadTom": "2025-12",
-                                                "kilde":"BA"                                                                                            
-                                            }                                                                                          
+                                                "sakstypeEkstern":"NASJONAL",
+                                                "kildesystem":"BA",
+                                                "pensjonstrygdet":null,
+                                                "norgeErSekundærlandMedNullUtbetaling":false
+                                            }
                                         ]
                                     }
                                 ]

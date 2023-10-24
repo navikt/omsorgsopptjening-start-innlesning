@@ -76,7 +76,10 @@ internal data class BarnetrygdPeriode(
     val utbetaltPerMnd: Int,
     val stønadFom: YearMonth,
     val stønadTom: YearMonth,
-    val kilde: BarnetrygdKilde
+    val sakstypeEkstern: Sakstype,
+    val kildesystem: BarnetrygdKilde,
+    val pensjonstrygdet: Boolean? = null,
+    val norgeErSekundærlandMedNullUtbetaling: Boolean? = null
 )
 
 internal enum class DelingsprosentYtelse {
@@ -88,4 +91,9 @@ internal enum class DelingsprosentYtelse {
 internal enum class BarnetrygdKilde {
     BA, //barnetrygdsystemet
     INFOTRYGD
+}
+
+internal enum class Sakstype {
+    NASJONAL,
+    EØS
 }

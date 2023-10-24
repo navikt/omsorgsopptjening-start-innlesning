@@ -3,9 +3,6 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestøn
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -29,7 +26,7 @@ class HjelpestønadClient(
 ) {
     private val webClient: WebClient = WebClient.builder().baseUrl(baseUrl).build()
 
-    fun hentHjelpestønad(fnr: String, fom: LocalDate, tom: LocalDate): List<PersongrunnlagMelding.Omsorgsperiode>? {
+    internal fun hentHjelpestønad(fnr: String, fom: LocalDate, tom: LocalDate): List<HjelpestønadVedtak> {
         return webClient
             .get()
             .uri("/api/hjelpestonad?fnr=$fnr&fom=$fom&tom=$tom")
@@ -40,20 +37,7 @@ class HjelpestønadClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { response ->
-                response.body?.deserializeList<HjelpestønadVedtak>()?.map {
-                    PersongrunnlagMelding.Omsorgsperiode(
-                        fom = it.fom,
-                        tom = it.tom,
-                        omsorgstype = when (it.omsorgstype) {
-                            HjelpestønadType.FORHØYET_SATS_3 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
-                            HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4
-                        },
-                        omsorgsmottaker = it.ident,
-                        kilde = Kilde.INFOTRYGD,
-                    )
-                }
-            }
+            .block()?.let { response -> response.body?.deserializeList<HjelpestønadVedtak>() ?: emptyList() }
             ?: throw HentHjelpestønadException("Response var null")
     }
 
@@ -62,7 +46,7 @@ class HjelpestønadClient(
 }
 
 data class HentHjelpestønadException(val msg: String) : RuntimeException(msg)
-private data class HjelpestønadVedtak(
+internal data class HjelpestønadVedtak(
     val id: Int,
     val ident: String,
     val fom: YearMonth,
@@ -70,7 +54,7 @@ private data class HjelpestønadVedtak(
     val omsorgstype: HjelpestønadType
 )
 
-private enum class HjelpestønadType {
+internal enum class HjelpestønadType {
     FORHØYET_SATS_3,
     FORHØYET_SATS_4;
 }

@@ -1,6 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.MedlemIFolketrygden
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 
@@ -23,10 +25,38 @@ internal object HentBarnetrygdDomainMapper {
                         DelingsprosentYtelse.USIKKER -> Omsorgstype.USIKKER_BARNETRYGD
                     },
                     omsorgsmottaker = it.personIdent,
-                    kilde = when (it.kilde) {
+                    kilde = when (it.kildesystem) {
                         BarnetrygdKilde.BA -> Kilde.BARNETRYGD
                         BarnetrygdKilde.INFOTRYGD -> Kilde.INFOTRYGD
-                    }
+                    },
+                    utbetalt = it.utbetaltPerMnd,
+                    landstilknytning = when {
+                        it.sakstypeEkstern == Sakstype.NASJONAL -> {
+                            Landstilknytning.NORGE
+                        }
+
+                        it.sakstypeEkstern == Sakstype.EØS && it.norgeErSekundærlandMedNullUtbetaling == true -> {
+                            require(it.utbetaltPerMnd == 0) { "Forventet utbetaling lik 0 dersom norgeErSekundærlandMedNullUtbetaling er true" }
+                            Landstilknytning.EØS_NORGE_SEKUNDÆR
+                        }
+
+                        it.sakstypeEkstern == Sakstype.EØS && it.norgeErSekundærlandMedNullUtbetaling == false -> {
+                            Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
+                        }
+
+                        it.sakstypeEkstern == Sakstype.EØS && it.norgeErSekundærlandMedNullUtbetaling == null -> {
+                            Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
+                        }
+
+                        else -> {
+                            throw RuntimeException("Klarte ikke å oversette sakstypeEkstern: ${it.sakstypeEkstern}")
+                        }
+                    },
+                    medlemskap = when (it.pensjonstrygdet) {
+                        true -> MedlemIFolketrygden.Ja
+                        false -> MedlemIFolketrygden.Nei
+                        null -> MedlemIFolketrygden.Ukjent
+                    },
                 )
             }
         )

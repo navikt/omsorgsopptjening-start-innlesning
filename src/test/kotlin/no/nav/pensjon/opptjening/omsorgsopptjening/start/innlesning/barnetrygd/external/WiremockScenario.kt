@@ -71,8 +71,11 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
                                                 "utbetaltPerMnd":2000,
                                                 "stønadFom": "2020-01",
                                                 "stønadTom": "2025-12",
-                                                "kilde":"BA"                                                                                            
-                                            }                                                                                          
+                                                "sakstypeEkstern":"NASJONAL",
+                                                "kildesystem":"BA",
+                                                "pensjonstrygdet":null,
+                                                "norgeErSekundærlandMedNullUtbetaling":false
+                                            }
                                         ]
                                     }
                                 ]
@@ -147,17 +150,17 @@ fun WireMockExtension.`hent-barnetrygd internal server error`(): StubMapping {
 
 fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(): StubMapping {
     return this.stubFor(
-            WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
-                .willReturn(
-                    WireMock.ok()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(
-                            """
+        WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
+            .willReturn(
+                WireMock.ok()
+                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .withBody(
+                        """
                                 []
                             """.trimIndent()
-                        )
-                )
+                    )
             )
+    )
 }
 
 fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(): StubMapping {

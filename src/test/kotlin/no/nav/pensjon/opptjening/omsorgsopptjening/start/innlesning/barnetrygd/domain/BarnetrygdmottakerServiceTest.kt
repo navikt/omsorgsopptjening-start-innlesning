@@ -161,8 +161,11 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                                                 "utbetaltPerMnd":2000,
                                                 "stønadFom": "2020-01",
                                                 "stønadTom": "2025-12",
-                                                "kilde":"BA"                                                                                                                                                
-                                            }                                                                                          
+                                                "sakstypeEkstern":"NASJONAL",
+                                                "kildesystem":"BA",
+                                                "pensjonstrygdet":null,
+                                                "norgeErSekundærlandMedNullUtbetaling":false
+                                            }
                                         ]
                                     }
                                 ]
