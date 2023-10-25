@@ -42,7 +42,7 @@ spec:
       value: prod-fss.pensjonopptjening.omsorgsopptjening-hjelpestonad-db-proxy
   image: {{ image }}
   ingresses:
-    - https://omsorgsopptjening-start-innlesning.intern.prod.nav.no
+    - https://omsorgsopptjening-start-innlesning.intern.nav.no
   accessPolicy:
     outbound:
       external:
