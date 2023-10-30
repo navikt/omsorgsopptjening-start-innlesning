@@ -50,7 +50,7 @@ internal data class HjelpestønadVedtak(
     val id: Int,
     val ident: String,
     val fom: YearMonth,
-    val tom: YearMonth,
+    val tom: YearMonth?,
     val omsorgstype: HjelpestønadType
 )
 

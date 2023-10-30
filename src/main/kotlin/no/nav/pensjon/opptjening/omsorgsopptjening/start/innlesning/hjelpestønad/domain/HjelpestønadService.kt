@@ -23,7 +23,8 @@ class HjelpestønadService(
                 ).map { hjelpestønadPeriode ->
                     PersongrunnlagMelding.Omsorgsperiode(
                         fom = hjelpestønadPeriode.fom,
-                        tom = hjelpestønadPeriode.tom,
+                        //begrenser hjelpestønadperioden oppad til barnetrygperioden dersom denne ikke har noen sluttdato
+                        tom = hjelpestønadPeriode.tom ?: barnetrygdperiode.tom,
                         omsorgstype = when (hjelpestønadPeriode.omsorgstype) {
                             HjelpestønadType.FORHØYET_SATS_3 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
                             HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4
