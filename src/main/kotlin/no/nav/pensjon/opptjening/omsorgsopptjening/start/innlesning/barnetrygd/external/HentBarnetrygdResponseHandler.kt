@@ -89,7 +89,7 @@ internal enum class DelingsprosentYtelse {
 
 internal enum class BarnetrygdKilde {
     BA, //barnetrygdsystemet
-    INFOTRYGD
+    Infotrygd
 }
 
 internal enum class Sakstype {

@@ -15,7 +15,7 @@ internal object HentBarnetrygdDomainMapper {
         fun BarnetrygdKilde.map(): Kilde {
             return when (this) {
                 BarnetrygdKilde.BA -> Kilde.BARNETRYGD
-                BarnetrygdKilde.INFOTRYGD -> Kilde.INFOTRYGD
+                BarnetrygdKilde.Infotrygd -> Kilde.INFOTRYGD
             }
         }
 
