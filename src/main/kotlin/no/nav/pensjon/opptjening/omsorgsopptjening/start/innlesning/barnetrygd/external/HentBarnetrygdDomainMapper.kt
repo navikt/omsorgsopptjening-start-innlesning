@@ -2,7 +2,6 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.MedlemIFolketrygden
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 
@@ -13,6 +12,13 @@ internal object HentBarnetrygdDomainMapper {
     }
 
     private fun map(external: BarnetrygdSak): PersongrunnlagMelding.Persongrunnlag {
+        fun BarnetrygdKilde.map(): Kilde {
+            return when (this) {
+                BarnetrygdKilde.BA -> Kilde.BARNETRYGD
+                BarnetrygdKilde.INFOTRYGD -> Kilde.INFOTRYGD
+            }
+        }
+
         return PersongrunnlagMelding.Persongrunnlag(
             omsorgsyter = external.fagsakEiersIdent,
             omsorgsperioder = external.barnetrygdPerioder.map {
@@ -25,10 +31,7 @@ internal object HentBarnetrygdDomainMapper {
                         DelingsprosentYtelse.USIKKER -> Omsorgstype.USIKKER_BARNETRYGD
                     },
                     omsorgsmottaker = it.personIdent,
-                    kilde = when (it.kildesystem) {
-                        BarnetrygdKilde.BA -> Kilde.BARNETRYGD
-                        BarnetrygdKilde.INFOTRYGD -> Kilde.INFOTRYGD
-                    },
+                    kilde = it.kildesystem.map(),
                     utbetalt = it.utbetaltPerMnd,
                     landstilknytning = when {
                         it.sakstypeEkstern == Sakstype.NASJONAL -> {
@@ -51,12 +54,7 @@ internal object HentBarnetrygdDomainMapper {
                         else -> {
                             throw RuntimeException("Klarte ikke å oversette sakstypeEkstern: ${it.sakstypeEkstern}")
                         }
-                    },
-                    medlemskap = when (it.pensjonstrygdet) {
-                        true -> MedlemIFolketrygden.Ja
-                        false -> MedlemIFolketrygden.Nei
-                        null -> MedlemIFolketrygden.Ukjent
-                    },
+                    }
                 )
             }
         )

@@ -30,7 +30,6 @@ class HjelpestønadService(
                         },
                         omsorgsmottaker = hjelpestønadPeriode.ident,
                         kilde = Kilde.INFOTRYGD,
-                        medlemskap = barnetrygdperiode.medlemskap,
                         utbetalt = barnetrygdperiode.utbetalt,
                         landstilknytning = barnetrygdperiode.landstilknytning,
                     )

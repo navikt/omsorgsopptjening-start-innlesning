@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.MedlemIFolketrygden
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
@@ -77,7 +76,6 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                     kilde = Kilde.BARNETRYGD,
-                                    medlemskap = MedlemIFolketrygden.Ukjent,
                                     utbetalt = 2000,
                                     landstilknytning = Landstilknytning.NORGE,
                                 ),
@@ -87,7 +85,6 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
                                     kilde = Kilde.INFOTRYGD,
-                                    medlemskap = MedlemIFolketrygden.Ukjent,
                                     utbetalt = 2000,
                                     landstilknytning = Landstilknytning.NORGE,
                                 )
