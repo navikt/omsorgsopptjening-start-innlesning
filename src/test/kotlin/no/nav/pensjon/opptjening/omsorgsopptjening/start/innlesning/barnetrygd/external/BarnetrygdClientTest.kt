@@ -98,7 +98,6 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                             {
                                 "fagsaker": [
                                     {
-                                        "fagsakId":"1",
                                         "fagsakEiersIdent":"12345678910",
                                         "barnetrygdPerioder":[
                                             {

@@ -61,7 +61,6 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
                             {
                                 "fagsaker": [
                                     {
-                                        "fagsakId":"1",
                                         "fagsakEiersIdent":"12345678910",
                                         "barnetrygdPerioder":[
                                             {
@@ -116,7 +115,6 @@ fun WireMockExtension.`hent-barnetrygd ok uten barnetrygdperioder`(): StubMappin
                             {
                                 "fagsaker": [
                                     {
-                                        "fagsakId":"1",
                                         "fagsakEiersIdent":"12345678910",
                                         "barnetrygdPerioder":[]
                                     }

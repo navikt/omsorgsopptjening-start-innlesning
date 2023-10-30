@@ -64,7 +64,6 @@ private data class FagsakListeWrapper(
 )
 
 internal data class BarnetrygdSak(
-    val fagsakId: String,
     val fagsakEiersIdent: String,
     val barnetrygdPerioder: List<BarnetrygdPeriode>,
 )
