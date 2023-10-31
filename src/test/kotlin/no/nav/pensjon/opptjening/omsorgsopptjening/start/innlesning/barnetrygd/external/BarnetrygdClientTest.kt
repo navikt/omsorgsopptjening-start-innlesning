@@ -90,7 +90,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                                 utbetalt = 2000,
                                                 landstilknytning = Landstilknytning.NORGE
                                             )
-                                        )
+                                        ),
+                                        hjelpestønadsperioder = emptyList(),
                                     )
                                 ),
                                 rådataFraKilde = RådataFraKilde(

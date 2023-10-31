@@ -57,12 +57,12 @@ class BarnetrygdmottakerService(
                                         ar = barnetrygdmottaker.år,
                                     )
 
-                                    val barnetrygdOgHjelpestønad = barnetrygdResponse.barnetrygdsaker
+                                    val hjelpestønad = barnetrygdResponse.barnetrygdsaker
                                         .associateBy { it.omsorgsyter }
-                                        .mapValues { (_, v) ->
-                                            v.copy(
-                                                omsorgsperioder = v.omsorgsperioder + hjelpestønadService.hentHjelpestønad(
-                                                    v
+                                        .mapValues { (_, persongrunnlag) ->
+                                            persongrunnlag.copy(
+                                                hjelpestønadsperioder = hjelpestønadService.hentHjelpestønad(
+                                                    persongrunnlag
                                                 )
                                             )
                                         }
@@ -71,7 +71,7 @@ class BarnetrygdmottakerService(
                                     kafkaProducer.send(
                                         createKafkaMessage(
                                             barnetrygdmottaker = barnetrygdmottaker,
-                                            persongrunnlag = barnetrygdOgHjelpestønad,
+                                            persongrunnlag = hjelpestønad,
                                             rådataFraKilde = barnetrygdResponse.rådataFraKilde, //TODO legg til hjelpestønad i rådata
                                         )
                                     ).get()

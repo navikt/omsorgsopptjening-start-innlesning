@@ -13,7 +13,7 @@ import java.time.YearMonth
 class HjelpestønadService(
     private val hjelpestønadClient: HjelpestønadClient
 ) {
-    internal fun hentHjelpestønad(barnetrygdSak: PersongrunnlagMelding.Persongrunnlag): List<PersongrunnlagMelding.Omsorgsperiode> {
+    internal fun hentHjelpestønad(barnetrygdSak: PersongrunnlagMelding.Persongrunnlag): List<PersongrunnlagMelding.Hjelpestønadperiode> {
         return barnetrygdSak.omsorgsperioder
             .flatMap { barnetrygdperiode ->
                 hentHjelpestønad(
@@ -21,7 +21,7 @@ class HjelpestønadService(
                     fom = barnetrygdperiode.fom,
                     tom = barnetrygdperiode.tom
                 ).map { hjelpestønadPeriode ->
-                    PersongrunnlagMelding.Omsorgsperiode(
+                    PersongrunnlagMelding.Hjelpestønadperiode(
                         fom = hjelpestønadPeriode.fom,
                         //begrenser hjelpestønadperioden oppad til barnetrygperioden dersom denne ikke har noen sluttdato
                         tom = hjelpestønadPeriode.tom ?: barnetrygdperiode.tom,
@@ -31,8 +31,6 @@ class HjelpestønadService(
                         },
                         omsorgsmottaker = hjelpestønadPeriode.ident,
                         kilde = Kilde.INFOTRYGD,
-                        utbetalt = barnetrygdperiode.utbetalt,
-                        landstilknytning = barnetrygdperiode.landstilknytning,
                     )
                 }
             }

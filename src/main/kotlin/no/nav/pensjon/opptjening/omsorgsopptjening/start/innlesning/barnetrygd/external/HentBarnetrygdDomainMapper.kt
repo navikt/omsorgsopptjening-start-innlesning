@@ -56,7 +56,8 @@ internal object HentBarnetrygdDomainMapper {
                         }
                     }
                 )
-            }
+            },
+            hjelpestønadsperioder = emptyList()
         )
     }
 }

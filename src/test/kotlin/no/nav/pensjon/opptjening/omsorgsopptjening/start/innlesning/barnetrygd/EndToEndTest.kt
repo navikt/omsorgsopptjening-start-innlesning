@@ -79,16 +79,16 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     utbetalt = 2000,
                                     landstilknytning = Landstilknytning.NORGE,
                                 ),
-                                PersongrunnlagMelding.Omsorgsperiode(
+                            ),
+                            hjelpestønadsperioder = listOf(
+                                PersongrunnlagMelding.Hjelpestønadperiode(
                                     fom = YearMonth.of(2022, Month.JANUARY),
                                     tom = YearMonth.of(2025, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
                                     kilde = Kilde.INFOTRYGD,
-                                    utbetalt = 2000,
-                                    landstilknytning = Landstilknytning.NORGE,
                                 )
-                            )
+                            ),
                         )
                     ),
                     it.persongrunnlag
