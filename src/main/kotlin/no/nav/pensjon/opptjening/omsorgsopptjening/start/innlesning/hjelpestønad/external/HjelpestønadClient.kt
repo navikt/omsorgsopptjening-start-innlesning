@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
+import org.apache.commons.lang3.ObjectUtils.min
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -29,7 +30,7 @@ class HjelpestønadClient(
     internal fun hentHjelpestønad(fnr: String, fom: LocalDate, tom: LocalDate): List<HjelpestønadVedtak> {
         return webClient
             .get()
-            .uri("/api/hjelpestonad?fnr=$fnr&fom=$fom&tom=$tom")
+            .uri("/api/hjelpestonad?fnr=$fnr&fom=${fom.begrensTilÅr9999()}&tom=${tom.begrensTilÅr9999()}")
             .header(CorrelationId.identifier, Mdc.getCorrelationId().toString())
             .header(InnlesingId.identifier, Mdc.getInnlesingId().toString())
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -57,4 +58,8 @@ internal data class HjelpestønadVedtak(
 internal enum class HjelpestønadType {
     FORHØYET_SATS_3,
     FORHØYET_SATS_4;
+}
+
+private fun LocalDate.begrensTilÅr9999(): LocalDate {
+    return min(this, LocalDate.of(9999, 12, 31))
 }
