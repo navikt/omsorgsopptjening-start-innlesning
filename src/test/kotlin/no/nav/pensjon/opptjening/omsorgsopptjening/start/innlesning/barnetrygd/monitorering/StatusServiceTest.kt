@@ -106,7 +106,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
 
         val antallFerdig = mottakerRepository.finnAntallMottakereMedStatusForInnlesing(Barnetrygdmottaker.KortStatus.FERDIG, innlesing.id)
 
-        println(";;; $antallFerdig / ${startet.forventetAntallIdentiteter}")
         val status = statusService.checkStatus()
         assertThat(status)
             .isInstanceOf(ApplicationStatus.Feil::class.java)
@@ -146,7 +145,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         mottakerRepository.updateStatus(mottatt.retry("3"))
         mottakerRepository.updateStatus(mottatt.retry("feilet"))
         val feilet = mottakerRepository.find(mottatt.id)
-        println("X5 $feilet")
 
         val status = statusService.checkStatus()
         assertThat(status)

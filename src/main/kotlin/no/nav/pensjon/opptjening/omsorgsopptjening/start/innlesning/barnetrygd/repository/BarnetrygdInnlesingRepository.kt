@@ -31,7 +31,6 @@ class BarnetrygdInnlesingRepository(
     }
 
     fun start(startet: BarnetrygdInnlesing.Startet): BarnetrygdInnlesing {
-        println("X0: $startet")
         jdbcTemplate.update(
             """update innlesing set start_tidspunkt = :start_tidspunkt::timestamptz, forventet_antall_identiteter = :forventet_antall_identiteter where id = :id""",
             MapSqlParameterSource(
@@ -39,18 +38,13 @@ class BarnetrygdInnlesingRepository(
                     "id" to startet.id.toString(),
                     "start_tidspunkt" to startet.startTidspunkt.toString(),
                 ).let {
-                    println("X1: ${startet.forventetAntallIdentiteter}")
-                    val x = if (startet.forventetAntallIdentiteter == null) it
-                            else it.plus("forventet_antall_identiteter" to (startet.forventetAntallIdentiteter))
-                    println("X2 $x")
-                    x
+                    if (startet.forventetAntallIdentiteter == null) it
+                    else it.plus("forventet_antall_identiteter" to (startet.forventetAntallIdentiteter))
                 }
                 //"antall_identiteter" to startet.antallIdenterLest,
             ),
         )
-        val z = finn(startet.id.toString())!! //TODO
-        println("X3 $z")
-        return z
+        return finn(startet.id.toString())!! //TODO
     }
 
     fun fullført(ferdig: BarnetrygdInnlesing.Ferdig): BarnetrygdInnlesing {
@@ -98,7 +92,6 @@ class BarnetrygdInnlesingRepository(
 
     private class InnlesingRowMapper : RowMapper<BarnetrygdInnlesing> {
         override fun mapRow(rs: ResultSet, rowNum: Int): BarnetrygdInnlesing {
-            println("Xrs: $rs")
             return BarnetrygdInnlesing.of(
                 id = InnlesingId.fromString(rs.getString("id")),
                 år = rs.getInt("år"),

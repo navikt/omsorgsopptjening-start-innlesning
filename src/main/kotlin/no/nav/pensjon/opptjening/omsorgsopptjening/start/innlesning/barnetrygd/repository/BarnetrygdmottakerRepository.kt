@@ -49,7 +49,6 @@ class BarnetrygdmottakerRepository(
     }
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
-        println("XXXX ${serialize(barnetrygdmottaker.status)}")
         jdbcTemplate.update(
             """update barnetrygdmottaker_status set status = to_jsonb(:status::jsonb), statushistorikk = to_jsonb(:statushistorikk::jsonb),kort_status = :kort_status where id = :id""",
             MapSqlParameterSource(

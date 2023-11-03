@@ -81,7 +81,6 @@ sealed class BarnetrygdInnlesing {
             antallIdenterLest: Int?,
             forventetAntallIdentiteter: Long?,
         ): BarnetrygdInnlesing {
-            println("X4 BarnetrygdInnlesing.of(..): forventet:$forventetAntallIdentiteter")
             return if (ferdigTidspunkt != null && startTidspunkt != null && antallIdenterLest != null) {
                 Ferdig(
                     id,

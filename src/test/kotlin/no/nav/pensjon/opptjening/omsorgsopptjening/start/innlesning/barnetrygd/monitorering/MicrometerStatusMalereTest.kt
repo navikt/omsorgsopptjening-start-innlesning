@@ -32,6 +32,7 @@ class MicrometerStatusMalereTest {
         assertThat(målere.antallFeil()).isZero()
         assertThat(målere.antallMangler()).isZero()
         assertThat(målere.feilmelding()).isEmpty()
+        assertThat(målere.statusTekst()).isEqualTo("OK")
     }
 
     @Test
@@ -42,6 +43,8 @@ class MicrometerStatusMalereTest {
         assertThat(målere.antallFeil()).isEqualTo(10)
         assertThat(målere.antallMangler()).isZero()
         assertThat(målere.feilmelding()).isEqualTo("Dette er en feil")
+        assertThat(målere.statusTekst()).isEqualTo("Feil")
+        assertThat(målere.statusKode()).isEqualTo(3)
     }
 
     @Test
@@ -52,6 +55,8 @@ class MicrometerStatusMalereTest {
         assertThat(målere.antallFeil()).isZero()
         assertThat(målere.antallMangler()).isOne()
         assertThat(målere.feilmelding()).isEmpty()
+        assertThat(målere.statusTekst()).isEqualTo("Mangler data")
+        assertThat(målere.statusKode()).isEqualTo(2)
     }
 
     @Test
@@ -61,6 +66,8 @@ class MicrometerStatusMalereTest {
         assertThat(målere.antallFeil()).isZero()
         assertThat(målere.antallMangler()).isOne()
         assertThat(målere.feilmelding()).isEmpty()
+        assertThat(målere.statusTekst()).isEqualTo("Mangler status")
+        assertThat(målere.statusKode()).isEqualTo(0)
     }
 
     @Test
@@ -71,6 +78,7 @@ class MicrometerStatusMalereTest {
         målere.oppdater(ApplicationStatus.OK)
         val okCount = registry.get("pensjonopptjening_applikasjonsstatus_ok").gauge().value().toInt()
         assertThat(okCount).isEqualTo(9)
+        assertThat(målere.statusKode()).isEqualTo(1)
     }
 
     @Test

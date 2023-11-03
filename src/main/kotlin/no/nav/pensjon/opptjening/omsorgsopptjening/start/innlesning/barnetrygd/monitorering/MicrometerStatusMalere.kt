@@ -23,6 +23,9 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
             .builder("pensjonopptjening_applikasjonsstatus_ukjent") { antallMangler() }
             .tag("status","ukjent")
             .register(registry)
+        Gauge
+            .builder("pensjonopptjening_applikasjonsstatus_kode") { statusKode() }
+            .tag("status", statusTekst())
     }
 
     fun oppdater(status: ApplicationStatus) {
@@ -37,8 +40,25 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
         return if (status is ApplicationStatus.Feil) 10 else 0
     }
 
+    fun statusTekst() : String {
+        return when (val status = status) {
+            is ApplicationStatus.OK -> "OK"
+            is ApplicationStatus.IkkeKjort -> "Mangler data"
+            is ApplicationStatus.Feil -> "Feil"
+            null -> "Mangler status"
+        }
+    }
+
+    fun statusKode() : Int {
+        return when (val status = status) {
+            null -> 0
+            is ApplicationStatus.OK -> 1
+            is ApplicationStatus.IkkeKjort -> 2
+            is ApplicationStatus.Feil -> 3
+        }
+    }
+
     fun antallMangler() : Int {
-        println("antallMangler status=$status")
         val mangler = (status == null || status is ApplicationStatus.IkkeKjort)
         return if (mangler) 1 else 0
     }
