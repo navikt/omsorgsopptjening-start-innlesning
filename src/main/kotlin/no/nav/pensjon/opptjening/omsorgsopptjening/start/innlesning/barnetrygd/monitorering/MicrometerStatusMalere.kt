@@ -26,6 +26,7 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
         Gauge
             .builder("pensjonopptjening_applikasjonsstatus_kode") { statusKode() }
             .tag("status", statusTekst())
+            .register(registry)
     }
 
     fun oppdater(status: ApplicationStatus) {
