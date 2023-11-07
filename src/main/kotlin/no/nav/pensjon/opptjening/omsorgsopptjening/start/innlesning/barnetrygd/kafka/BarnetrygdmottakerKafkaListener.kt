@@ -7,6 +7,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetricsFeilmåling
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetrikker
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -17,7 +19,9 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
 class BarnetrygdmottakerKafkaListener(
-    private val handler: BarnetrygdmottakerMessageHandler
+    private val handler: BarnetrygdmottakerMessageHandler,
+    private val barnetrygdMottakerListenerMetrikker: BarnetrygdMottakerListenerMetrikker,
+    private val barnetrygdMottakerListenerMetricsFeilmåling: BarnetrygdMottakerListenerMetricsFeilmåling,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
@@ -33,8 +37,9 @@ class BarnetrygdmottakerKafkaListener(
         acknowledgment: Acknowledgment
     ) {
         val kafkaMelding = try {
-            consumerRecord.deserialiser()
+            barnetrygdMottakerListenerMetrikker.mål { consumerRecord.deserialiser() }
         } catch (ex: KafkaMeldingDeserialiseringException) {
+            barnetrygdMottakerListenerMetricsFeilmåling.målfeil{}
             log.info("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding ${ex.consumerRecord}, exception: $ex")
             throw ex
         }
