@@ -13,22 +13,22 @@ class BarnetrygdMottakerListenerMetrikker(private val registry: MeterRegistry) :
     override fun mål(lambda: () -> BarnetrygdmottakerKafkaMelding): BarnetrygdmottakerKafkaMelding {
         val kafkamelding = lambda.invoke()
 
-        val antallLesteMeldinger = registry.counter("meldinger", "antall", "lest", "requestId", kafkamelding.requestId.toString())
-        registry.gauge("antallMeldingerTotalt", listOf<Tag>(ImmutableTag("requestId",kafkamelding.requestId.toString())), kafkamelding.antallIdenterTotalt)
+        val antallLesteMeldinger = registry.counter("meldinger", "antall", "lest", "innlesingId", kafkamelding.requestId.toString())
+        registry.gauge("antallMeldingerTotalt", listOf<Tag>(ImmutableTag("innlesingId",kafkamelding.requestId.toString())), kafkamelding.antallIdenterTotalt)
 
         antallLesteMeldinger.increment()
 
         when (kafkamelding.meldingstype) {
             BarnetrygdmottakerKafkaMelding.Type.START -> {
-                val barnetrygdMeldingStatusStart = registry.counter("barnetrygdMelding", "status", "start", "requestId", kafkamelding.requestId.toString())
+                val barnetrygdMeldingStatusStart = registry.counter("barnetrygdMelding", "status", "start", "innlesingId", kafkamelding.requestId.toString())
                 barnetrygdMeldingStatusStart.increment()
             }
             BarnetrygdmottakerKafkaMelding.Type.DATA -> {
-                val barnetrygdMeldingStatusData = registry.counter("barnetrygdMelding", "status", "data", "requestId", kafkamelding.requestId.toString())
+                val barnetrygdMeldingStatusData = registry.counter("barnetrygdMelding", "status", "data", "innlesingId", kafkamelding.requestId.toString())
                 barnetrygdMeldingStatusData.increment()
             }
             BarnetrygdmottakerKafkaMelding.Type.SLUTT -> {
-                val barnetrygdMeldingStatusSlutt = registry.counter("barnetrygdMelding", "status", "slutt", "requestId", kafkamelding.requestId.toString())
+                val barnetrygdMeldingStatusSlutt = registry.counter("barnetrygdMelding", "status", "slutt", "innlesingId", kafkamelding.requestId.toString())
                 barnetrygdMeldingStatusSlutt.increment()
             }
         }
