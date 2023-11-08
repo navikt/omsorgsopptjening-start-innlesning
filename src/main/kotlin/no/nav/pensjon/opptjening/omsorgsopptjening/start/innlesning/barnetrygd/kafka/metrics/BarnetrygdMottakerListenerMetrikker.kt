@@ -18,7 +18,6 @@ class BarnetrygdMottakerListenerMetrikker(private val registry: MeterRegistry) :
 
         antallLesteMeldinger.increment()
 
-
         when (kafkamelding.meldingstype) {
             BarnetrygdmottakerKafkaMelding.Type.START -> {
                 val barnetrygdMeldingStatusStart = registry.counter("barnetrygdMelding", "status", "start", "requestId", kafkamelding.requestId.toString())
