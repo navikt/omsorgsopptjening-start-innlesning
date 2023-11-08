@@ -88,7 +88,7 @@ class BarnetrygdClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { HentBarnetrygdResponseHandler.handle(it) }
+            .block()?.let { HentBarnetrygdResponseHandler.handle(it,ar) }
             ?: throw HentBarnetrygdException("Response var null")
     }
 

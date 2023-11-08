@@ -173,7 +173,7 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(): StubMapping
                                     {
                                         "id":"123",
                                         "ident":"09876543210",
-                                        "fom":"2022-01",
+                                        "fom":"2020-01",
                                         "tom":"2025-12",
                                         "omsorgstype":"FORHØYET_SATS_3"
                                     }

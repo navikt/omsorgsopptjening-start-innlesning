@@ -6,6 +6,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadType
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadVedtak
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.nedreGrense
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.øvreGrense
 import org.springframework.stereotype.Component
 import java.time.YearMonth
 
@@ -22,9 +24,15 @@ class HjelpestønadService(
                     tom = barnetrygdperiode.tom
                 ).map { hjelpestønadPeriode ->
                     PersongrunnlagMelding.Hjelpestønadperiode(
-                        fom = hjelpestønadPeriode.fom,
+                        fom = nedreGrense(
+                            måned = hjelpestønadPeriode.fom,
+                            grense = barnetrygdperiode.fom
+                        ),
                         //begrenser hjelpestønadperioden oppad til barnetrygperioden dersom denne ikke har noen sluttdato
-                        tom = hjelpestønadPeriode.tom ?: barnetrygdperiode.tom,
+                        tom = øvreGrense(
+                            måned = hjelpestønadPeriode.tom ?: barnetrygdperiode.tom,
+                            grense = barnetrygdperiode.tom
+                        ),
                         omsorgstype = when (hjelpestønadPeriode.omsorgstype) {
                             HjelpestønadType.FORHØYET_SATS_3 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
                             HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4

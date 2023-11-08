@@ -72,7 +72,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                             omsorgsperioder = listOf(
                                 PersongrunnlagMelding.Omsorgsperiode(
                                     fom = YearMonth.of(2020, Month.JANUARY),
-                                    tom = YearMonth.of(2025, Month.DECEMBER),
+                                    tom = YearMonth.of(2021, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                     kilde = Kilde.BARNETRYGD,
@@ -82,8 +82,8 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                             ),
                             hjelpestønadsperioder = listOf(
                                 PersongrunnlagMelding.Hjelpestønadperiode(
-                                    fom = YearMonth.of(2022, Month.JANUARY),
-                                    tom = YearMonth.of(2025, Month.DECEMBER),
+                                    fom = YearMonth.of(2020, Month.JANUARY),
+                                    tom = YearMonth.of(2021, Month.DECEMBER),
                                     omsorgsmottaker = "09876543210",
                                     omsorgstype = Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3,
                                     kilde = Kilde.INFOTRYGD,

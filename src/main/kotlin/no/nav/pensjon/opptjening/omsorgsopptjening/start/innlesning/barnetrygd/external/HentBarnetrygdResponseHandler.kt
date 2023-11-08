@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity
 import java.time.YearMonth
 
 object HentBarnetrygdResponseHandler {
-    fun handle(response: ResponseEntity<String>): HentBarnetrygdResponse {
+    fun handle(response: ResponseEntity<String>, år: Int): HentBarnetrygdResponse {
         /**
          * Finnes barna til personen det spørres på i flere fagsaker vil det være flere elementer i listen
          * Ett element pr. fagsak barnet er knyttet til.
@@ -34,7 +34,7 @@ object HentBarnetrygdResponseHandler {
 
                                 else -> {
                                     HentBarnetrygdResponse(
-                                        barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker),
+                                        barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, år),
                                         rådataFraKilde = RådataFraKilde(response.body!!)
                                     )
                                 }
@@ -74,7 +74,7 @@ internal data class BarnetrygdPeriode(
     val ytelseTypeEkstern: String?,
     val utbetaltPerMnd: Int,
     val stønadFom: YearMonth,
-    val stønadTom: YearMonth,
+    val stønadTom: YearMonth?,
     val sakstypeEkstern: Sakstype,
     val kildesystem: BarnetrygdKilde,
     val pensjonstrygdet: Boolean? = null,

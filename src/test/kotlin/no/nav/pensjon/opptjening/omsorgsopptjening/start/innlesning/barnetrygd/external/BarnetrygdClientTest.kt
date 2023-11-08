@@ -85,7 +85,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                                 omsorgsmottaker = "09876543210",
                                                 omsorgstype = Omsorgstype.FULL_BARNETRYGD,
                                                 fom = YearMonth.of(2020, Month.JANUARY),
-                                                tom = YearMonth.of(2025, Month.DECEMBER),
+                                                tom = YearMonth.of(2021, Month.DECEMBER),
                                                 kilde = Kilde.BARNETRYGD,
                                                 utbetalt = 2000,
                                                 landstilknytning = Landstilknytning.NORGE

@@ -4,14 +4,18 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.nedreGrense
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.øvreGrense
+import java.time.Month
+import java.time.YearMonth
 
 internal object HentBarnetrygdDomainMapper {
 
-    fun map(external: List<BarnetrygdSak>): List<PersongrunnlagMelding.Persongrunnlag> {
-        return external.map { map(it) }
+    fun map(external: List<BarnetrygdSak>, år: Int): List<PersongrunnlagMelding.Persongrunnlag> {
+        return external.map { map(it, år) }
     }
 
-    private fun map(external: BarnetrygdSak): PersongrunnlagMelding.Persongrunnlag {
+    private fun map(external: BarnetrygdSak, år: Int): PersongrunnlagMelding.Persongrunnlag {
         fun BarnetrygdKilde.map(): Kilde {
             return when (this) {
                 BarnetrygdKilde.BA -> Kilde.BARNETRYGD
@@ -21,38 +25,46 @@ internal object HentBarnetrygdDomainMapper {
 
         return PersongrunnlagMelding.Persongrunnlag(
             omsorgsyter = external.fagsakEiersIdent,
-            omsorgsperioder = external.barnetrygdPerioder.map {
+            omsorgsperioder = external.barnetrygdPerioder.map { periode ->
                 PersongrunnlagMelding.Omsorgsperiode(
-                    fom = it.stønadFom,
-                    tom = it.stønadTom,
-                    omsorgstype = when (it.delingsprosentYtelse) {
+                    fom = nedreGrense(
+                        måned = periode.stønadFom,
+                        grense = YearMonth.of(år, Month.JANUARY)
+                    ), //begrens nedover til januar i år
+                    tom = periode.stønadTom?.let {
+                        øvreGrense(
+                            måned = it,
+                            grense = YearMonth.of(år + 1, Month.DECEMBER)
+                        )
+                    } ?: YearMonth.of(år + 1, Month.DECEMBER),//begrens oppover til desember år+1 }
+                    omsorgstype = when (periode.delingsprosentYtelse) {
                         DelingsprosentYtelse.FULL -> Omsorgstype.FULL_BARNETRYGD
                         DelingsprosentYtelse.DELT -> Omsorgstype.DELT_BARNETRYGD
                         DelingsprosentYtelse.USIKKER -> Omsorgstype.USIKKER_BARNETRYGD
                     },
-                    omsorgsmottaker = it.personIdent,
-                    kilde = it.kildesystem.map(),
-                    utbetalt = it.utbetaltPerMnd,
+                    omsorgsmottaker = periode.personIdent,
+                    kilde = periode.kildesystem.map(),
+                    utbetalt = periode.utbetaltPerMnd,
                     landstilknytning = when {
-                        it.sakstypeEkstern == Sakstype.NASJONAL -> {
+                        periode.sakstypeEkstern == Sakstype.NASJONAL -> {
                             Landstilknytning.NORGE
                         }
 
-                        it.sakstypeEkstern == Sakstype.EØS && it.norgeErSekundærlandMedNullUtbetaling == true -> {
-                            require(it.utbetaltPerMnd == 0) { "Forventet utbetaling lik 0 dersom norgeErSekundærlandMedNullUtbetaling er true" }
+                        periode.sakstypeEkstern == Sakstype.EØS && periode.norgeErSekundærlandMedNullUtbetaling == true -> {
+                            require(periode.utbetaltPerMnd == 0) { "Forventet utbetaling lik 0 dersom norgeErSekundærlandMedNullUtbetaling er true" }
                             Landstilknytning.EØS_NORGE_SEKUNDÆR
                         }
 
-                        it.sakstypeEkstern == Sakstype.EØS && it.norgeErSekundærlandMedNullUtbetaling == false -> {
+                        periode.sakstypeEkstern == Sakstype.EØS && periode.norgeErSekundærlandMedNullUtbetaling == false -> {
                             Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
                         }
 
-                        it.sakstypeEkstern == Sakstype.EØS && it.norgeErSekundærlandMedNullUtbetaling == null -> {
+                        periode.sakstypeEkstern == Sakstype.EØS && periode.norgeErSekundærlandMedNullUtbetaling == null -> {
                             Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
                         }
 
                         else -> {
-                            throw RuntimeException("Klarte ikke å oversette sakstypeEkstern: ${it.sakstypeEkstern}")
+                            throw RuntimeException("Klarte ikke å oversette sakstypeEkstern: ${periode.sakstypeEkstern}")
                         }
                     }
                 )
