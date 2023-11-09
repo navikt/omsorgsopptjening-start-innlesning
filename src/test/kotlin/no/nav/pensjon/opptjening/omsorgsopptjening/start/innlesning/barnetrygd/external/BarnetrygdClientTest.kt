@@ -4,13 +4,14 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -75,51 +76,34 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                         ident = "123",
                         ar = 2020
                     ).also {
-                        assertEquals(
-                            HentBarnetrygdResponse(
-                                barnetrygdsaker = listOf(
-                                    PersongrunnlagMelding.Persongrunnlag(
-                                        omsorgsyter = "12345678910",
-                                        omsorgsperioder = listOf(
-                                            PersongrunnlagMelding.Omsorgsperiode(
-                                                omsorgsmottaker = "09876543210",
-                                                omsorgstype = Omsorgstype.FULL_BARNETRYGD,
-                                                fom = YearMonth.of(2020, Month.JANUARY),
-                                                tom = YearMonth.of(2021, Month.DECEMBER),
-                                                kilde = Kilde.BARNETRYGD,
-                                                utbetalt = 2000,
-                                                landstilknytning = Landstilknytning.NORGE
-                                            )
-                                        ),
-                                        hjelpestønadsperioder = emptyList(),
-                                    )
-                                ),
-                                rådataFraKilde = RådataFraKilde(
-                                    """
-                            {
-                                "fagsaker": [
-                                    {
-                                        "fagsakEiersIdent":"12345678910",
-                                        "barnetrygdPerioder":[
-                                            {
-                                                "personIdent":"09876543210",
-                                                "delingsprosentYtelse":"FULL",
-                                                "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
-                                                "utbetaltPerMnd":2000,
-                                                "stønadFom": "2020-01",
-                                                "stønadTom": "2025-12",
-                                                "sakstypeEkstern":"NASJONAL",
-                                                "kildesystem":"BA",
-                                                "pensjonstrygdet":null,
-                                                "norgeErSekundærlandMedNullUtbetaling":false
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        """.trimIndent()
+                        assertThat(
+                            it.barnetrygdsaker
+                        ).isEqualTo(
+                            listOf(
+                                PersongrunnlagMelding.Persongrunnlag(
+                                    omsorgsyter = "12345678910",
+                                    omsorgsperioder = listOf(
+                                        PersongrunnlagMelding.Omsorgsperiode(
+                                            omsorgsmottaker = "09876543210",
+                                            omsorgstype = Omsorgstype.FULL_BARNETRYGD,
+                                            fom = YearMonth.of(2020, Month.JANUARY),
+                                            tom = YearMonth.of(2021, Month.DECEMBER),
+                                            kilde = Kilde.BARNETRYGD,
+                                            utbetalt = 2000,
+                                            landstilknytning = Landstilknytning.NORGE
+                                        )
+                                    ),
+                                    hjelpestønadsperioder = emptyList(),
                                 )
-                            ), it
+                            )
+                        )
+
+                        assertThat(
+                            serialize(it.rådataFraKilde)
+                        ).isEqualTo(
+                            """
+                                {"barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"}
+                            """.trimIndent()
                         )
                     }
                 }

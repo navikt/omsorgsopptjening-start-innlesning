@@ -7,6 +7,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
@@ -95,29 +96,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 )
                 assertEquals(
                     """
-                            {
-                                "fagsaker": [
-                                    {
-                                        "fagsakEiersIdent":"12345678910",
-                                        "barnetrygdPerioder":[
-                                            {
-                                                "personIdent":"09876543210",
-                                                "delingsprosentYtelse":"FULL",
-                                                "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
-                                                "utbetaltPerMnd":2000,
-                                                "stønadFom": "2020-01",
-                                                "stønadTom": "2025-12",
-                                                "sakstypeEkstern":"NASJONAL",
-                                                "kildesystem":"BA",
-                                                "pensjonstrygdet":null,
-                                                "norgeErSekundærlandMedNullUtbetaling":false
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                        [{"barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"},{"hjelpestønad":"[\n    {\n        \"id\":\"123\",\n        \"ident\":\"09876543210\",\n        \"fom\":\"2020-01\",\n        \"tom\":\"2025-12\",\n        \"omsorgstype\":\"FORHØYET_SATS_3\"\n    }\n]"}]
                     """.trimIndent(),
-                    it.rådata.toString()
+                    serialize(it.rådata)
                 )
                 assertEquals(innlesingId, it.innlesingId.toString())
                 assertNotNull(it.correlationId) //opprettes internt

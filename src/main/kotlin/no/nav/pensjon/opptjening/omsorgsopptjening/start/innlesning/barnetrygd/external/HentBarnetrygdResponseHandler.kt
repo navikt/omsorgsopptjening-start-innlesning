@@ -35,7 +35,11 @@ object HentBarnetrygdResponseHandler {
                                 else -> {
                                     HentBarnetrygdResponse(
                                         barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, år),
-                                        rådataFraKilde = RådataFraKilde(response.body!!)
+                                        rådataFraKilde = RådataFraKilde(
+                                            mapOf(
+                                                "barnetrygd" to """${response.body}"""
+                                            ).toMap()
+                                        )
                                     )
                                 }
                             }

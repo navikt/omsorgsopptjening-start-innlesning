@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val domeneVersion = "1.0.63"
+val domeneVersion = "1.0.64"
 val springVersion = "3.1.4"
 val navTokenSupportVersion = "3.1.7"
 val hibernateValidatorVersion = "8.0.1.Final"

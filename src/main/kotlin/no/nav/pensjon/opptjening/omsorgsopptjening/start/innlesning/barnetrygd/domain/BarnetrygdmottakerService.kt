@@ -1,6 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
@@ -52,18 +52,25 @@ class BarnetrygdmottakerService(
                                 barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
                                     barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
 
+                                    val rådata = Rådata()
+
                                     val barnetrygdResponse = client.hentBarnetrygd(
                                         ident = barnetrygdmottaker.ident,
                                         ar = barnetrygdmottaker.år,
-                                    )
+                                    ).also {
+                                        rådata.leggTil(it.rådataFraKilde)
+                                    }
 
                                     val hjelpestønad = barnetrygdResponse.barnetrygdsaker
                                         .associateBy { it.omsorgsyter }
                                         .mapValues { (_, persongrunnlag) ->
+                                            val hjelpestønad =
+                                                hjelpestønadService.hentHjelpestønad(persongrunnlag).also {
+                                                    it.forEach { rådata.leggTil(it.second) }
+                                                }
+
                                             persongrunnlag.copy(
-                                                hjelpestønadsperioder = hjelpestønadService.hentHjelpestønad(
-                                                    persongrunnlag
-                                                )
+                                                hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
                                             )
                                         }
                                         .map { it.value }
@@ -72,7 +79,7 @@ class BarnetrygdmottakerService(
                                         createKafkaMessage(
                                             barnetrygdmottaker = barnetrygdmottaker,
                                             persongrunnlag = hjelpestønad,
-                                            rådataFraKilde = barnetrygdResponse.rådataFraKilde, //TODO legg til hjelpestønad i rådata
+                                            rådata = rådata, //TODO legg til hjelpestønad i rådata
                                         )
                                     ).get()
                                     log.info("Prosessering fullført")
@@ -98,7 +105,7 @@ class BarnetrygdmottakerService(
     private fun createKafkaMessage(
         barnetrygdmottaker: Barnetrygdmottaker,
         persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
-        rådataFraKilde: RådataFraKilde
+        rådata: Rådata
     ): ProducerRecord<String, String> {
         return ProducerRecord(
             Topics.Omsorgsopptjening.NAME,
@@ -112,7 +119,7 @@ class BarnetrygdmottakerService(
                 PersongrunnlagMelding(
                     omsorgsyter = barnetrygdmottaker.ident,
                     persongrunnlag = persongrunnlag,
-                    rådata = rådataFraKilde,
+                    rådata = rådata,
                     innlesingId = barnetrygdmottaker.innlesingId,
                     correlationId = barnetrygdmottaker.correlationId,
                 )

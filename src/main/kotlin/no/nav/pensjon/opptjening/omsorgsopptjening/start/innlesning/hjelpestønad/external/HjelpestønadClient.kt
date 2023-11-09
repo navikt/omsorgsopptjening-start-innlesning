@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestøn
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -26,7 +27,11 @@ class HjelpestønadClient(
 ) {
     private val webClient: WebClient = WebClient.builder().baseUrl(baseUrl).build()
 
-    internal fun hentHjelpestønad(fnr: String, fom: LocalDate, tom: LocalDate): List<HjelpestønadVedtak> {
+    internal fun hentHjelpestønad(
+        fnr: String,
+        fom: LocalDate,
+        tom: LocalDate
+    ): HentHjelpestønadResponse {
         return webClient
             .get()
             .uri("/api/hjelpestonad?fnr=$fnr&fom=$fom&tom=$tom")
@@ -37,7 +42,25 @@ class HjelpestønadClient(
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { response -> response.body?.deserializeList<HjelpestønadVedtak>() ?: emptyList() }
+            .block()?.let { response ->
+                response.body?.deserializeList<HjelpestønadVedtak>()?.let {
+                    HentHjelpestønadResponse(
+                        vedtak = it,
+                        rådataFraKilde = RådataFraKilde(
+                            mapOf(
+                                "hjelpestønad" to """${response.body}"""
+                            )
+                        )
+                    )
+                } ?: HentHjelpestønadResponse(
+                    vedtak = emptyList(),
+                    rådataFraKilde = RådataFraKilde(
+                        mapOf(
+                            "hjelpestønad" to """${response.body}"""
+                        )
+                    )
+                )
+            }
             ?: throw HentHjelpestønadException("Response var null")
     }
 
@@ -46,6 +69,12 @@ class HjelpestønadClient(
 }
 
 data class HentHjelpestønadException(val msg: String) : RuntimeException(msg)
+
+internal data class HentHjelpestønadResponse(
+    val vedtak: List<HjelpestønadVedtak>,
+    val rådataFraKilde: RådataFraKilde
+)
+
 internal data class HjelpestønadVedtak(
     val id: Int,
     val ident: String,
