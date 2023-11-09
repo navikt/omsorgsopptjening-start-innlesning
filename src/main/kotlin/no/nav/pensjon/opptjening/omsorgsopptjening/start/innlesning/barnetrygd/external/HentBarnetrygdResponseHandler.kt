@@ -3,12 +3,13 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import java.time.YearMonth
 
 object HentBarnetrygdResponseHandler {
-    fun handle(response: ResponseEntity<String>, år: Int): HentBarnetrygdResponse {
+    fun handle(response: ResponseEntity<String>, filter: GyldigÅrsintervallFilter): HentBarnetrygdResponse {
         /**
          * Finnes barna til personen det spørres på i flere fagsaker vil det være flere elementer i listen
          * Ett element pr. fagsak barnet er knyttet til.
@@ -34,7 +35,7 @@ object HentBarnetrygdResponseHandler {
 
                                 else -> {
                                     HentBarnetrygdResponse(
-                                        barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, år),
+                                        barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),
                                         rådataFraKilde = RådataFraKilde(
                                             mapOf(
                                                 "barnetrygd" to """${response.body}"""
@@ -83,7 +84,9 @@ internal data class BarnetrygdPeriode(
     val kildesystem: BarnetrygdKilde,
     val pensjonstrygdet: Boolean? = null,
     val norgeErSekundærlandMedNullUtbetaling: Boolean? = null
-)
+) {
+    fun årsintervall(): IntRange = stønadFom.year..(stønadTom?.year ?: Int.MAX_VALUE)
+}
 
 internal enum class DelingsprosentYtelse {
     FULL, //full barnetrygd

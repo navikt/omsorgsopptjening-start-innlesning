@@ -52,11 +52,13 @@ class BarnetrygdmottakerService(
                                 barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
                                     barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
 
+                                    val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
+
                                     val rådata = Rådata()
 
                                     val barnetrygdResponse = client.hentBarnetrygd(
                                         ident = barnetrygdmottaker.ident,
-                                        ar = barnetrygdmottaker.år,
+                                        filter = filter,
                                     ).also {
                                         rådata.leggTil(it.rådataFraKilde)
                                     }
@@ -64,10 +66,8 @@ class BarnetrygdmottakerService(
                                     val hjelpestønad = barnetrygdResponse.barnetrygdsaker
                                         .associateBy { it.omsorgsyter }
                                         .mapValues { (_, persongrunnlag) ->
-                                            val hjelpestønad =
-                                                hjelpestønadService.hentHjelpestønad(persongrunnlag).also {
-                                                    it.forEach { rådata.leggTil(it.second) }
-                                                }
+                                            val hjelpestønad = hjelpestønadService.hentHjelpestønad(persongrunnlag)
+                                                .onEach { rådata.leggTil(it.second) }
 
                                             persongrunnlag.copy(
                                                 hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
