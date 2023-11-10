@@ -51,7 +51,7 @@ class MicrometerStatusMalere(private val registry: MeterRegistry) {
     }
 
     fun statusKode() : Int {
-        return when (val status = status) {
+        return when (status) {
             null -> 0
             is ApplicationStatus.OK -> 1
             is ApplicationStatus.IkkeKjort -> 2
