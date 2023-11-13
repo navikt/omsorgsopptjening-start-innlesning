@@ -24,7 +24,7 @@ class BarnetrygdmottakerKafkaListener(
     private val barnetrygdMottakerListenerMetricsFeilmåling: BarnetrygdMottakerListenerMetricsFeilmåling,
 ) {
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(BarnetrygdmottakerKafkaListener::class.java)
     }
 
     @KafkaListener(
@@ -39,7 +39,7 @@ class BarnetrygdmottakerKafkaListener(
         val kafkaMelding = try {
             barnetrygdMottakerListenerMetrikker.mål { consumerRecord.deserialiser() }
         } catch (ex: KafkaMeldingDeserialiseringException) {
-            barnetrygdMottakerListenerMetricsFeilmåling.målfeil{}
+            barnetrygdMottakerListenerMetricsFeilmåling.målfeil {}
             log.info("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding ${ex.consumerRecord}, exception: $ex")
             throw ex
         }

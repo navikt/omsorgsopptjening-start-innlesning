@@ -77,7 +77,7 @@ sealed class SpringContextTest {
             kafkaProducer.send(pr).get()
         }
 
-        fun sendUgyldigMeldingKafka(){
+        fun sendUgyldigMeldingKafka() {
             val pr = ProducerRecord(
                 BarnetrygdmottakerKafkaTopic.NAME,
                 null,

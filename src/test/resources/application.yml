@@ -16,7 +16,7 @@ spring.datasource:
   password: test
 
 kafka:
-    brokers: ${spring.embedded.kafka.brokers}
+  brokers: ${spring.embedded.kafka.brokers}
 management:
   endpoints:
     metrics:

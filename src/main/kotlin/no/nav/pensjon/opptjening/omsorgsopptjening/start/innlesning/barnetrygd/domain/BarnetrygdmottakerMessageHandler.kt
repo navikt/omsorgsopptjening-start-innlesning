@@ -12,7 +12,7 @@ class BarnetrygdmottakerMessageHandler(
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository
 ) {
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(BarnetrygdmottakerMessageHandler::class.java)
     }
 
     @Throws(
@@ -70,7 +70,7 @@ class BarnetrygdmottakerMessageHandler(
         try {
             log.info("Fullført innlesing, id:  ${this.id}")
             ferdig().also {
-                if(it.antallIdenterLest != melding.forventetAntallIdenter){
+                if (it.antallIdenterLest != melding.forventetAntallIdenter) {
                     throw BarnetrygdInnlesing.UgyldigTilstand(it.id.toString(), melding::class.java.simpleName)
                 }
                 innlesingRepository.fullført(it)

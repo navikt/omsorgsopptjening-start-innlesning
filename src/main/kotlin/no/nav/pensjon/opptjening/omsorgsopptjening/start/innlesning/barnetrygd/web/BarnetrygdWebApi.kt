@@ -15,7 +15,7 @@ class BarnetrygdWebApi(
     private val barnetrygdService: BarnetrygdmottakerService,
 ) {
     companion object {
-        val log: Logger = LoggerFactory.getLogger(this::class.java)
+        val log: Logger = LoggerFactory.getLogger(BarnetrygdWebApi::class.java)
     }
 
     @GetMapping("/innlesning/start/{ar}")

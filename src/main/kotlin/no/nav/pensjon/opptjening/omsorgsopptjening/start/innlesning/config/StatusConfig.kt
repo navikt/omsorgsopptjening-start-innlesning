@@ -14,8 +14,9 @@ class StatusConfig {
 
     @Autowired
     private lateinit var statusRapporteringsService: StatusRapporteringCachingAdapter
+
     @Bean
-    fun statusCheckTask() : StatusCheckTask {
+    fun statusCheckTask(): StatusCheckTask {
         return StatusCheckTask(statusRapporteringsService)
     }
 }

@@ -92,7 +92,7 @@ sealed class BarnetrygdInnlesing {
                     forventetAntallIdentiteter,
                 )
             } else if (ferdigTidspunkt == null && startTidspunkt != null && antallIdenterLest != null) {
-                Startet(id, år, forespurtTidspunkt, startTidspunkt, antallIdenterLest,forventetAntallIdentiteter)
+                Startet(id, år, forespurtTidspunkt, startTidspunkt, antallIdenterLest, forventetAntallIdentiteter)
             } else {
                 Bestilt(id, år, forespurtTidspunkt)
             }

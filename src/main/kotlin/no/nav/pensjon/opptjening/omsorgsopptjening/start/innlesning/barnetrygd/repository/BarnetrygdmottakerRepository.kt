@@ -87,7 +87,10 @@ class BarnetrygdmottakerRepository(
         ).singleOrNull()
     }
 
-    fun finnAntallMottakereMedStatusForInnlesing(kortStatus: Barnetrygdmottaker.KortStatus, innlesingId: InnlesingId): Long {
+    fun finnAntallMottakereMedStatusForInnlesing(
+        kortStatus: Barnetrygdmottaker.KortStatus,
+        innlesingId: InnlesingId
+    ): Long {
         return jdbcTemplate.queryForObject(
             """select count(*) 
                 |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i

@@ -16,7 +16,7 @@ class PrometheusWebApi(
     private val registry: MeterRegistry
 ) {
     companion object {
-        val log: Logger = LoggerFactory.getLogger(this::class.java)
+        val log: Logger = LoggerFactory.getLogger(PrometheusWebApi::class.java)
     }
 
     @GetMapping("/xxx-actuator/prometheus", produces = [MediaType.APPLICATION_JSON_VALUE])

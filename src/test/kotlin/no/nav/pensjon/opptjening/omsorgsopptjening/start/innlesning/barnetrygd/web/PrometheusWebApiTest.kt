@@ -1,6 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web
 
-import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -44,6 +43,7 @@ class PrometheusWebApiTest {
             get("/actuator/prometheus")
         ).andExpect(content().contentType("application/json"))
     }
+
     @Disabled
     @Test
     fun `prometheus-url'en returnerer faktisk json`() {

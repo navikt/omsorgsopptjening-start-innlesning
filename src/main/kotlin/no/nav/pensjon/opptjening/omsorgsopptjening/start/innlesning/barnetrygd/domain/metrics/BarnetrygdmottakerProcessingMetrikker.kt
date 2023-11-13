@@ -16,7 +16,7 @@ class BarnetrygdmottakerProcessingMetrikker(private val registry: MeterRegistry)
     override fun mål(lambda: () -> Barnetrygdmottaker?): Barnetrygdmottaker? {
         val barnetrygmottaker = lambda.invoke()
         barnetrygmottaker?.statushistorikk?.map { it.kortStatus }?.distinct()?.forEach {
-            when(it) {
+            when (it) {
                 Barnetrygdmottaker.KortStatus.KLAR -> antallKlar.increment()
                 Barnetrygdmottaker.KortStatus.FERDIG -> antallFerdig.increment()
                 Barnetrygdmottaker.KortStatus.RETRY -> antallRetry.increment()

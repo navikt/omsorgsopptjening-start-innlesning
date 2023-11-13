@@ -31,7 +31,7 @@ class BarnetrygdClient(
     private val webClient: WebClient = WebClient.builder().baseUrl(url).build()
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(BarnetrygdClient::class.java)
     }
 
     /**

@@ -26,7 +26,7 @@ class BarnetrygdmottakerService(
     private val barnetrygdInnlesingRepository: BarnetrygdInnlesingRepository,
 ) {
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(BarnetrygdmottakerService::class.java)
     }
 
     fun bestillPersonerMedBarnetrygd(ar: Int): BarnetrygdInnlesing.Bestilt {

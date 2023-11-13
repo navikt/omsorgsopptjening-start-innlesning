@@ -16,6 +16,7 @@ sealed class Barnetrygdmottaker {
     abstract val correlationId: CorrelationId
     abstract val statushistorikk: List<Status>
     abstract val innlesingId: InnlesingId
+
     data class Transient(
         override val ident: String,
         override val correlationId: CorrelationId,
@@ -54,7 +55,7 @@ sealed class Barnetrygdmottaker {
     )
     sealed class Status {
 
-        abstract val kortStatus : KortStatus
+        abstract val kortStatus: KortStatus
 
         open fun ferdig(): Ferdig {
             throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Ferdig")

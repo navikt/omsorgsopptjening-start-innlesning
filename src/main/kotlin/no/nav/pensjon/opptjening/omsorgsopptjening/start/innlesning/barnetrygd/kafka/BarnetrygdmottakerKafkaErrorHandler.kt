@@ -32,7 +32,7 @@ class InnlesingInvalidatingRetryListener(
     private val invalidated: MutableList<String> = mutableListOf()
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(this::class.java)
+        private val log: Logger = LoggerFactory.getLogger(InnlesingInvalidatingRetryListener::class.java)
     }
 
     override fun failedDelivery(record: ConsumerRecord<*, *>, ex: Exception, deliveryAttempt: Int) {}

@@ -4,13 +4,14 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Service
 
 @Service
-class StatusRapporteringCachingAdapter (
+class StatusRapporteringCachingAdapter(
     private val statusService: StatusService,
-    private val registry: MeterRegistry,
+    registry: MeterRegistry,
 ) {
     companion object {
-        private lateinit var statusMalere : MicrometerStatusMalere
+        private lateinit var statusMalere: MicrometerStatusMalere
     }
+
     init {
         statusMalere = MicrometerStatusMalere(registry)
     }

@@ -17,7 +17,7 @@ class StatusService(
     private val mottakerRepo: BarnetrygdmottakerRepository,
 ) {
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(StatusService::class.java)
     }
 
     fun checkStatus(): ApplicationStatus {
