@@ -9,7 +9,11 @@ import org.springframework.http.ResponseEntity
 import java.time.YearMonth
 
 object HentBarnetrygdResponseHandler {
-    fun handle(response: ResponseEntity<String>, filter: GyldigÅrsintervallFilter): HentBarnetrygdResponse {
+    fun handle(
+        request: BarnetrygdClient.HentBarnetrygdRequest,
+        response: ResponseEntity<String>,
+        filter: GyldigÅrsintervallFilter
+    ): HentBarnetrygdResponse {
         /**
          * Finnes barna til personen det spørres på i flere fagsaker vil det være flere elementer i listen
          * Ett element pr. fagsak barnet er knyttet til.
@@ -38,7 +42,8 @@ object HentBarnetrygdResponseHandler {
                                         barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),
                                         rådataFraKilde = RådataFraKilde(
                                             mapOf(
-                                                "barnetrygd" to """${response.body}"""
+                                                "fom" to request.fraDato,
+                                                "barnetrygd" to "${response.body}"
                                             ).toMap()
                                         )
                                     )

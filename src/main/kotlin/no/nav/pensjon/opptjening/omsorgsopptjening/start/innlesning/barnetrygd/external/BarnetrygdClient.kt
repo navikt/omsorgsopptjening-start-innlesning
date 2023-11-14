@@ -66,6 +66,10 @@ class BarnetrygdClient(
         ident: String,
         filter: GyldigÅrsintervallFilter
     ): HentBarnetrygdResponse {
+        val request = HentBarnetrygdRequest(
+            ident = ident,
+            fraDato = filter.minDato().toString()
+        )
         return webClient
             .post()
             .uri("/api/ekstern/pensjon/hent-barnetrygd")
@@ -74,18 +78,15 @@ class BarnetrygdClient(
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
-            .body(
-                BodyInserters.fromValue(
-                    HentBarnetrygdRequest(
-                        ident = ident,
-                        fraDato = filter.minDato().toString()
-                    )
-                )
-            )
+            .body(BodyInserters.fromValue(request))
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
-            .block()?.let { HentBarnetrygdResponseHandler.handle(it, filter) }
+            .block()?.let { HentBarnetrygdResponseHandler.handle(
+                request = request,
+                response = it,
+                filter = filter
+            ) }
             ?: throw HentBarnetrygdException("Response var null")
     }
 

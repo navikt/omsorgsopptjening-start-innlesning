@@ -48,7 +48,9 @@ class HjelpestønadClient(
                         vedtak = it,
                         rådataFraKilde = RådataFraKilde(
                             mapOf(
-                                "hjelpestønad" to """${response.body}"""
+                                "fom" to fom.toString(),
+                                "tom" to tom.toString(),
+                                "hjelpestønad" to "${response.body}"
                             )
                         )
                     )
@@ -56,7 +58,9 @@ class HjelpestønadClient(
                     vedtak = emptyList(),
                     rådataFraKilde = RådataFraKilde(
                         mapOf(
-                            "hjelpestønad" to """${response.body}"""
+                            "fom" to fom.toString(),
+                            "tom" to tom.toString(),
+                            "hjelpestønad" to "${response.body}"
                         )
                     )
                 )
