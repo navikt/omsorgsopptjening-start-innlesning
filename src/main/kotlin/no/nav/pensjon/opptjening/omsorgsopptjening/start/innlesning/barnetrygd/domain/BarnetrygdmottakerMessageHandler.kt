@@ -50,7 +50,6 @@ class BarnetrygdmottakerMessageHandler(
 
     private fun BarnetrygdInnlesing.håndterDatamelding(melding: BarnetrygdmottakerMelding.Data) {
         try {
-            log.info("Mottatt melding om barnetrygdmottaker")
             mottaData().also {
                 barnetrygdmottakerRepository.insert(
                     Barnetrygdmottaker.Transient(
@@ -59,7 +58,6 @@ class BarnetrygdmottakerMessageHandler(
                         innlesingId = melding.innlesingId
                     )
                 )
-                log.info("Melding prosessert")
             }
         } catch (ex: BarnetrygdInnlesing.UgyldigTilstand) {
             throw BarnetrygdInnlesingException.UgyldigTistand(this.id.toString(), melding::class.java.simpleName)

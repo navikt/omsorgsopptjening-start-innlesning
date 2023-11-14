@@ -41,7 +41,6 @@ class BarnetrygdClient(
     fun bestillBarnetrygdmottakere(
         ar: Int
     ): BestillBarnetrygdmottakereResponse {
-        log.info("Initiating sending of barnetrygdmottakere")
         return webClient
             .get()
             .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/$ar")
@@ -67,7 +66,6 @@ class BarnetrygdClient(
         ident: String,
         filter: GyldigÅrsintervallFilter
     ): HentBarnetrygdResponse {
-        log.info("Retrieving details for ident:$ident, år:$filter")
         return webClient
             .post()
             .uri("/api/ekstern/pensjon/hent-barnetrygd")

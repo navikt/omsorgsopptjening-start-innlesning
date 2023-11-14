@@ -50,7 +50,6 @@ class BarnetrygdmottakerService(
                     Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                         try {
                             transactionTemplate.execute {
-                                log.info("Prosesserer barnetrygdmottaker med id:${barnetrygdmottaker.id}")
                                 barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
                                     barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
 
@@ -81,10 +80,11 @@ class BarnetrygdmottakerService(
                                         createKafkaMessage(
                                             barnetrygdmottaker = barnetrygdmottaker,
                                             persongrunnlag = hjelpestønad,
-                                            rådata = rådata, //TODO legg til hjelpestønad i rådata
+                                            rådata = rådata,
                                         )
                                     ).get()
-                                    log.info("Prosessering fullført")
+
+                                    log.info("Melding prosessert")
                                 }
                             }
                         } catch (ex: Throwable) {

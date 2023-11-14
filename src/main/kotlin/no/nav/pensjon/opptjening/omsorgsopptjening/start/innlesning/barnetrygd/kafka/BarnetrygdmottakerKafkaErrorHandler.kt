@@ -38,7 +38,6 @@ class InnlesingInvalidatingRetryListener(
     override fun failedDelivery(record: ConsumerRecord<*, *>, ex: Exception, deliveryAttempt: Int) {}
 
     override fun recovered(record: ConsumerRecord<*, *>, ex: java.lang.Exception) {
-        log.error("Processing and retries failed for record: $record, ex: $ex")
         ex.cause?.also { throwable ->
             when (throwable) {
                 is InvalidateOnExceptionWrapper -> {

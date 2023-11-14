@@ -47,7 +47,7 @@ class BarnetrygdmottakerKafkaListener(
         Mdc.scopedMdc(CorrelationId.generate()) { correlationId ->
             Mdc.scopedMdc(InnlesingId.fromString(kafkaMelding.requestId.toString())) { innlesingId ->
                 try {
-                    handler.handle(consumerRecord.deserialiser().toDomain(correlationId, innlesingId))
+                    handler.handle(kafkaMelding.toDomain(correlationId, innlesingId))
                 } catch (ex: BarnetrygdInnlesingException.EksistererIkke) {
                     log.info("Innlesing med id: ${ex.id} eksisterer ikke. Det mangler bestilling for innlesingen, eller innlesingen har blitt invalidert som følge av feil i overføring. Ignorerer påfølgende meldinger for denne bestillingen.")
                     throw ex
@@ -55,7 +55,7 @@ class BarnetrygdmottakerKafkaListener(
                     log.info("Ugyldig tilstandsendring av innlesing: ${ex.id} for meldingstype: ${ex.meldingstype}. Invaliderer innsending.")
                     throw InvalidateOnExceptionWrapper(ex.id, ex)
                 } catch (ex: Throwable) {
-                    log.info("Ukjent feil ved prosessering av melding $kafkaMelding, exception: $ex. Invaliderer melding dersom problemet vedvarer etter retries.")
+                    log.info("Ukjent feil ved prosessering av melding, exception: ${ex.message}. Invaliderer melding dersom problemet vedvarer etter retries.")
                     throw InvalidateOnExceptionWrapper(innlesingId.toString(), ex)
                 }
             }
