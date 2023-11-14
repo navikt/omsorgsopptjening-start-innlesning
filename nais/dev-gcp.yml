@@ -42,6 +42,8 @@ spec:
       value: https://omsorgsopptjening-hjelpestonad-db-proxy.dev-fss-pub.nais.io
     - name: HJELPESTONAD_API_ID
       value: dev-fss.pensjonopptjening.omsorgsopptjening-hjelpestonad-db-proxy
+    - name: OMSORGSOPPTJENING_TOPIC
+      value: pensjonopptjening.omsorgsopptjening
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no

@@ -1,13 +1,13 @@
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
-  name: omsorgsopptjening-start-innlesning
+  name: omsorgsopptjening-start-innlesning-q1
   namespace: pensjonopptjening
   labels:
     team: pensjonopptjening
 spec:
   kafka:
-    pool: nav-prod
+    pool: nav-dev
   azure:
     sidecar:
       enabled: true
@@ -17,39 +17,42 @@ spec:
       allowAllUsers: false
       claims:
         groups:
-          - id: "abd710c7-b01d-48e6-98b9-83ff615edf26" #AAD nais-team-pensjonopptjening
+          - id: "7ef907b4-ec9f-47dd-ab41-4e54ba32ceb1" #AAD pensjonopptjening testgruppe
   gcp:
     sqlInstances:
       - type: POSTGRES_14
         cascadingDelete: true
         diskAutoresize: true
         pointInTimeRecovery: true
-        name: omsorginnlesning
+        name: omsorginnlesning-q1
         tier: db-custom-1-3840
         databases:
-          - name: omsorginnlesning
+          - name: omsorginnlesning-q1
             envVarPrefix: DATABASE
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: prod-gcp
+      value: dev-gcp
     - name: BARNETRYGD_URL
+#      value: http://omsorgsarbeid-ba-mock
       value: http://familie-ba-sak.teamfamilie
     - name: BARNETRYGD_API_ID
-      value: prod-gcp.teamfamilie.familie-ba-sak
+#      value: dev-gcp.pensjonopptjening.omsorgsarbeid-ba-mock
+      value: dev-gcp.teamfamilie.familie-ba-sak
     - name: HJELPESTONAD_URL
-      value: https://omsorgsopptjening-hjelpestonad-db-proxy.prod-fss-pub.nais.io
+      value: https://omsorgsopptjening-hjelpestonad-db-proxy-q1.dev-fss-pub.nais.io
     - name: HJELPESTONAD_API_ID
-      value: prod-fss.pensjonopptjening.omsorgsopptjening-hjelpestonad-db-proxy
+      value: dev-fss.pensjonopptjening.omsorgsopptjening-hjelpestonad-db-proxy-q1
     - name: OMSORGSOPPTJENING_TOPIC
-      value: pensjonopptjening.omsorgsopptjening
+      value: pensjonopptjening.omsorgsopptjening-q1
   image: {{ image }}
   ingresses:
-    - https://omsorgsopptjening-start-innlesning.intern.nav.no
+    - https://omsorgsopptjening-start-innlesning-q1.intern.dev.nav.no
   accessPolicy:
     outbound:
       external:
-        - host: omsorgsopptjening-hjelpestonad-db-proxy.prod-fss-pub.nais.io
+        - host: omsorgsopptjening-hjelpestonad-db-proxy-q1.dev-fss-pub.nais.io
       rules:
+        - application: omsorgsarbeid-ba-mock
         - application: familie-ba-sak
           namespace: teamfamilie
   liveness:

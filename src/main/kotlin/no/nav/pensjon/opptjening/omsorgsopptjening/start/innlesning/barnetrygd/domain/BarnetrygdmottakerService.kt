@@ -11,6 +11,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
@@ -24,6 +25,7 @@ class BarnetrygdmottakerService(
     private val transactionTemplate: TransactionTemplate,
     private val hjelpestønadService: HjelpestønadService,
     private val barnetrygdInnlesingRepository: BarnetrygdInnlesingRepository,
+    @Value("\${OMSORGSOPPTJENING_TOPIC}") val omsorgsopptjeningTopic: String
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdmottakerService::class.java)
@@ -108,7 +110,7 @@ class BarnetrygdmottakerService(
         rådata: Rådata
     ): ProducerRecord<String, String> {
         return ProducerRecord(
-            Topics.Omsorgsopptjening.NAME,
+            omsorgsopptjeningTopic,
             null,
             serialize(
                 Topics.Omsorgsopptjening.Key(
