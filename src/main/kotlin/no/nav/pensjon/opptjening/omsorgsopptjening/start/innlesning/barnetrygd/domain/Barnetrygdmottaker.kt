@@ -16,6 +16,7 @@ sealed class Barnetrygdmottaker {
     abstract val correlationId: CorrelationId
     abstract val statushistorikk: List<Status>
     abstract val innlesingId: InnlesingId
+    abstract val status: Status
 
     data class Transient(
         override val ident: String,
@@ -25,7 +26,7 @@ sealed class Barnetrygdmottaker {
         override val id = null
         override val opprettet = null
         override val statushistorikk: List<Status> = listOf(Status.Klar())
-        val status: Status get() = statushistorikk.last()
+        override val status: Status get() = statushistorikk.last()
     }
 
     data class Mottatt(
@@ -37,7 +38,7 @@ sealed class Barnetrygdmottaker {
         override val statushistorikk: List<Status> = listOf(Status.Klar()),
         val år: Int
     ) : Barnetrygdmottaker() {
-        val status: Status get() = statushistorikk.last()
+        override val status: Status get() = statushistorikk.last()
 
         fun ferdig(): Mottatt {
             return copy(statushistorikk = statushistorikk + status.ferdig())

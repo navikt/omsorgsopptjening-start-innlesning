@@ -8,22 +8,22 @@ import org.springframework.stereotype.Component
 @Component
 class BarnetrygdmottakerProcessingMetrikker(private val registry: MeterRegistry) : MetricsMåling<Barnetrygdmottaker?> {
 
-    val antallKlar = registry.counter("barnetrygdmottaker", "status", "klar")
-    val antallFerdig = registry.counter("barnetrygdmottaker", "status", "ferdig")
-    val antallRetry = registry.counter("barnetrygdmottaker", "status", "retry")
-    val antallFeilet = registry.counter("barnetrygdmottaker", "status", "feilet")
+    private val antallKlar = registry.counter("barnetrygdmottaker", "status", "klar")
+    private val antallFerdig = registry.counter("barnetrygdmottaker", "status", "ferdig")
+    private val antallRetry = registry.counter("barnetrygdmottaker", "status", "retry")
+    private val antallFeilet = registry.counter("barnetrygdmottaker", "status", "feilet")
+    private val timer = registry.timer("barnetrygdmottaker", "tidsbruk", "prosessert")
+
 
     override fun mål(lambda: () -> Barnetrygdmottaker?): Barnetrygdmottaker? {
-        val barnetrygmottaker = lambda.invoke()
-        barnetrygmottaker?.statushistorikk?.map { it.kortStatus }?.distinct()?.forEach {
-            when (it) {
-                Barnetrygdmottaker.KortStatus.KLAR -> antallKlar.increment()
-                Barnetrygdmottaker.KortStatus.FERDIG -> antallFerdig.increment()
-                Barnetrygdmottaker.KortStatus.RETRY -> antallRetry.increment()
-                Barnetrygdmottaker.KortStatus.FEILET -> antallFeilet.increment()
+        return timer.recordCallable(lambda)?.also {
+            when (it.status) {
+                is Barnetrygdmottaker.Status.Feilet -> antallFeilet.increment()
+                is Barnetrygdmottaker.Status.Ferdig -> antallFerdig.increment()
+                is Barnetrygdmottaker.Status.Klar -> antallKlar.increment()
+                is Barnetrygdmottaker.Status.Retry -> antallRetry.increment()
             }
         }
-        return barnetrygmottaker
     }
 }
 
