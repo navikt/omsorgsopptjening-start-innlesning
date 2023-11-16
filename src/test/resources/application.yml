@@ -3,6 +3,8 @@ BARNETRYGD_API_ID: dev-gcp.barnetrygd.id
 HJELPESTONAD_URL: http://localhost:9991
 HJELPESTONAD_API_ID: dev-fss.hjelpestonad.id
 OMSORGSOPPTJENING_TOPIC: pensjonopptjening.omsorgsopptjening
+BARNETRYGDMOTTAKERE_TOPIC: teamfamilie.aapen-familie-ba-sak-identer-med-barnetrygd
+BARNETRYGDMOTTAKERE_CONSUMER_GROUP: omsorgsopptjening-start-innlesning-test
 
 no.nav.security.jwt:
   issuer:

@@ -29,8 +29,8 @@ class BarnetrygdmottakerKafkaListener(
 
     @KafkaListener(
         containerFactory = "listener",
-        topics = [BarnetrygdmottakerKafkaTopic.NAME],
-        groupId = "omsorgsopptjening-start-innlesning"
+        topics = ["\${BARNETRYGDMOTTAKERE_TOPIC}"],
+        groupId = "\${BARNETRYGDMOTTAKERE_CONSUMER_GROUP}"
     )
     fun poll(
         consumerRecord: ConsumerRecord<String, String>,

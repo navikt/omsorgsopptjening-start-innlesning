@@ -42,6 +42,10 @@ spec:
       value: prod-fss.pensjonopptjening.omsorgsopptjening-hjelpestonad-db-proxy
     - name: OMSORGSOPPTJENING_TOPIC
       value: pensjonopptjening.omsorgsopptjening
+    - name: BARNETRYGDMOTTAKERE_TOPIC
+      value: teamfamilie.aapen-familie-ba-sak-identer-med-barnetrygd
+    - name: BARNETRYGDMOTTAKERE_CONSUMER_GROUP
+      value: omsorgsopptjening-start-innlesning
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.nav.no
