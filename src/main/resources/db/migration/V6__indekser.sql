@@ -1,0 +1,2 @@
+create unique index barnetrygdmottaker_status_id on barnetrygdmottaker_status(id);
+create index barnetrygdmottaker_innlesing_id on barnetrygdmottaker(innlesing_id);
