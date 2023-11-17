@@ -46,17 +46,29 @@ class EndToEndTest : SpringContextTest.WithKafka() {
 
         val innlesingId = webApi.startInnlesning(2020).body!!
 
-        sendStartInnlesingKafka(innlesingId)
-        sendBarnetrygdmottakerDataKafka(
-            melding = BarnetrygdmottakerKafkaMelding(
-                meldingstype = BarnetrygdmottakerKafkaMelding.Type.DATA,
-                requestId = UUID.fromString(innlesingId),
-                personident = "12345678910",
-                antallIdenterTotalt = 1,
+        sendMeldinger(
+            listOf(
+                BarnetrygdmottakerKafkaMelding(
+                    meldingstype = BarnetrygdmottakerKafkaMelding.Type.START,
+                    requestId = UUID.fromString(innlesingId),
+                    personident = null,
+                    antallIdenterTotalt = 1
+                ),
+                BarnetrygdmottakerKafkaMelding(
+                    meldingstype = BarnetrygdmottakerKafkaMelding.Type.DATA,
+                    requestId = UUID.fromString(innlesingId),
+                    personident = "12345678910",
+                    antallIdenterTotalt = 1,
+                ),
+                BarnetrygdmottakerKafkaMelding(
+                    meldingstype = BarnetrygdmottakerKafkaMelding.Type.SLUTT,
+                    requestId = UUID.fromString(innlesingId),
+                    personident = null,
+                    antallIdenterTotalt = 1
+                )
             )
         )
-        sendSluttInnlesingKafka(innlesingId)
-
+        
         listener.removeFirstRecord(3).let { consumerRecord ->
             assertEquals(
                 """

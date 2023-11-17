@@ -18,9 +18,21 @@ class BarnetrygdmottakerMessageHandler(
     @Throws(
         BarnetrygdInnlesingException.EksistererIkke::class, BarnetrygdInnlesingException.UgyldigTistand::class
     )
-    fun handle(melding: BarnetrygdmottakerMelding) {
-        finnInnlesing(melding.innlesingId)
-            .also { it.håndterMelding(melding) }
+    fun handle(meldinger: List<BarnetrygdmottakerMelding>) {
+        meldinger
+            .groupBy { it.innlesingId }
+            .forEach { (innlesing, meldinger) ->
+                finnInnlesing(innlesing).let { i ->
+                    meldinger.filterIsInstance<BarnetrygdmottakerMelding.Start>().forEach { i.håndterStartmelding(it) }
+                }
+                finnInnlesing(innlesing).also { i ->
+                    meldinger.filterIsInstance<BarnetrygdmottakerMelding.Data>().map { i.håndterDatamelding(it) }
+                        .also { if (it.isNotEmpty()) barnetrygdmottakerRepository.insertBatch(it) }
+                }
+                finnInnlesing(innlesing).also { i ->
+                    meldinger.filterIsInstance<BarnetrygdmottakerMelding.Slutt>().forEach { i.håndterSluttmelding(it) }
+                }
+            }
     }
 
 
@@ -30,15 +42,8 @@ class BarnetrygdmottakerMessageHandler(
             ?: throw BarnetrygdInnlesingException.EksistererIkke(innlesingId.toString())
     }
 
-    @Throws(BarnetrygdInnlesingException.UgyldigTistand::class)
-    private fun BarnetrygdInnlesing.håndterMelding(melding: BarnetrygdmottakerMelding) {
-        when (melding) {
-            is BarnetrygdmottakerMelding.Start -> håndterStartmelding(melding)
-            is BarnetrygdmottakerMelding.Data -> håndterDatamelding(melding)
-            is BarnetrygdmottakerMelding.Slutt -> håndterSluttmelding(melding)
-        }
-    }
 
+    @Throws(BarnetrygdInnlesingException.UgyldigTistand::class)
     private fun BarnetrygdInnlesing.håndterStartmelding(melding: BarnetrygdmottakerMelding.Start) {
         try {
             log.info("Starter ny innlesing, id: ${this.id}")
@@ -48,15 +53,14 @@ class BarnetrygdmottakerMessageHandler(
         }
     }
 
-    private fun BarnetrygdInnlesing.håndterDatamelding(melding: BarnetrygdmottakerMelding.Data) {
-        try {
-            mottaData().also {
-                barnetrygdmottakerRepository.insert(
-                    Barnetrygdmottaker.Transient(
-                        ident = melding.personIdent,
-                        correlationId = melding.correlationId,
-                        innlesingId = melding.innlesingId
-                    )
+    @Throws(BarnetrygdInnlesingException.UgyldigTistand::class)
+    private fun BarnetrygdInnlesing.håndterDatamelding(melding: BarnetrygdmottakerMelding.Data): Barnetrygdmottaker.Transient {
+        return try {
+            mottaData().let {
+                Barnetrygdmottaker.Transient(
+                    ident = melding.personIdent,
+                    correlationId = melding.correlationId,
+                    innlesingId = melding.innlesingId
                 )
             }
         } catch (ex: BarnetrygdInnlesing.UgyldigTilstand) {
@@ -64,6 +68,7 @@ class BarnetrygdmottakerMessageHandler(
         }
     }
 
+    @Throws(BarnetrygdInnlesingException.UgyldigTistand::class)
     private fun BarnetrygdInnlesing.håndterSluttmelding(melding: BarnetrygdmottakerMelding.Slutt) {
         try {
             log.info("Fullført innlesing, id:  ${this.id}")

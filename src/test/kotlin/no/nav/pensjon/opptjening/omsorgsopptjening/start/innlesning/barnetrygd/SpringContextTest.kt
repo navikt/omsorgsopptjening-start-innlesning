@@ -106,5 +106,19 @@ sealed class SpringContextTest {
             )
             kafkaProducer.send(pr).get()
         }
+
+        fun sendMeldinger(meldinger: List<BarnetrygdmottakerKafkaMelding>) {
+            meldinger
+                .map { melding ->
+                    ProducerRecord(
+                        BarnetrygdmottakerKafkaTopic.NAME,
+                        null,
+                        "",
+                        serialize(melding),
+                    ).also {
+                        kafkaProducer.send(it)
+                    }
+                }
+        }
     }
 }

@@ -9,6 +9,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.k
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetrikker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -20,6 +21,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.given
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -78,7 +80,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             whenever(handler.handle(any())).thenThrow(BarnetrygdInnlesingException.EksistererIkke("17de91e9-b01a-4d95-84bc-80630ded678e"))
             assertThrows<BarnetrygdInnlesingException.EksistererIkke> {
                 listener.poll(
-                    gyldigRecord,
+                    listOf(gyldigRecord),
                     ack
                 )
             }
@@ -92,7 +94,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             assertThrows<KafkaMeldingDeserialiseringException> {
                 listener.poll(
-                    ugyldigRecord,
+                    listOf(ugyldigRecord),
                     ack
                 )
             }
@@ -112,7 +114,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             )
             assertThrows<InvalidateOnExceptionWrapper> {
                 listener.poll(
-                    gyldigRecord,
+                    listOf(gyldigRecord),
                     ack
                 )
             }
@@ -129,7 +131,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             )
             assertThrows<InvalidateOnExceptionWrapper> {
                 listener.poll(
-                    gyldigRecord,
+                    listOf(gyldigRecord),
                     ack
                 )
             }
@@ -155,7 +157,7 @@ class BarnetrygdmottakerKafkaListenerTest {
                 doNothing().whenever(
                     retryListener
                 ).failedDelivery(
-                    any<ConsumerRecord<String, String>>(),
+                    any<ConsumerRecords<String, String>>(),
                     capture(),
                     any()
                 )
@@ -164,8 +166,8 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             Thread.sleep(500)
 
-            verify(retryListener).failedDelivery(any<ConsumerRecord<String, String>>(), any(), any())
-            verify(retryListener).recovered(any<ConsumerRecord<String, String>>(), any())
+            verify(retryListener).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
+            verify(retryListener).recovered(any<ConsumerRecords<String, String>>(), any())
             assertInstanceOf(KafkaMeldingDeserialiseringException::class.java, captor.allValues.single().cause)
             verifyNoMoreInteractions(retryListener)
         }
@@ -177,7 +179,7 @@ class BarnetrygdmottakerKafkaListenerTest {
                 doNothing().whenever(
                     retryListener
                 ).failedDelivery(
-                    any<ConsumerRecord<String, String>>(),
+                    any<ConsumerRecords<String, String>>(),
                     capture(),
                     any()
                 )
@@ -186,8 +188,8 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             Thread.sleep(500)
 
-            verify(retryListener).failedDelivery(any<ConsumerRecord<String, String>>(), any(), any())
-            verify(retryListener).recovered(any<ConsumerRecord<String, String>>(), any())
+            verify(retryListener).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
+            verify(retryListener).recovered(any<ConsumerRecords<String, String>>(), any())
             assertInstanceOf(BarnetrygdInnlesingException.EksistererIkke::class.java, captor.allValues.single().cause)
             verifyNoMoreInteractions(retryListener)
         }
@@ -204,7 +206,7 @@ class BarnetrygdmottakerKafkaListenerTest {
                 doNothing().whenever(
                     retryListener
                 ).failedDelivery(
-                    any<ConsumerRecord<String, String>>(),
+                    any<ConsumerRecords<String, String>>(),
                     capture(),
                     any()
                 )
@@ -213,8 +215,8 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             Thread.sleep(500)
 
-            verify(retryListener).failedDelivery(any<ConsumerRecord<String, String>>(), any(), any())
-            verify(retryListener).recovered(any<ConsumerRecord<String, String>>(), any())
+            verify(retryListener).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
+            verify(retryListener).recovered(any<ConsumerRecords<String, String>>(), any())
             assertInstanceOf(InvalidateOnExceptionWrapper::class.java, captor.allValues.single().cause).also {
                 assertInstanceOf(BarnetrygdInnlesingException.UgyldigTistand::class.java, it.cause)
             }
@@ -228,7 +230,7 @@ class BarnetrygdmottakerKafkaListenerTest {
                 doNothing().whenever(
                     retryListener
                 ).failedDelivery(
-                    any<ConsumerRecord<String, String>>(),
+                    any<ConsumerRecords<String, String>>(),
                     capture(),
                     any()
                 )
@@ -237,8 +239,8 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             Thread.sleep(3000)
 
-            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecord<String, String>>(), any(), any())
-            verify(retryListener, times(1)).recovered(any<ConsumerRecord<String, String>>(), any())
+            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
+            verify(retryListener, times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
             assertInstanceOf(InvalidateOnExceptionWrapper::class.java, captor.lastValue.cause).also {
                 assertInstanceOf(IncorrectUpdateSemanticsDataAccessException::class.java, it.cause)
             }
@@ -246,9 +248,20 @@ class BarnetrygdmottakerKafkaListenerTest {
         }
 
         @Test
-        fun `gitt at det kastes en ukjent feil ved proessering skal meldingen forsøkes på nytt x antall ganger med y tids mellomrom og invalideres`() {
+        fun `gitt at det kastes en ukjent feil ved proessering skal meldingen forsøkes på nytt x antall ganger med y tids mellomrom og invalideres hvis den eksisterer`() {
             given(handler.handle(any())).willThrow(IncorrectUpdateSemanticsDataAccessException("something weird with the db"))
-            given(retryListener.recovered(any<ConsumerRecord<String, String>>(), any())).willCallRealMethod()
+            given(retryListener.recovered(any<ConsumerRecords<String, String>>(), any())).willCallRealMethod()
+            given(innlesingRepository.finn(any())).willReturn(
+                BarnetrygdInnlesing.Startet(
+                    id = InnlesingId.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"),
+                    år = 6584,
+                    forespurtTidspunkt = Instant.now(),
+                    startTidspunkt = Instant.now(),
+                    antallIdenterLest = 1,
+                    forventetAntallIdentiteter = 1
+
+                )
+            )
             ReflectionTestUtils.setField(retryListener, "innlesingRepository", innlesingRepository)
             ReflectionTestUtils.setField(retryListener, "invalidated", mutableListOf<String>())
 
@@ -256,9 +269,38 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             Thread.sleep(3000)
 
-            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecord<String, String>>(), any(), any())
-            verify(retryListener, times(1)).recovered(any<ConsumerRecord<String, String>>(), any())
+            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
+            verify(retryListener, times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
             verify(innlesingRepository).invalider(UUID.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"))
+            verifyNoMoreInteractions(retryListener)
+        }
+
+        @Test
+        fun `gitt at det kastes en ukjent feil ved proessering skal meldingen forsøkes på nytt x antall ganger med y tids mellomrom, hvis den er ferdig skal den ikke invalideres`() {
+            given(handler.handle(any())).willThrow(IncorrectUpdateSemanticsDataAccessException("something weird with the db"))
+            given(retryListener.recovered(any<ConsumerRecords<String, String>>(), any())).willCallRealMethod()
+            given(innlesingRepository.finn(any())).willReturn(
+                BarnetrygdInnlesing.Ferdig(
+                    id = InnlesingId.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"),
+                    år = 6584,
+                    forespurtTidspunkt = Instant.now(),
+                    startTidspunkt = Instant.now(),
+                    antallIdenterLest = 1,
+                    forventetAntallIdentiteter = 1,
+                    ferdigTidspunkt = Instant.now()
+
+                )
+            )
+            ReflectionTestUtils.setField(retryListener, "innlesingRepository", innlesingRepository)
+            ReflectionTestUtils.setField(retryListener, "invalidated", mutableListOf<String>())
+
+            sendStartInnlesingKafka("17de91e9-b01a-4d95-84bc-80630ded678e")
+
+            Thread.sleep(3000)
+
+            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
+            verify(retryListener, times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(innlesingRepository, never()).invalider(UUID.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"))
             verifyNoMoreInteractions(retryListener)
         }
     }
@@ -313,11 +355,11 @@ class BarnetrygdmottakerKafkaListenerTest {
             )
 
             sendStartInnlesingKafka(innlesing.id.toString())
-            Thread.sleep(200)
+            Thread.sleep(1000)
             assertNotNull(innlesingRepository.finn(innlesing.id.toString()))
 
             sendStartInnlesingKafka(innlesing.id.toString())
-            Thread.sleep(200)
+            Thread.sleep(1000)
 
             assertNull(innlesingRepository.finn(innlesing.id.toString()))
         }

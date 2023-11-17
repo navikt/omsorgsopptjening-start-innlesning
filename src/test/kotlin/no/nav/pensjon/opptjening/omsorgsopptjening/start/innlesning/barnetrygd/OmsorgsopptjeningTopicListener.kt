@@ -20,8 +20,11 @@ class OmsorgsopptjeningTopicListener {
         topics = [Topics.Omsorgsopptjening.NAME],
         groupId = "test-omsorgsgrunnlag-listener"
     )
-    private fun poll(record: ConsumerRecord<String, String>, ack: Acknowledgment) {
-        records.add(record)
+    private fun poll(
+        record: List<ConsumerRecord<String, String>>,
+        ack: Acknowledgment
+    ) {
+        records.addAll(record)
         ack.acknowledge()
     }
 

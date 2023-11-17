@@ -6,10 +6,10 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import org.jetbrains.annotations.TestOnly
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
-import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.stereotype.Component
 import java.sql.ResultSet
 import java.time.Clock
@@ -21,31 +21,31 @@ class BarnetrygdmottakerRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
     private val clock: Clock = Clock.systemUTC()
 ) {
+    @TestOnly
+    //TODO ikke bruk denne
     fun insert(barnetrygdmottaker: Barnetrygdmottaker.Transient): Barnetrygdmottaker.Mottatt {
-        val keyHolder = GeneratedKeyHolder()
-        jdbcTemplate.update(
-            """insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) values (:ident, :correlation_id, :innlesing_id)""",
-            MapSqlParameterSource(
-                mapOf<String, Any>(
-                    "ident" to barnetrygdmottaker.ident,
-                    "correlation_id" to barnetrygdmottaker.correlationId.toString(),
-                    "innlesing_id" to barnetrygdmottaker.innlesingId.toString(),
-                ),
-            ),
-            keyHolder
+        return insertBatch(listOf(barnetrygdmottaker))
+            .let { finnAlle(barnetrygdmottaker.innlesingId).single { it.ident == barnetrygdmottaker.ident } }
+    }
+
+    fun insertBatch(barnetrygdmottaker: List<Barnetrygdmottaker.Transient>) {
+        jdbcTemplate.batchUpdate(
+            """with btm as (insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) 
+                |values (:ident, :correlation_id, :innlesing_id) returning id as btm_id) 
+                |insert into barnetrygdmottaker_status (id, status, statushistorikk, kort_status) 
+                |values ((select btm_id from btm), to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb),:kort_status)""".trimMargin(),
+            barnetrygdmottaker
+                .map {
+                    mapOf(
+                        "ident" to it.ident,
+                        "correlation_id" to it.correlationId.toString(),
+                        "innlesing_id" to it.innlesingId.toString(),
+                        "status" to serialize(it.status),
+                        "statushistorikk" to it.statushistorikk.serializeList(),
+                        "kort_status" to it.status.kortStatus.toString(),
+                    )
+                }.toTypedArray()
         )
-        jdbcTemplate.update(
-            """insert into barnetrygdmottaker_status (id, status, statushistorikk, kort_status) values (:id, to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb),:kort_status)""",
-            MapSqlParameterSource(
-                mapOf<String, Any>(
-                    "id" to keyHolder.keys!!["id"] as UUID,
-                    "status" to serialize(barnetrygdmottaker.status),
-                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList(),
-                    "kort_status" to barnetrygdmottaker.status.kortStatus.toString(),
-                ),
-            ),
-        )
-        return find(keyHolder.keys!!["id"] as UUID)!!
     }
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
@@ -70,6 +70,16 @@ class BarnetrygdmottakerRepository(
             ),
             BarnetrygdmottakerRowMapper()
         ).singleOrNull()
+    }
+
+    fun finnAlle(id: InnlesingId): List<Barnetrygdmottaker.Mottatt> {
+        return jdbcTemplate.query(
+            """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.innlesing_id where i.id = :id""",
+            mapOf<String, Any>(
+                "id" to id.toString()
+            ),
+            BarnetrygdmottakerRowMapper()
+        )
     }
 
     /**

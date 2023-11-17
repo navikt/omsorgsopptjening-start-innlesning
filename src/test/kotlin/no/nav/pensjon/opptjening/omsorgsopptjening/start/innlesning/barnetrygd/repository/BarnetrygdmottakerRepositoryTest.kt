@@ -6,6 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturnConsecutively
@@ -18,6 +19,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
@@ -124,6 +126,81 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         transactionTemplate.execute {
             Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
         }
+    }
+
+    @Test
+    fun `batch insert setter inn mange rader`() {
+        val innlesing = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = 2023,
+                forespurtTidspunkt = Instant.now(),
+            )
+        ).let { innlesingRepository.start(it.startet(1)) }
+
+        val a = Barnetrygdmottaker.Transient(
+            ident = "123",
+            correlationId = CorrelationId.generate(),
+            innlesingId = innlesing.id
+        )
+        val b = Barnetrygdmottaker.Transient(
+            ident = "321",
+            correlationId = CorrelationId.generate(),
+            innlesingId = innlesing.id
+        )
+
+        barnetrygdmottakerRepository.insertBatch(
+            listOf(
+                a,
+                b,
+            )
+        )
+
+        assertTrue(barnetrygdmottakerRepository.finnAlle(innlesing.id).map { it.ident }
+                       .containsAll(listOf("123", "321")))
+    }
+
+    @Test
+    fun `batch insert kobler sammen riktig barnetrydmottaker og status`() {
+        val innlesing = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = 2023,
+                forespurtTidspunkt = Instant.now(),
+            )
+        ).let { innlesingRepository.start(it.startet(1)) }
+
+        val a = Barnetrygdmottaker.Transient(
+            ident = "123",
+            correlationId = CorrelationId.generate(),
+            innlesingId = innlesing.id
+        )
+        val b = Barnetrygdmottaker.Transient(
+            ident = "321",
+            correlationId = CorrelationId.generate(),
+            innlesingId = innlesing.id
+        )
+
+        barnetrygdmottakerRepository.insertBatch(
+            listOf(
+                a,
+                b,
+            )
+        )
+
+        val alle = barnetrygdmottakerRepository.finnAlle(innlesing.id)
+
+        barnetrygdmottakerRepository.updateStatus(alle.single { it.ident == "123" }.ferdig())
+        barnetrygdmottakerRepository.updateStatus(alle.single { it.ident == "321" }.retry("testing"))
+
+        assertInstanceOf(
+            Barnetrygdmottaker.Status.Ferdig::class.java,
+            barnetrygdmottakerRepository.finnAlle(innlesing.id).single { it.ident == "123" }.status
+        )
+        assertInstanceOf(
+            Barnetrygdmottaker.Status.Retry::class.java,
+            barnetrygdmottakerRepository.finnAlle(innlesing.id).single { it.ident == "321" }.status
+        )
     }
 
     private fun lagreFullførtInnlesing(): BarnetrygdInnlesing {
