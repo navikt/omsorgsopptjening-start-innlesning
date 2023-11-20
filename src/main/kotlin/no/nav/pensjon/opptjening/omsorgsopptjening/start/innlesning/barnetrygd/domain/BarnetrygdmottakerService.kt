@@ -88,6 +88,7 @@ class BarnetrygdmottakerService(
                                 }
                             }
                         } catch (ex: Throwable) {
+                            log.error("Fikk feil ved prosessering av melding", ex)
                             transactionTemplate.execute {
                                 barnetrygdmottaker.retry(ex.stackTraceToString()).let {
                                     if (it.status is Barnetrygdmottaker.Status.Feilet) {

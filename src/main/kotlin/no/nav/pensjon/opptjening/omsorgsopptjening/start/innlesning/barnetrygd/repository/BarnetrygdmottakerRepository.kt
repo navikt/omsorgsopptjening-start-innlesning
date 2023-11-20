@@ -15,6 +15,7 @@ import java.sql.ResultSet
 import java.time.Clock
 import java.time.Instant
 import java.util.UUID
+import kotlin.reflect.KClass
 
 @Component
 class BarnetrygdmottakerRepository(
@@ -32,8 +33,8 @@ class BarnetrygdmottakerRepository(
         jdbcTemplate.batchUpdate(
             """with btm as (insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) 
                 |values (:ident, :correlation_id, :innlesing_id) returning id as btm_id) 
-                |insert into barnetrygdmottaker_status (id, status, statushistorikk, kort_status) 
-                |values ((select btm_id from btm), to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb),:kort_status)""".trimMargin(),
+                |insert into barnetrygdmottaker_status (id, status, statushistorikk) 
+                |values ((select btm_id from btm), to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
             barnetrygdmottaker
                 .map {
                     mapOf(
@@ -42,7 +43,6 @@ class BarnetrygdmottakerRepository(
                         "innlesing_id" to it.innlesingId.toString(),
                         "status" to serialize(it.status),
                         "statushistorikk" to it.statushistorikk.serializeList(),
-                        "kort_status" to it.status.kortStatus.toString(),
                     )
                 }.toTypedArray()
         )
@@ -50,13 +50,12 @@ class BarnetrygdmottakerRepository(
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
         jdbcTemplate.update(
-            """update barnetrygdmottaker_status set status = to_jsonb(:status::jsonb), statushistorikk = to_jsonb(:statushistorikk::jsonb),kort_status = :kort_status where id = :id""",
+            """update barnetrygdmottaker_status set status = to_jsonb(:status::jsonb), statushistorikk = to_jsonb(:statushistorikk::jsonb) where id = :id""",
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to barnetrygdmottaker.id,
                     "status" to serialize(barnetrygdmottaker.status),
                     "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList(),
-                    "kort_status" to barnetrygdmottaker.status.kortStatus.toString(),
                 ),
             ),
         )
@@ -98,35 +97,37 @@ class BarnetrygdmottakerRepository(
     }
 
     fun finnAntallMottakereMedStatusForInnlesing(
-        kortStatus: Barnetrygdmottaker.KortStatus,
+        kclass: KClass<*>,
         innlesingId: InnlesingId
     ): Long {
+        val name = kclass.simpleName!!
         return jdbcTemplate.queryForObject(
             """select count(*) 
                 |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i
                 |where b.id = bs.id 
                 |and b.innlesing_id = i.id 
                 |and i.id = :innlesingId 
-                |and bs.kort_status = :kort_status """.trimMargin(),
+                |and (bs.status->>'type' = :status)""".trimMargin(),
             mapOf(
                 "now" to Instant.now(clock).toString(),
                 "innlesingId" to innlesingId.toString(),
-                "kort_status" to kortStatus.toString(),
+                "status" to name,
             ),
             Long::class.java,
         )!!
     }
 
-    fun finnAntallMottakereMedStatus(kortStatus: Barnetrygdmottaker.KortStatus): Long {
+    fun finnAntallMottakereMedStatus(kclass: KClass<*>): Long {
+        val name = kclass.simpleName!!
         return jdbcTemplate.queryForObject(
             """select count(*) 
                 |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i
                 |where b.id = bs.id 
                 |and b.innlesing_id = i.id 
-                |and bs.kort_status = :kort_status """.trimMargin(),
+                |and (bs.status->>'type' = :status """.trimMargin(),
             mapOf(
                 "now" to Instant.now(clock).toString(),
-                "kort_status" to kortStatus.toString(),
+                "status" to name
             ),
             Long::class.java,
         )!!

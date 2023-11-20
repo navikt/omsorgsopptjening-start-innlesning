@@ -1,7 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker.KortStatus
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.slf4j.LoggerFactory
@@ -40,7 +40,7 @@ class StatusService(
     }
 
     private fun finnAntallFerdigeMottakere(innlesing: BarnetrygdInnlesing): Long =
-        mottakerRepo.finnAntallMottakereMedStatusForInnlesing(KortStatus.FERDIG, innlesing.id)
+        mottakerRepo.finnAntallMottakereMedStatusForInnlesing(Barnetrygdmottaker.Status.Ferdig::class, innlesing.id)
 
     private fun ikkeProsessert(innlesing: BarnetrygdInnlesing): Boolean {
         return innlesing !is BarnetrygdInnlesing.Ferdig
@@ -62,7 +62,7 @@ class StatusService(
     }
 
     private fun harFeilededMottakere() : Boolean {
-        return mottakerRepo.finnAntallMottakereMedStatus(KortStatus.FEILET) > 0
+        return mottakerRepo.finnAntallMottakereMedStatus(Barnetrygdmottaker.Status.Feilet::class) > 0
     }
 
     private fun getBurdeVærtProsessert(sisteInnlesing: BarnetrygdInnlesing) =

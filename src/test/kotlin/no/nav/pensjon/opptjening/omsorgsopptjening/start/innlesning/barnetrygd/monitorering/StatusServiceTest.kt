@@ -29,7 +29,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         val dataSource = PostgresqlTestContainer.createInstance("test-status")
         val flyway =
             Flyway.configure()
-            .dataSource(dataSource)
+                .dataSource(dataSource)
                 .locations("classpath:db/migration")
                 .load()
         flyway.migrate()
@@ -104,7 +104,10 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         val mottatt = mottakerRepository.insert(barnetrygdmottaker)
         mottakerRepository.updateStatus(mottatt.ferdig())
 
-        val antallFerdig = mottakerRepository.finnAntallMottakereMedStatusForInnlesing(Barnetrygdmottaker.KortStatus.FERDIG, innlesing.id)
+        val antallFerdig = mottakerRepository.finnAntallMottakereMedStatusForInnlesing(
+            Barnetrygdmottaker.Status.Ferdig::class,
+            innlesing.id
+        )
 
         val status = statusService.checkStatus()
         assertThat(status)
