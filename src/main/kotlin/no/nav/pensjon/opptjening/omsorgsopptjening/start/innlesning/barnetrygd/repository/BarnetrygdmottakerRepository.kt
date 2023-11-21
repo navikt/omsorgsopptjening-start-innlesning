@@ -88,7 +88,36 @@ class BarnetrygdmottakerRepository(
      */
     fun finnNesteUprosesserte(): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
-            """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.innlesing_id where i.ferdig_tidspunkt is not null and (bs.status->>'type' = 'Klar') or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz) fetch first row only for update of b skip locked""",
+           """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år 
+                | from barnetrygdmottaker b 
+                | join (SELECT * from barnetrygdmottaker_status 
+                |        WHERE (status->>'type' = 'Klar') OR (status->>'type' = 'Retry')) bs
+                | on b.id = bs.id 
+                | join innlesing i on i.id = b.innlesing_id 
+                | where i.ferdig_tidspunkt is not null 
+                |   and (bs.status->>'type' = 'Klar') 
+                |   or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz) 
+                | fetch first row only for update of b skip locked""".trimMargin(),
+//
+            /*
+            """SELECT
+                   | b.*,
+                   | bs.statushistorikk,
+                   | i.id AS innlesing_id,
+                   | i.år
+                   | FROM
+                   | barnetrygdmottaker b,
+                   | innlesing i,
+                   | (SELECT * from barnetrygdmottaker_status WHERE
+                   |      (status->>'type' = 'Klar') OR (status->>'type' = 'Retry')
+                   |      LIMIT 5000) bs
+                   | WHERE
+                   | b.id = bs.id
+                   | AND i.id = b.innlesing_id
+                   | AND i.ferdig_tidspunkt IS NOT NULL
+                   | AND ((bs.status->>'type' = 'Klar') OR (bs.status->>'karanteneTil')::timestamptz < (current_timestamp)::timestamptz)
+                   | FOR UPDATE OF b SKIP LOCKED""".trimMargin(),
+*/
             mapOf(
                 "now" to Instant.now(clock).toString()
             ),
