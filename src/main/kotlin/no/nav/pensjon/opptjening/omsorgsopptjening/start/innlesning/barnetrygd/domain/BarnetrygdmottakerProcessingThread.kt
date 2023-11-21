@@ -27,7 +27,12 @@ class BarnetrygdmottakerProcessingThread(
     override fun run() {
         while (true) {
             try {
-                barnetrygdmottakerProcessingMetrikker.mål { service.process() }
+                barnetrygdmottakerProcessingMetrikker.mål {
+                    service.process() ?: run {
+                        Thread.sleep(1000)
+                        null
+                    }
+                }
             } catch (ex: Throwable) {
                 log.error("Exception caught while processing, message:${ex.message}, cause:${ex.cause}")
                 Thread.sleep(1000)
