@@ -49,6 +49,7 @@ class BarnetrygdmottakerService(
                 Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                     Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                         try {
+                            log.info("Start prosessering")
                             transactionTemplate.execute {
                                 barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
                                     barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
@@ -98,6 +99,8 @@ class BarnetrygdmottakerService(
                                 }
                             }
                             throw ex
+                        } finally {
+                            log.info("Slutt prosessering")
                         }
                     }
                 }
