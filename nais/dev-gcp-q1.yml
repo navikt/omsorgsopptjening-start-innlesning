@@ -72,8 +72,8 @@ spec:
     port: "8080"
     path: /actuator/prometheus
   replicas:
-    min: 16
-    max: 16
+    min: 8
+    max: 8
   resources:
     limits:
       cpu: "2"
