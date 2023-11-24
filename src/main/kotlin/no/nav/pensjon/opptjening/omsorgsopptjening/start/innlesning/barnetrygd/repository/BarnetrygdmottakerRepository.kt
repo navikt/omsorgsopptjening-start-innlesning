@@ -1,10 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.jetbrains.annotations.TestOnly
 import org.springframework.jdbc.core.RowMapper
@@ -14,7 +10,7 @@ import org.springframework.stereotype.Component
 import java.sql.ResultSet
 import java.time.Clock
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import kotlin.reflect.KClass
 
 @Component
@@ -42,13 +38,13 @@ class BarnetrygdmottakerRepository(
                         "correlation_id" to it.correlationId.toString(),
                         "innlesing_id" to it.innlesingId.toString(),
                         "status" to serialize(it.status),
-                        "status_type" to when(it.status) {
+                        "status_type" to when (it.status) {
                             is Barnetrygdmottaker.Status.Feilet -> "Feilet"
                             is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
                             is Barnetrygdmottaker.Status.Klar -> "Klar"
                             is Barnetrygdmottaker.Status.Retry -> "Retry"
                         },
-                        "karantene_til" to when(val s = it.status) {
+                        "karantene_til" to when (val s = it.status) {
                             is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
                             else -> null
                         },
@@ -70,13 +66,13 @@ class BarnetrygdmottakerRepository(
                 mapOf<String, Any?>(
                     "id" to barnetrygdmottaker.id,
                     "status" to serialize(barnetrygdmottaker.status),
-                    "status_type" to when(barnetrygdmottaker.status) {
+                    "status_type" to when (barnetrygdmottaker.status) {
                         is Barnetrygdmottaker.Status.Feilet -> "Feilet"
                         is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
                         is Barnetrygdmottaker.Status.Klar -> "Klar"
                         is Barnetrygdmottaker.Status.Retry -> "Retry"
                     },
-                    "karantene_til" to when(val s = barnetrygdmottaker.status) {
+                    "karantene_til" to when (val s = barnetrygdmottaker.status) {
                         is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
                         else -> null
                     },
@@ -85,6 +81,16 @@ class BarnetrygdmottakerRepository(
             ),
         )
     }
+
+    fun finnNesteTilBehandling() : Barnetrygdmottaker.Mottatt? {
+        val klar = finnNesteKlarTilBehandling()
+        println("klar=$klar")
+        if (klar != null) return klar
+        val retry = finnNesteForRetry()
+        println("retry=$retry")
+        return retry
+    }
+
 
     fun find(id: UUID): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
@@ -111,50 +117,47 @@ class BarnetrygdmottakerRepository(
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en
      * annen connection (pod) så lenge transaksjonen lever.
      */
-    fun finnNesteUprosesserte(): Barnetrygdmottaker.Mottatt? {
+    fun finnNesteKlarTilBehandling(): Barnetrygdmottaker.Mottatt? {
+        val now = Instant.now(clock).toString()
+        println("finnNesteKlarTilBehandling: now=$now")
         return jdbcTemplate.query(
-           """
-                with rad as (
-                    select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
-                    from barnetrygdmottaker b
-                    join barnetrygdmottaker_status bs on bs.id = b.id
-                    join innlesing i on i.id = b.innlesing_id
-                    where b.id = bs.id
-                        and i.ferdig_tidspunkt is not null 
-                        and (
-                            (bs.status->>'type' = 'Klar') 
-                            or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz)
-                        )
-                    fetch first row only for update of b skip locked
-                ), oppdatering as (
-                    update barnetrygdmottaker
-                    set id = id
-                    where id = (select id from rad)
-                )
-                select * from rad
+            """
+                select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
+                from barnetrygdmottaker b
+                join barnetrygdmottaker_status bs on bs.id = b.id
+                join innlesing i on i.id = b.innlesing_id
+                where  bs.status_type = 'Klar'
+                and i.ferdig_tidspunkt is not null 
+                order by bs.id asc
+                fetch first row only for update of b skip locked
            """.trimMargin(),
-//
-            /*
-            """SELECT
-                   | b.*,
-                   | bs.statushistorikk,
-                   | i.id AS innlesing_id,
-                   | i.år
-                   | FROM
-                   | barnetrygdmottaker b,
-                   | innlesing i,
-                   | (SELECT * from barnetrygdmottaker_status WHERE
-                   |      (status->>'type' = 'Klar') OR (status->>'type' = 'Retry')
-                   |      LIMIT 5000) bs
-                   | WHERE
-                   | b.id = bs.id
-                   | AND i.id = b.innlesing_id
-                   | AND i.ferdig_tidspunkt IS NOT NULL
-                   | AND ((bs.status->>'type' = 'Klar') OR (bs.status->>'karanteneTil')::timestamptz < (current_timestamp)::timestamptz)
-                   | FOR UPDATE OF b SKIP LOCKED""".trimMargin(),
-*/
+
             mapOf(
-                "now" to Instant.now(clock).toString()
+                "now" to now
+            ),
+            BarnetrygdmottakerRowMapper()
+        ).singleOrNull()
+    }
+
+    fun finnNesteForRetry(): Barnetrygdmottaker.Mottatt? {
+        val now = Instant.now(clock).toString()
+        println("finnNesteKlarForRetry: now=$now")
+        return jdbcTemplate.query(
+            """
+                select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
+                from barnetrygdmottaker b
+                join barnetrygdmottaker_status bs on bs.id = b.id
+                join innlesing i on i.id = b.innlesing_id
+                where 
+                  bs.status_type = 'Retry' and bs.karantene_til < (:now)::timestamptz
+                  and bs.karantene_til is not null 
+                  and i.ferdig_tidspunkt is not null
+                order by karantene_til asc 
+                fetch first row only for update of b skip locked
+           """.trimMargin(),
+
+            mapOf(
+                "now" to now
             ),
             BarnetrygdmottakerRowMapper()
         ).singleOrNull()
@@ -167,11 +170,11 @@ class BarnetrygdmottakerRepository(
         val name = kclass.simpleName!!
         return jdbcTemplate.queryForObject(
             """select count(*) 
-                |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i
-                |where b.id = bs.id 
-                |and b.innlesing_id = i.id 
-                |and i.id = :innlesingId 
-                |and (bs.status->>'type' = :status)""".trimMargin(),
+             | from barnetrygdmottaker b
+             | join barnetrygdmottaker_status bs on b.id = bs.id
+             | join innlesing i on i.id = b.innlesing_id
+             | where i.id = :innlesingId 
+             | and bs.status_type = :status""".trimMargin(),
             mapOf(
                 "now" to Instant.now(clock).toString(),
                 "innlesingId" to innlesingId.toString(),

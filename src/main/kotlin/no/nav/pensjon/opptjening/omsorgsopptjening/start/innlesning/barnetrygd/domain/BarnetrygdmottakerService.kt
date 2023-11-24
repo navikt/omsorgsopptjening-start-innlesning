@@ -45,7 +45,7 @@ class BarnetrygdmottakerService(
 
     fun process(): Barnetrygdmottaker? {
         return transactionTemplate.execute {
-            barnetrygdmottakerRepository.finnNesteUprosesserte()?.let { barnetrygdmottaker ->
+            barnetrygdmottakerRepository.finnNesteTilBehandling()?.let { barnetrygdmottaker ->
                 Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                     Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                         try {

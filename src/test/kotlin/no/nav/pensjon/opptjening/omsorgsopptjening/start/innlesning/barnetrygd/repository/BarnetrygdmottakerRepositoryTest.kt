@@ -55,20 +55,23 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+        assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling())
 
         innlesingRepository.fullført(innlesing.ferdig())
 
-        assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling())
     }
 
     @Test
     fun `barnetrygdmottakere havner i karantene i 5 timer dersom de havner i status retry`() {
         val now = Instant.now()
+
         given(clock.instant()).willReturnConsecutively(
             listOf(
                 now, //1
-                now.plus(3, ChronoUnit.HOURS), //2
+                now.plus(1, ChronoUnit.HOURS), //2
+                now.plus(1, ChronoUnit.HOURS), //2
+//                now.plus(2, ChronoUnit.HOURS), //2
                 now.plus(6, ChronoUnit.HOURS), //3
             )
         )
@@ -83,12 +86,12 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte()) //1
+        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling()) //1
 
         barnetrygdmottakerRepository.updateStatus(mottaker.retry("noe gikk gærnt"))
 
-        assertNull(barnetrygdmottakerRepository.finnNesteUprosesserte()) //2
-        assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte()) //3
+        assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling()) //2
+        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling()) //3
     }
 
     @Test
@@ -110,21 +113,21 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         transactionTemplate.execute {
             //låser den aktuelle raden for denne transaksjonens varighet
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
 
             //opprett ny transaksjon mens den forrige fortsatt lever
             transactionTemplate.execute {
                 //skal ikke finne noe siden raden er låst pga "select for update skip locked"
-                Assertions.assertNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+                Assertions.assertNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
             }
             //fortsatt samme transaksjon
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
         } //rad ikke låst lenger ved transaksjon slutt
 
 
         //ny transaksjon finner raden da den ikke lenger er låst
         transactionTemplate.execute {
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteUprosesserte())
+            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
         }
     }
 
