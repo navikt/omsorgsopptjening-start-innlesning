@@ -33,8 +33,8 @@ class BarnetrygdmottakerRepository(
         jdbcTemplate.batchUpdate(
             """with btm as (insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) 
                 |values (:ident, :correlation_id, :innlesing_id) returning id as btm_id) 
-                |insert into barnetrygdmottaker_status (id, status, statushistorikk) 
-                |values ((select btm_id from btm), to_jsonb(:status::jsonb), to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
+                |insert into barnetrygdmottaker_status (id, status, status_type, karantene_til, statushistorikk) 
+                |values ((select btm_id from btm), to_jsonb(:status::jsonb), :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
             barnetrygdmottaker
                 .map {
                     mapOf(
@@ -42,6 +42,16 @@ class BarnetrygdmottakerRepository(
                         "correlation_id" to it.correlationId.toString(),
                         "innlesing_id" to it.innlesingId.toString(),
                         "status" to serialize(it.status),
+                        "status_type" to when(it.status) {
+                            is Barnetrygdmottaker.Status.Feilet -> "Feilet"
+                            is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
+                            is Barnetrygdmottaker.Status.Klar -> "Klar"
+                            is Barnetrygdmottaker.Status.Retry -> "Retry"
+                        },
+                        "karantene_til" to when(val s = it.status) {
+                            is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
+                            else -> null
+                        },
                         "statushistorikk" to it.statushistorikk.serializeList(),
                     )
                 }.toTypedArray()
@@ -50,11 +60,26 @@ class BarnetrygdmottakerRepository(
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
         jdbcTemplate.update(
-            """update barnetrygdmottaker_status set status = to_jsonb(:status::jsonb), statushistorikk = to_jsonb(:statushistorikk::jsonb) where id = :id""",
+            """update barnetrygdmottaker_status 
+                |set status = to_jsonb(:status::jsonb), 
+                | statushistorikk = to_jsonb(:statushistorikk::jsonb) ,
+                | status_type = :status_type,
+                | karantene_til = :karantene_til::timestamptz
+                | where id = :id""".trimMargin(),
             MapSqlParameterSource(
-                mapOf<String, Any>(
+                mapOf<String, Any?>(
                     "id" to barnetrygdmottaker.id,
                     "status" to serialize(barnetrygdmottaker.status),
+                    "status_type" to when(barnetrygdmottaker.status) {
+                        is Barnetrygdmottaker.Status.Feilet -> "Feilet"
+                        is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
+                        is Barnetrygdmottaker.Status.Klar -> "Klar"
+                        is Barnetrygdmottaker.Status.Retry -> "Retry"
+                    },
+                    "karantene_til" to when(val s = barnetrygdmottaker.status) {
+                        is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
+                        else -> null
+                    },
                     "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList(),
                 ),
             ),

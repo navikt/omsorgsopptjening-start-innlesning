@@ -6,7 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metr
 import org.springframework.stereotype.Component
 
 @Component
-class BarnetrygdmottakerProcessingMetrikker(private val registry: MeterRegistry) : MetricsMåling<Barnetrygdmottaker?> {
+class BarnetrygdmottakerProcessingMetrikker(registry: MeterRegistry) : MetricsMåling<Barnetrygdmottaker?> {
 
     private val antallKlar = registry.counter("barnetrygdmottaker", "status", "klar")
     private val antallFerdig = registry.counter("barnetrygdmottaker", "status", "ferdig")
