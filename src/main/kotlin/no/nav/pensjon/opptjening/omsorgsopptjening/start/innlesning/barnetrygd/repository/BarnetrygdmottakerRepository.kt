@@ -89,17 +89,24 @@ class BarnetrygdmottakerRepository(
     fun finnNesteUprosesserte(): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
            """
-                select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
-                from barnetrygdmottaker b
-                join barnetrygdmottaker_status bs on bs.id = b.id
-                join innlesing i on i.id = b.innlesing_id
-                where b.id = bs.id
-                    and i.ferdig_tidspunkt is not null 
-                    and (
-                        (bs.status->>'type' = 'Klar') 
-                        or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz)
-                    )
-                fetch first row only for update of b skip locked;
+                with rad as (
+                    select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
+                    from barnetrygdmottaker b
+                    join barnetrygdmottaker_status bs on bs.id = b.id
+                    join innlesing i on i.id = b.innlesing_id
+                    where b.id = bs.id
+                        and i.ferdig_tidspunkt is not null 
+                        and (
+                            (bs.status->>'type' = 'Klar') 
+                            or (bs.status->>'type' = 'Retry' and (bs.status->>'karanteneTil')::timestamptz < (:now)::timestamptz)
+                        )
+                    fetch first row only for update of b skip locked
+                ), oppdatering as (
+                    update barnetrygdmottaker
+                    set id = id
+                    where id = (select id from rad)
+                )
+                select * from rad
            """.trimMargin(),
 //
             /*
