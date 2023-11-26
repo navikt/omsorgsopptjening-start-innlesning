@@ -83,12 +83,7 @@ class BarnetrygdmottakerRepository(
     }
 
     fun finnNesteTilBehandling() : Barnetrygdmottaker.Mottatt? {
-        val klar = finnNesteKlarTilBehandling()
-        println("klar=$klar")
-        if (klar != null) return klar
-        val retry = finnNesteForRetry()
-        println("retry=$retry")
-        return retry
+        return finnNesteKlarTilBehandling() ?: finnNesteForRetry()
     }
 
 
