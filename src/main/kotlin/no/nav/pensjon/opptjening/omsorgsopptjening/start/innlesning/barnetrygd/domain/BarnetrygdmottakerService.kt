@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.sql.SQLException
 import java.time.Instant
 
 @Service
@@ -44,61 +45,64 @@ class BarnetrygdmottakerService(
     }
 
     fun process(): Barnetrygdmottaker? {
-        return transactionTemplate.execute {
+        var nonFatalException : Throwable? = null
+
+        val barnetrygdmottaker = transactionTemplate.execute {
             barnetrygdmottakerRepository.finnNesteTilBehandling()?.let { barnetrygdmottaker ->
                 Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                     Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                         try {
                             log.info("Start prosessering")
-                            transactionTemplate.execute {
-                                barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
-                                    barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
+                            barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
 
-                                    val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
+                                val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
 
-                                    val rådata = Rådata()
+                                val rådata = Rådata()
 
-                                    val barnetrygdResponse = client.hentBarnetrygd(
-                                        ident = barnetrygdmottaker.ident,
-                                        filter = filter,
-                                    ).also {
-                                        rådata.leggTil(it.rådataFraKilde)
-                                    }
-
-                                    val hjelpestønad = barnetrygdResponse.barnetrygdsaker
-                                        .associateBy { it.omsorgsyter }
-                                        .mapValues { (_, persongrunnlag) ->
-                                            val hjelpestønad = hjelpestønadService.hentHjelpestønad(persongrunnlag)
-                                                .onEach { rådata.leggTil(it.second) }
-
-                                            persongrunnlag.copy(
-                                                hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
-                                            )
-                                        }
-                                        .map { it.value }
-
-                                    kafkaProducer.send(
-                                        createKafkaMessage(
-                                            barnetrygdmottaker = barnetrygdmottaker,
-                                            persongrunnlag = hjelpestønad,
-                                            rådata = rådata,
-                                        )
-                                    ).get()
-
-                                    log.info("Melding prosessert")
+                                val barnetrygdResponse = client.hentBarnetrygd(
+                                    ident = barnetrygdmottaker.ident,
+                                    filter = filter,
+                                ).also {
+                                    rådata.leggTil(it.rådataFraKilde)
                                 }
+
+                                val hjelpestønad = barnetrygdResponse.barnetrygdsaker
+                                    .associateBy { it.omsorgsyter }
+                                    .mapValues { (_, persongrunnlag) ->
+                                        val hjelpestønad = hjelpestønadService.hentHjelpestønad(persongrunnlag)
+                                            .onEach { rådata.leggTil(it.second) }
+
+                                        persongrunnlag.copy(
+                                            hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
+                                        )
+                                    }
+                                    .map { it.value }
+
+                                kafkaProducer.send(
+                                    createKafkaMessage(
+                                        barnetrygdmottaker = barnetrygdmottaker,
+                                        persongrunnlag = hjelpestønad,
+                                        rådata = rådata,
+                                    )
+                                ).get()
+
+                                barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
+
+                                log.info("Melding prosessert")
                             }
+                        } catch(ex: SQLException) {
+                            log.error("Fikk SQLException ved prosessering av melding", ex)
+                            throw ex
                         } catch (ex: Throwable) {
                             log.error("Fikk feil ved prosessering av melding", ex)
-                            transactionTemplate.execute {
-                                barnetrygdmottaker.retry(ex.stackTraceToString()).let {
-                                    if (it.status is Barnetrygdmottaker.Status.Feilet) {
-                                        log.error("Gir opp videre prosessering av melding")
-                                    }
-                                    barnetrygdmottakerRepository.updateStatus(it)
+                            barnetrygdmottaker.retry(ex.stackTraceToString()).let {
+                                if (it.status is Barnetrygdmottaker.Status.Feilet) {
+                                    log.error("Gir opp videre prosessering av melding")
                                 }
+                                barnetrygdmottakerRepository.updateStatus(it)
                             }
-                            throw ex
+                            nonFatalException = ex
+                            null
                         } finally {
                             log.info("Slutt prosessering")
                         }
@@ -106,6 +110,8 @@ class BarnetrygdmottakerService(
                 }
             }
         }
+        nonFatalException?.let { ex -> throw ex }
+        return barnetrygdmottaker
     }
 
     private fun createKafkaMessage(

@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -29,7 +30,6 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
-import java.lang.reflect.UndeclaredThrowableException
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -234,7 +234,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
-        assertThrows<UndeclaredThrowableException> {
+        assertThrows<JsonParseException> {
             barnetrygdService.process()
         }
 
