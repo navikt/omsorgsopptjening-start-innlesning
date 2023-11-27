@@ -29,8 +29,8 @@ class BarnetrygdmottakerRepository(
         jdbcTemplate.batchUpdate(
             """with btm as (insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) 
                 |values (:ident, :correlation_id, :innlesing_id) returning id as btm_id) 
-                |insert into barnetrygdmottaker_status (id, status, status_type, karantene_til, statushistorikk) 
-                |values ((select btm_id from btm), to_jsonb(:status::jsonb), :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
+                |insert into barnetrygdmottaker_status (id, innlesing_id, status, status_type, karantene_til, statushistorikk) 
+                |values ((select btm_id from btm), :innlesing_id, to_jsonb(:status::jsonb), :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
             barnetrygdmottaker
                 .map {
                     mapOf(
@@ -122,7 +122,8 @@ class BarnetrygdmottakerRepository(
                 join barnetrygdmottaker_status bs on bs.id = b.id
                 join innlesing i on i.id = b.innlesing_id
                 where  bs.status_type = 'Klar'
-                and i.ferdig_tidspunkt is not null 
+                and i.ferdig_tidspunkt is not null
+                and bs.innlesing_id = i.id
                 order by bs.id asc
                 fetch first row only for update of b skip locked
            """.trimMargin(),
@@ -147,6 +148,7 @@ class BarnetrygdmottakerRepository(
                   bs.status_type = 'Retry' and bs.karantene_til < (:now)::timestamptz
                   and bs.karantene_til is not null 
                   and i.ferdig_tidspunkt is not null
+                  and bs.innlesing_id = i.id 
                 order by karantene_til asc 
                 fetch first row only for update of b skip locked
            """.trimMargin(),
