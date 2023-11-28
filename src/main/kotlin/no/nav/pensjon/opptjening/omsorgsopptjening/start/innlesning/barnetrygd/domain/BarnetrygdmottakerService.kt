@@ -80,9 +80,7 @@ class BarnetrygdmottakerService(
                                         val hjelpestønad = hjelpestønadService.hentHjelpestønad(persongrunnlag)
                                             .onEach { rådata.leggTil(it.second) }
 
-                                        persongrunnlag.copy(
-                                            hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
-                                        )
+                                        persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
                                     }
                                     .map { it.value }
 
