@@ -54,9 +54,9 @@ class BarnetrygdmottakerService(
             .orElse(null)
     }
 
-    fun processForInnlesingId(innlesingId: InnlesingId): List<Barnetrygdmottaker>? {        var nonFatalException: Throwable? = null
+    fun processForInnlesingId(innlesingId: InnlesingId): List<Barnetrygdmottaker>? {
         val barnetrygdmottaker = transactionTemplate.execute {
-            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId,10).map { barnetrygdmottaker ->
+            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId, 10).map { barnetrygdmottaker ->
                 Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                     Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                         try {
@@ -112,7 +112,6 @@ class BarnetrygdmottakerService(
                                 }
                                 barnetrygdmottakerRepository.updateStatus(it)
                             }
-                            nonFatalException = ex
                             null
                         } finally {
                             log.info("Slutt prosessering")
