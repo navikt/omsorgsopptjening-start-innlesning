@@ -82,9 +82,9 @@ class BarnetrygdmottakerRepository(
         )
     }
 
-    fun finnNesteTilBehandling(innlesingId: InnlesingId): Barnetrygdmottaker.Mottatt? {
-        val id : UUID? = finnNesteKlarTilBehandling(innlesingId) ?: finnNesteForRetry(innlesingId)
-        return id?.let { find(it) }
+    fun finnNesteTilBehandling(innlesingId: InnlesingId, antall: Int): List<Barnetrygdmottaker.Mottatt> {
+        val id: List<UUID> = finnNesteKlarTilBehandling(innlesingId, antall).ifEmpty { finnNesteForRetry(innlesingId, antall) }
+        return id.map { find(it)!! }
     }
 
 
@@ -118,7 +118,7 @@ class BarnetrygdmottakerRepository(
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en
      * annen connection (pod) så lenge transaksjonen lever.
      */
-    fun finnNesteKlarTilBehandling(innlesingId: InnlesingId): UUID? {
+    fun finnNesteKlarTilBehandling(innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
         println("finnNesteKlarTilBehandling: now=$now")
         return jdbcTemplate.queryForList(
@@ -127,17 +127,18 @@ class BarnetrygdmottakerRepository(
             | where bs.status_type = 'Klar'
             | and bs.innlesing_id = :innlesingId
             | order by bs.id asc
-            | fetch first row only for update of bs skip locked
+            | fetch first :antall rows only for update of bs skip locked
            """.trimMargin(),
             mapOf(
                 "now" to now,
                 "innlesingId" to innlesingId.toUUID().toString(),
+                "antall" to antall
             ),
             UUID::class.java
-        ).singleOrNull()
+        )
     }
 
-    fun finnNesteForRetry(innlesingId: InnlesingId): UUID? {
+    fun finnNesteForRetry(innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
         println("finnNesteKlarForRetry: now=$now")
         return jdbcTemplate.queryForList(
@@ -148,14 +149,15 @@ class BarnetrygdmottakerRepository(
                | and bs.karantene_til is not null 
                | and bs.innlesing_id = :innlesingId 
                | order by karantene_til asc 
-               | fetch first row only for update of bs skip locked
+               | fetch first :antall rows only for update of bs skip locked
            """.trimMargin(),
             mapOf(
                 "now" to now,
-                "innlesingId" to innlesingId.toUUID().toString()
+                "innlesingId" to innlesingId.toUUID().toString(),
+                "antall" to antall
             ),
             UUID::class.java
-        ).singleOrNull()
+        )
     }
 
     fun finnAntallMottakereMedStatusForInnlesing(
@@ -194,6 +196,24 @@ class BarnetrygdmottakerRepository(
             Long::class.java,
         )!!
     }
+
+    fun printTables() {
+        jdbcTemplate.query(
+            """select id, status_type, statushistorikk
+                |from barnetrygdmottaker_status bs""".trimMargin(),
+            PrintMapper()
+        )
+    }
+
+    internal class PrintMapper : RowMapper<String> {
+        override fun mapRow(rs: ResultSet, rowNum: Int): String {
+            for (i in 1 ..  rs.metaData.columnCount) {
+                println("${rs.metaData.getColumnName(i)} : ${rs.getObject(i)}")
+            }
+            return "hello"
+        }
+    }
+
 
 
     internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {

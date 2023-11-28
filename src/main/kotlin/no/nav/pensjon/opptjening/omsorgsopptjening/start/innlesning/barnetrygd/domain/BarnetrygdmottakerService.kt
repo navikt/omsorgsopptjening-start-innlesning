@@ -11,6 +11,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.KafkaException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
@@ -45,7 +46,7 @@ class BarnetrygdmottakerService(
         }
     }
 
-    fun process(): Barnetrygdmottaker? {
+    fun process(): List<Barnetrygdmottaker>? {
         return barnetrygdInnlesingRepository.finnAlleFullførte().stream()
             .map { processForInnlesingId(it) }
             .filter { it != null }
@@ -53,13 +54,9 @@ class BarnetrygdmottakerService(
             .orElse(null)
     }
 
-    fun processForInnlesingId(innlesingId: InnlesingId): Barnetrygdmottaker? {
-        var nonFatalException: Throwable? = null
-
+    fun processForInnlesingId(innlesingId: InnlesingId): List<Barnetrygdmottaker>? {        var nonFatalException: Throwable? = null
         val barnetrygdmottaker = transactionTemplate.execute {
-
-
-            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId)?.let { barnetrygdmottaker ->
+            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId,10).map { barnetrygdmottaker ->
                 Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                     Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                         try {
@@ -82,7 +79,10 @@ class BarnetrygdmottakerService(
                                     .mapValues { (_, persongrunnlag) ->
                                         val hjelpestønad = hjelpestønadService.hentHjelpestønad(persongrunnlag)
                                             .onEach { rådata.leggTil(it.second) }
-                                        persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
+
+                                        persongrunnlag.copy(
+                                            hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
+                                        )
                                     }
                                     .map { it.value }
 
@@ -98,6 +98,9 @@ class BarnetrygdmottakerService(
 
                                 log.info("Melding prosessert")
                             }
+                        } catch (ex: KafkaException) {
+                            log.error("Fikk KafkaException ved prosessering av melding", ex)
+                            throw ex
                         } catch (ex: SQLException) {
                             log.error("Fikk SQLException ved prosessering av melding", ex)
                             throw ex
@@ -118,8 +121,8 @@ class BarnetrygdmottakerService(
                 }
             }
         }
-        nonFatalException?.let { ex -> throw ex }
-        return barnetrygdmottaker
+        // nonFatalException?.let { ex -> throw ex }
+        return barnetrygdmottaker?.filterNotNull()?.ifEmpty { null }
     }
 
     private fun createKafkaMessage(
