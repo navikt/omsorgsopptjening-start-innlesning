@@ -90,7 +90,12 @@ class BarnetrygdmottakerRepository(
 
     fun find(id: UUID): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
-            """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.innlesing_id where b.id = :id""",
+            """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
+                | from barnetrygdmottaker b
+                | join barnetrygdmottaker_status bs on b.id = bs.id
+                | join innlesing i on i.id = b.innlesing_id
+                | where b.id = :id
+                | and bs.id = :id""".trimMargin(),
             mapOf<String, Any>(
                 "id" to id
             ),
