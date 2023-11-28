@@ -7,6 +7,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturnConsecutively
@@ -36,6 +37,8 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
     private lateinit var clock: Clock
 
     @Test
+    @Disabled
+    // TODO: Sjekken av status på innlesing gjøres nå i forkant
     fun `finner ingen barnetrygdmottakere som skal prosesseres før alle i forsendelsen er lest inn`() {
         val innlesing = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
@@ -55,11 +58,11 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling())
+        assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id))
 
         innlesingRepository.fullført(innlesing.ferdig())
 
-        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling())
+        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id))
     }
 
     @Test
@@ -86,12 +89,12 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling()) //1
+        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id)) //1
 
         barnetrygdmottakerRepository.updateStatus(mottaker.retry("noe gikk gærnt"))
 
-        assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling()) //2
-        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling()) //3
+        assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id)) //2
+        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id)) //3
     }
 
     @Test
@@ -113,21 +116,21 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         transactionTemplate.execute {
             //låser den aktuelle raden for denne transaksjonens varighet
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
+            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id))
 
             //opprett ny transaksjon mens den forrige fortsatt lever
             transactionTemplate.execute {
                 //skal ikke finne noe siden raden er låst pga "select for update skip locked"
-                Assertions.assertNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
+                Assertions.assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id))
             }
             //fortsatt samme transaksjon
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
+            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id))
         } //rad ikke låst lenger ved transaksjon slutt
 
 
         //ny transaksjon finner raden da den ikke lenger er låst
         transactionTemplate.execute {
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteKlarTilBehandling())
+            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id))
         }
     }
 

@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
@@ -44,11 +45,21 @@ class BarnetrygdmottakerService(
         }
     }
 
-    fun process(): Barnetrygdmottaker? {
+    fun process() : Barnetrygdmottaker? {
+        return barnetrygdInnlesingRepository.finnAlleFullførte().stream()
+            .map { processForInnlesingId(it) }
+            .filter { it != null }
+            .findFirst()
+            .orElse(null)
+    }
+
+    fun processForInnlesingId(innlesingId: InnlesingId): Barnetrygdmottaker? {
         var nonFatalException : Throwable? = null
 
         val barnetrygdmottaker = transactionTemplate.execute {
-            barnetrygdmottakerRepository.finnNesteTilBehandling()?.let { barnetrygdmottaker ->
+
+
+            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId)?.let { barnetrygdmottaker ->
                 Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                     Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                         try {

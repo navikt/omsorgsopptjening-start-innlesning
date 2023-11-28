@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
+import org.springframework.data.jdbc.repository.query.AbstractJdbcQuery.RowMapperFactory
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -77,6 +78,14 @@ class BarnetrygdInnlesingRepository(
             """select i.*, count(b) as antallLesteIdenter from innlesing i left join barnetrygdmottaker b on i.id = b.innlesing_id group by i.id order by i.forespurt_tidspunkt desc limit 1""",
             InnlesingRowMapper()
         ).singleOrNull()
+    }
+
+    fun finnAlleFullførte(): List<InnlesingId> {
+        return jdbcTemplate.queryForList(
+            """select id from innlesing where ferdig_tidspunkt is not null""",
+            emptyMap<String, Any?>(),
+            String::class.java
+        ).map(InnlesingId::fromString)
     }
 
     fun invalider(id: UUID) {

@@ -82,8 +82,9 @@ class BarnetrygdmottakerRepository(
         )
     }
 
-    fun finnNesteTilBehandling() : Barnetrygdmottaker.Mottatt? {
-        return finnNesteKlarTilBehandling() ?: finnNesteForRetry()
+    fun finnNesteTilBehandling(innlesingId: InnlesingId): Barnetrygdmottaker.Mottatt? {
+        val id : UUID? = finnNesteKlarTilBehandling(innlesingId) ?: finnNesteForRetry(innlesingId)
+        return id?.let { find(it) }
     }
 
 
@@ -112,51 +113,43 @@ class BarnetrygdmottakerRepository(
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en
      * annen connection (pod) så lenge transaksjonen lever.
      */
-    fun finnNesteKlarTilBehandling(): Barnetrygdmottaker.Mottatt? {
+    fun finnNesteKlarTilBehandling(innlesingId: InnlesingId): UUID? {
         val now = Instant.now(clock).toString()
         println("finnNesteKlarTilBehandling: now=$now")
-        return jdbcTemplate.query(
-            """
-                select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
-                from barnetrygdmottaker b
-                join barnetrygdmottaker_status bs on bs.id = b.id
-                join innlesing i on i.id = b.innlesing_id
-                where  bs.status_type = 'Klar'
-                and i.ferdig_tidspunkt is not null
-                and bs.innlesing_id = i.id
-                order by bs.id asc
-                fetch first row only for update of b skip locked
+        return jdbcTemplate.queryForList(
+            """ select bs.id 
+            | from barnetrygdmottaker_status bs
+            | where bs.status_type = 'Klar'
+            | and bs.innlesing_id = :innlesingId
+            | order by bs.id asc
+            | fetch first row only for update of bs skip locked
            """.trimMargin(),
-
             mapOf(
-                "now" to now
+                "now" to now,
+                "innlesingId" to innlesingId.toUUID().toString(),
             ),
-            BarnetrygdmottakerRowMapper()
+            UUID::class.java
         ).singleOrNull()
     }
 
-    fun finnNesteForRetry(): Barnetrygdmottaker.Mottatt? {
+    fun finnNesteForRetry(innlesingId: InnlesingId): UUID? {
         val now = Instant.now(clock).toString()
         println("finnNesteKlarForRetry: now=$now")
-        return jdbcTemplate.query(
-            """
-                select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
-                from barnetrygdmottaker b
-                join barnetrygdmottaker_status bs on bs.id = b.id
-                join innlesing i on i.id = b.innlesing_id
-                where 
-                  bs.status_type = 'Retry' and bs.karantene_til < (:now)::timestamptz
-                  and bs.karantene_til is not null 
-                  and i.ferdig_tidspunkt is not null
-                  and bs.innlesing_id = i.id 
-                order by karantene_til asc 
-                fetch first row only for update of b skip locked
+        return jdbcTemplate.queryForList(
+            """select bs.id
+               | from barnetrygdmottaker_status bs
+               | where bs.status_type = 'Retry' 
+               |and bs.karantene_til < (:now)::timestamptz
+               | and bs.karantene_til is not null 
+               | and bs.innlesing_id = :innlesingId 
+               | order by karantene_til asc 
+               | fetch first row only for update of bs skip locked
            """.trimMargin(),
-
             mapOf(
-                "now" to now
+                "now" to now,
+                "innlesingId" to innlesingId.toUUID().toString()
             ),
-            BarnetrygdmottakerRowMapper()
+            UUID::class.java
         ).singleOrNull()
     }
 
