@@ -28,7 +28,7 @@ internal object HentBarnetrygdDomainMapper {
             }
         }
 
-        return PersongrunnlagMelding.Persongrunnlag(
+        return PersongrunnlagMelding.Persongrunnlag.of(
             omsorgsyter = external.fagsakEiersIdent,
             omsorgsperioder = external.barnetrygdPerioder
                 .filter { periode ->

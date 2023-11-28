@@ -91,7 +91,7 @@ class HentBarnetrygdDomainMapperTest {
             )
         ).isEqualTo(
             listOf(
-                PersongrunnlagMelding.Persongrunnlag(
+                PersongrunnlagMelding.Persongrunnlag.of(
                     omsorgsyter = "321",
                     omsorgsperioder = listOf(
                         //delvis overlapp, begrenset nedoover

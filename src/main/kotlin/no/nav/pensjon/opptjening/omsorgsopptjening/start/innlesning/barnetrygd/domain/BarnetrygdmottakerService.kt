@@ -45,7 +45,7 @@ class BarnetrygdmottakerService(
         }
     }
 
-    fun process() : Barnetrygdmottaker? {
+    fun process(): Barnetrygdmottaker? {
         return barnetrygdInnlesingRepository.finnAlleFullførte().stream()
             .map { processForInnlesingId(it) }
             .filter { it != null }
@@ -54,7 +54,7 @@ class BarnetrygdmottakerService(
     }
 
     fun processForInnlesingId(innlesingId: InnlesingId): Barnetrygdmottaker? {
-        var nonFatalException : Throwable? = null
+        var nonFatalException: Throwable? = null
 
         val barnetrygdmottaker = transactionTemplate.execute {
 
@@ -82,10 +82,7 @@ class BarnetrygdmottakerService(
                                     .mapValues { (_, persongrunnlag) ->
                                         val hjelpestønad = hjelpestønadService.hentHjelpestønad(persongrunnlag)
                                             .onEach { rådata.leggTil(it.second) }
-
-                                        persongrunnlag.copy(
-                                            hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
-                                        )
+                                        persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
                                     }
                                     .map { it.value }
 
@@ -101,7 +98,7 @@ class BarnetrygdmottakerService(
 
                                 log.info("Melding prosessert")
                             }
-                        } catch(ex: SQLException) {
+                        } catch (ex: SQLException) {
                             log.error("Fikk SQLException ved prosessering av melding", ex)
                             throw ex
                         } catch (ex: Throwable) {

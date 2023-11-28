@@ -81,7 +81,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                             it.barnetrygdsaker
                         ).isEqualTo(
                             listOf(
-                                PersongrunnlagMelding.Persongrunnlag(
+                                PersongrunnlagMelding.Persongrunnlag.of(
                                     omsorgsyter = "12345678910",
                                     omsorgsperioder = listOf(
                                         PersongrunnlagMelding.Omsorgsperiode(

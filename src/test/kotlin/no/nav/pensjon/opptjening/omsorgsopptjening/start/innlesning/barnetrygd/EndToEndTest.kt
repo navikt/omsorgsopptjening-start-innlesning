@@ -68,7 +68,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 )
             )
         )
-        
+
         listener.removeFirstRecord(3).let { consumerRecord ->
             assertEquals(
                 """
@@ -80,7 +80,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 assertEquals("12345678910", it.omsorgsyter)
                 assertEquals(
                     listOf(
-                        PersongrunnlagMelding.Persongrunnlag(
+                        PersongrunnlagMelding.Persongrunnlag.of(
                             omsorgsyter = "12345678910",
                             omsorgsperioder = listOf(
                                 PersongrunnlagMelding.Omsorgsperiode(
