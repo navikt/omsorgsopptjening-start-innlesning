@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.runners.model.MultipleFailureException.assertEmpty
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturnConsecutively
 import org.springframework.beans.factory.annotation.Autowired
@@ -209,6 +208,90 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             Barnetrygdmottaker.Status.Retry::class.java,
             barnetrygdmottakerRepository.finnAlle(innlesing.id).single { it.ident == "321" }.status
         )
+    }
+
+    @Test
+    fun `oppdaterer alle feilede rader for en gitt innlesning til klar`() {
+        val innlesing = lagreStartetInnlesing()
+        val innlesingUberørt = lagreStartetInnlesing()
+
+        lesInnBarnetrygdmottakere(
+            Barnetrygdmottaker.Transient(
+                ident = "a",
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            ),
+            Barnetrygdmottaker.Transient(
+                ident = "b",
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            )
+        )
+
+        lesInnBarnetrygdmottakere(
+            Barnetrygdmottaker.Transient(
+                ident = "c",
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesingUberørt.id
+            )
+        )
+
+        val alleKlar = barnetrygdmottakerRepository.finnAlle(innlesing.id)
+        assertThat(alleKlar.map { it.status }).allMatch { it is Barnetrygdmottaker.Status.Klar }
+
+        barnetrygdmottakerRepository.updateStatus(
+            alleKlar.single { it.ident == "a" }.retry("a1").retry("a2").retry("a3").retry("afeil")
+        )
+        barnetrygdmottakerRepository.updateStatus(
+            alleKlar.single { it.ident == "b" }.retry("b1").retry("b2").retry("b3").retry("bfeil")
+        )
+
+        val alleFeilet = barnetrygdmottakerRepository.finnAlle(innlesing.id)
+        assertThat(alleFeilet.map { it.status }).allMatch { it is Barnetrygdmottaker.Status.Feilet }
+
+        val oppdatert = barnetrygdmottakerRepository.oppdaterFeiledeRaderTilKlar(innlesing.id.toUUID())
+        assertThat(oppdatert).isEqualTo(2)
+        val alleKlarIgjen = barnetrygdmottakerRepository.finnAlle(innlesing.id)
+        assertThat(alleKlarIgjen.map { it.status }).allMatch { it is Barnetrygdmottaker.Status.Klar }
+
+        val first = alleKlarIgjen.first()
+        assertThat(first.statushistorikk[0]).isInstanceOf(Barnetrygdmottaker.Status.Klar::class.java)
+        assertThat(first.statushistorikk[1]).isInstanceOf(Barnetrygdmottaker.Status.Retry::class.java)
+        assertThat(first.statushistorikk[2]).isInstanceOf(Barnetrygdmottaker.Status.Retry::class.java)
+        assertThat(first.statushistorikk[3]).isInstanceOf(Barnetrygdmottaker.Status.Retry::class.java)
+        assertThat(first.statushistorikk[4]).isInstanceOf(Barnetrygdmottaker.Status.Feilet::class.java)
+        assertThat(first.statushistorikk[5]).isInstanceOf(Barnetrygdmottaker.Status.Klar::class.java)
+
+        assertThat(barnetrygdmottakerRepository.finnAlle(innlesingUberørt.id)).hasSize(1)
+        assertThat(barnetrygdmottakerRepository.finnAlle(innlesingUberørt.id).single().status).isInstanceOf(
+            Barnetrygdmottaker.Status.Klar::class.java
+        )
+        assertThat(barnetrygdmottakerRepository.finnAlle(innlesingUberørt.id).single().statushistorikk).hasSize(1)
+    }
+
+    private fun lagreBestiltInnlesing(
+        innlesing: BarnetrygdInnlesing.Bestilt = BarnetrygdInnlesing.Bestilt(
+            id = InnlesingId.generate(),
+            år = 2023,
+            forespurtTidspunkt = Instant.now()
+        )
+    ): BarnetrygdInnlesing.Bestilt {
+        return innlesingRepository.bestilt(innlesing) as BarnetrygdInnlesing.Bestilt
+    }
+
+    private fun lagreStartetInnlesing(
+        innlesing: BarnetrygdInnlesing.Bestilt = BarnetrygdInnlesing.Bestilt(
+            id = InnlesingId.generate(),
+            år = 2023,
+            forespurtTidspunkt = Instant.now()
+        ),
+        forventetAntallIdenter: Long = 1
+    ): BarnetrygdInnlesing.Startet {
+        return innlesingRepository.start(lagreBestiltInnlesing(innlesing).startet(forventetAntallIdenter)) as BarnetrygdInnlesing.Startet
+    }
+
+    private fun lesInnBarnetrygdmottakere(vararg barnetrygdmottakere: Barnetrygdmottaker.Transient) {
+        barnetrygdmottakerRepository.insertBatch(barnetrygdmottakere.toList())
     }
 
     private fun lagreFullførtInnlesing(): BarnetrygdInnlesing {

@@ -1,6 +1,10 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.*
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.jetbrains.annotations.TestOnly
 import org.springframework.jdbc.core.RowMapper
@@ -10,7 +14,7 @@ import org.springframework.stereotype.Component
 import java.sql.ResultSet
 import java.time.Clock
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 import kotlin.reflect.KClass
 
 @Component
@@ -214,6 +218,26 @@ class BarnetrygdmottakerRepository(
         }
     }
 
+
+    fun oppdaterFeiledeRaderTilKlar(innlesingId: UUID): Int {
+        val nyStatus = serialize(Barnetrygdmottaker.Status.Klar())
+        return jdbcTemplate.update(
+            //language=postgres-psql
+            """
+            with feilede as (
+                select bs.id as bsid, bs.statushistorikk as bsh from barnetrygdmottaker b
+                join barnetrygdmottaker_status bs on bs.id = b.id
+                where b.innlesing_id = '$innlesingId'
+                and bs.status->>'type' = 'Feilet'
+            )
+            update barnetrygdmottaker_status set
+                status = '$nyStatus'::jsonb,
+                statushistorikk = bsh || '$nyStatus'::jsonb
+            from feilede where id = bsid
+        """.trimIndent(),
+            emptyMap<String, Any>()
+        )
+    }
 
 
     internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.sql.SQLException
 import java.time.Instant
+import java.util.UUID
 
 @Service
 class BarnetrygdmottakerService(
@@ -145,5 +146,9 @@ class BarnetrygdmottakerService(
                 )
             )
         )
+    }
+
+    fun rekjørFeilede(innlesingId: UUID): Int {
+        return barnetrygdmottakerRepository.oppdaterFeiledeRaderTilKlar(innlesingId)
     }
 }
