@@ -232,7 +232,8 @@ class BarnetrygdmottakerRepository(
             )
             update barnetrygdmottaker_status set
                 status = '$nyStatus'::jsonb,
-                statushistorikk = bsh || '$nyStatus'::jsonb
+                statushistorikk = bsh || '$nyStatus'::jsonb,
+                status_type = 'Klar'
             from feilede where id = bsid
         """.trimIndent(),
             emptyMap<String, Any>()
