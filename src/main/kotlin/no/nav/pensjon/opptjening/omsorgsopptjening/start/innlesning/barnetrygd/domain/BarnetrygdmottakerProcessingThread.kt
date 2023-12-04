@@ -35,7 +35,7 @@ class BarnetrygdmottakerProcessingThread(
                 }
             } catch (ex: Throwable) {
                 log.error("Exception caught while processing, message:${ex.message}, cause:${ex.cause}")
-                Thread.sleep(1000)
+                Thread.sleep(10_000)
             }
         }
     }

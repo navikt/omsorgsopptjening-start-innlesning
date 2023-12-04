@@ -99,11 +99,17 @@ class BarnetrygdmottakerService(
 
                                 log.info("Melding prosessert")
                             }
+                        } catch (ex: NoClassDefFoundError) {
+                            log.error("Feil ved prosessering av melding", ex)
+                            throw ex
+                        } catch (ex: OutOfMemoryError) {
+                            log.error("Feil ved prosessering av melding", ex)
+                            throw ex
                         } catch (ex: KafkaException) {
-                            log.error("Fikk KafkaException ved prosessering av melding", ex)
+                            log.error("Feil ved prosessering av melding", ex)
                             throw ex
                         } catch (ex: SQLException) {
-                            log.error("Fikk SQLException ved prosessering av melding", ex)
+                            log.error("Feil ved prosessering av melding", ex)
                             throw ex
                         } catch (ex: Throwable) {
                             log.error("Fikk feil ved prosessering av melding", ex)
