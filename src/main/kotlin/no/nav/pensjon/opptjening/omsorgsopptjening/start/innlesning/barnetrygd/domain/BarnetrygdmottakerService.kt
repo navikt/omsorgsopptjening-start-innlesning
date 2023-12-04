@@ -78,8 +78,10 @@ class BarnetrygdmottakerService(
                                 val hjelpestønad = barnetrygdResponse.barnetrygdsaker
                                     .associateBy { it.omsorgsyter }
                                     .mapValues { (_, persongrunnlag) ->
-                                        val hjelpestønad = hjelpestønadService.hentHjelpestønad(persongrunnlag)
-                                            .onEach { rådata.leggTil(it.second) }
+                                        val hjelpestønad = hjelpestønadService.hentHjelpestønad(
+                                            persongrunnlag = persongrunnlag,
+                                            filter = filter
+                                        ).onEach { rådata.leggTil(it.second) }
 
                                         persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
                                     }

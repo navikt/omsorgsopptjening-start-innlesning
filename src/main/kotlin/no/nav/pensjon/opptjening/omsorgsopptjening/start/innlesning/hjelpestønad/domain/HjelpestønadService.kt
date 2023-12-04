@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFr
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HentHjelpestønadResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadType
@@ -16,35 +17,36 @@ import java.time.YearMonth
 class HjelpestønadService(
     private val hjelpestønadClient: HjelpestønadClient
 ) {
-    internal fun hentHjelpestønad(barnetrygdSak: PersongrunnlagMelding.Persongrunnlag): List<Pair<List<PersongrunnlagMelding.Hjelpestønadperiode>, RådataFraKilde>> {
-        return barnetrygdSak.omsorgsperioder
-            .map { barnetrygdperiode ->
-                hentHjelpestønad(
-                    fnr = barnetrygdperiode.omsorgsmottaker,
-                    fom = barnetrygdperiode.fom,
-                    tom = barnetrygdperiode.tom
-                ).let { response ->
-                    response.vedtak.map { vedtak ->
-                        PersongrunnlagMelding.Hjelpestønadperiode(
-                            fom = nedreGrense(
-                                måned = vedtak.fom,
-                                grense = barnetrygdperiode.fom
-                            ),
-                            //begrenser hjelpestønadperioden oppad til barnetrygperioden dersom denne ikke har noen sluttdato
-                            tom = øvreGrense(
-                                måned = vedtak.tom ?: barnetrygdperiode.tom,
-                                grense = barnetrygdperiode.tom
-                            ),
-                            omsorgstype = when (vedtak.omsorgstype) {
-                                HjelpestønadType.FORHØYET_SATS_3 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
-                                HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4
-                            },
-                            omsorgsmottaker = vedtak.ident,
-                            kilde = Kilde.INFOTRYGD,
-                        )
-                    } to response.rådataFraKilde
-                }
+    internal fun hentHjelpestønad(
+        persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
+        filter: GyldigÅrsintervallFilter,
+    ): List<Pair<List<PersongrunnlagMelding.Hjelpestønadperiode>, RådataFraKilde>> {
+        return persongrunnlag.hentOmsorgsmottakere().map { omsorgsmottaker ->
+            hentHjelpestønad(
+                fnr = omsorgsmottaker,
+                fom = filter.min(),
+                tom = filter.max()
+            ).let { response ->
+                response.vedtak.map { vedtak ->
+                    PersongrunnlagMelding.Hjelpestønadperiode(
+                        fom = nedreGrense(
+                            måned = vedtak.fom,
+                            grense = filter.min()
+                        ),
+                        tom = øvreGrense(
+                            måned = vedtak.tom,
+                            grense = filter.max()
+                        ),
+                        omsorgstype = when (vedtak.omsorgstype) {
+                            HjelpestønadType.FORHØYET_SATS_3 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
+                            HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4
+                        },
+                        omsorgsmottaker = vedtak.ident,
+                        kilde = Kilde.INFOTRYGD,
+                    )
+                } to response.rådataFraKilde
             }
+        }
     }
 
     private fun hentHjelpestønad(fnr: String, fom: YearMonth, tom: YearMonth): HentHjelpestønadResponse {

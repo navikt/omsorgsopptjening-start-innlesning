@@ -37,6 +37,16 @@ class UtilsKtTest {
     }
 
     @Test
+    fun `uendelig verdi begrenses til øvre grense`() {
+        assertThat(
+            øvreGrense(
+                måned = null,
+                grense = YearMonth.of(1900, Month.JANUARY),
+            )
+        ).isEqualTo(YearMonth.of(1900, Month.JANUARY))
+    }
+
+    @Test
     fun `lav verdi begrenses ikke av øvre grense`() {
         assertThat(
             øvreGrense(

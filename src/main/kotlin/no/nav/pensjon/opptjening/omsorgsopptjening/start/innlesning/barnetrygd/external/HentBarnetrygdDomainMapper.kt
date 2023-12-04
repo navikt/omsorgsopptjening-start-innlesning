@@ -40,13 +40,11 @@ internal object HentBarnetrygdDomainMapper {
                         fom = nedreGrense(
                             måned = periode.stønadFom,
                             grense = filter.min()
-                        ), //begrens nedover til januar i år
-                        tom = periode.stønadTom?.let {
-                            øvreGrense(
-                                måned = it,
-                                grense = filter.max()
-                            )
-                        } ?: filter.max(),//begrens oppover til desember år+1 }
+                        ),
+                        tom = øvreGrense(
+                            måned = periode.stønadTom,
+                            grense = filter.max()
+                        ),
                         omsorgstype = when (periode.delingsprosentYtelse) {
                             DelingsprosentYtelse.FULL -> Omsorgstype.FULL_BARNETRYGD
                             DelingsprosentYtelse.DELT -> Omsorgstype.DELT_BARNETRYGD

@@ -42,6 +42,7 @@ object HentBarnetrygdResponseHandler {
                                         barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),
                                         rådataFraKilde = RådataFraKilde(
                                             mapOf(
+                                                "fnr" to request.ident,
                                                 "fom" to request.fraDato,
                                                 "barnetrygd" to "${response.body}"
                                             ).toMap()
