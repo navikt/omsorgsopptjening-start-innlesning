@@ -31,10 +31,8 @@ class BarnetrygdmottakerRepository(
 
     fun insertBatch(barnetrygdmottaker: List<Barnetrygdmottaker.Transient>) {
         jdbcTemplate.batchUpdate(
-            """with btm as (insert into barnetrygdmottaker (ident, correlation_id, innlesing_id) 
-                |values (:ident, :correlation_id, :innlesing_id) returning id as btm_id) 
-                |insert into barnetrygdmottaker_status (id, innlesing_id, status, status_type, karantene_til, statushistorikk) 
-                |values ((select btm_id from btm), :innlesing_id, to_jsonb(:status::jsonb), :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
+            """insert into barnetrygdmottaker (ident, correlation_id, innlesing_id, status, status_type, karantene_til, statushistorikk)
+             | values (:ident, :correlation_id, :innlesing_id, to_jsonb(:status::jsonb), :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
             barnetrygdmottaker
                 .map {
                     mapOf(
@@ -60,7 +58,7 @@ class BarnetrygdmottakerRepository(
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
         jdbcTemplate.update(
-            """update barnetrygdmottaker_status 
+            """update barnetrygdmottaker 
                 |set status = to_jsonb(:status::jsonb), 
                 | statushistorikk = to_jsonb(:statushistorikk::jsonb) ,
                 | status_type = :status_type,
@@ -94,12 +92,10 @@ class BarnetrygdmottakerRepository(
 
     fun find(id: UUID): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
-            """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år
+            """select b.*, i.id as innlesing_id, i.år
                 | from barnetrygdmottaker b
-                | join barnetrygdmottaker_status bs on b.id = bs.id
                 | join innlesing i on i.id = b.innlesing_id
-                | where b.id = :id
-                | and bs.id = :id""".trimMargin(),
+                | where b.id = :id""".trimMargin(),
             mapOf<String, Any>(
                 "id" to id
             ),
@@ -109,7 +105,10 @@ class BarnetrygdmottakerRepository(
 
     fun finnAlle(id: InnlesingId): List<Barnetrygdmottaker.Mottatt> {
         return jdbcTemplate.query(
-            """select b.*, bs.statushistorikk, i.id as innlesing_id, i.år from barnetrygdmottaker b join barnetrygdmottaker_status bs on b.id = bs.id join innlesing i on i.id = b.innlesing_id where i.id = :id""",
+            """select b.*, i.id as innlesing_id, i.år
+                | from barnetrygdmottaker b
+                | join innlesing i on i.id = b.innlesing_id
+                | where i.id = :id""".trimMargin(),
             mapOf<String, Any>(
                 "id" to id.toString()
             ),
@@ -126,12 +125,12 @@ class BarnetrygdmottakerRepository(
         val now = Instant.now(clock).toString()
         println("finnNesteKlarTilBehandling: now=$now")
         return jdbcTemplate.queryForList(
-            """ select bs.id 
-            | from barnetrygdmottaker_status bs
-            | where bs.status_type = 'Klar'
-            | and bs.innlesing_id = :innlesingId
-            | order by bs.id asc
-            | fetch first :antall rows only for update of bs skip locked
+            """ select id 
+            | from barnetrygdmottaker
+            | where status_type = 'Klar'
+            | and innlesing_id = :innlesingId
+            | order by id asc
+            | fetch first :antall rows only for update skip locked
            """.trimMargin(),
             mapOf(
                 "now" to now,
@@ -146,14 +145,14 @@ class BarnetrygdmottakerRepository(
         val now = Instant.now(clock).toString()
         println("finnNesteKlarForRetry: now=$now")
         return jdbcTemplate.queryForList(
-            """select bs.id
-               | from barnetrygdmottaker_status bs
-               | where bs.status_type = 'Retry' 
-               |and bs.karantene_til < (:now)::timestamptz
-               | and bs.karantene_til is not null 
-               | and bs.innlesing_id = :innlesingId 
+            """select id
+               | from barnetrygdmottaker
+               | where status_type = 'Retry' 
+               |and karantene_til < (:now)::timestamptz
+               | and karantene_til is not null 
+               | and innlesing_id = :innlesingId 
                | order by karantene_til asc 
-               | fetch first :antall rows only for update of bs skip locked
+               | fetch first :antall rows only for update skip locked
            """.trimMargin(),
             mapOf(
                 "now" to now,
@@ -172,10 +171,9 @@ class BarnetrygdmottakerRepository(
         return jdbcTemplate.queryForObject(
             """select count(*) 
              | from barnetrygdmottaker b
-             | join barnetrygdmottaker_status bs on b.id = bs.id
              | join innlesing i on i.id = b.innlesing_id
              | where i.id = :innlesingId 
-             | and bs.status_type = :status""".trimMargin(),
+             | and b.status_type = :status""".trimMargin(),
             mapOf(
                 "now" to Instant.now(clock).toString(),
                 "innlesingId" to innlesingId.toString(),
@@ -189,10 +187,9 @@ class BarnetrygdmottakerRepository(
         val name = kclass.simpleName!!
         return jdbcTemplate.queryForObject(
             """select count(*) 
-                |from barnetrygdmottaker b, barnetrygdmottaker_status bs, innlesing i
-                |where b.id = bs.id 
-                |and b.innlesing_id = i.id 
-                |and (bs.status->>'type' = :status """.trimMargin(),
+                |from barnetrygdmottaker b, innlesing i
+                |where b.innlesing_id = i.id 
+                |and b.status_type = :status""".trimMargin(),
             mapOf(
                 "now" to Instant.now(clock).toString(),
                 "status" to name
@@ -204,14 +201,14 @@ class BarnetrygdmottakerRepository(
     fun printTables() {
         jdbcTemplate.query(
             """select id, status_type, statushistorikk
-                |from barnetrygdmottaker_status bs""".trimMargin(),
+                |from barnetrygdmottaker""".trimMargin(),
             PrintMapper()
         )
     }
 
     internal class PrintMapper : RowMapper<String> {
         override fun mapRow(rs: ResultSet, rowNum: Int): String {
-            for (i in 1 ..  rs.metaData.columnCount) {
+            for (i in 1..rs.metaData.columnCount) {
                 println("${rs.metaData.getColumnName(i)} : ${rs.getObject(i)}")
             }
             return "hello"
@@ -224,17 +221,11 @@ class BarnetrygdmottakerRepository(
         return jdbcTemplate.update(
             //language=postgres-psql
             """
-            with feilede as (
-                select bs.id as bsid, bs.statushistorikk as bsh from barnetrygdmottaker b
-                join barnetrygdmottaker_status bs on bs.id = b.id
-                where b.innlesing_id = '$innlesingId'
-                and bs.status->>'type' = 'Feilet'
-            )
-            update barnetrygdmottaker_status set
-                status = '$nyStatus'::jsonb,
-                statushistorikk = bsh || '$nyStatus'::jsonb,
-                status_type = 'Klar'
-            from feilede where id = bsid
+            update barnetrygdmottaker 
+             set status = '$nyStatus'::jsonb,
+             statushistorikk = statushistorikk || '$nyStatus'::jsonb,
+             status_type = 'Klar'
+             where innlesing_id = '$innlesingId' and status_type = 'Feilet'
         """.trimIndent(),
             emptyMap<String, Any>()
         )
