@@ -84,11 +84,27 @@ class BarnetrygdmottakerRepository(
         )
     }
 
-    fun finnNesteTilBehandling(innlesingId: InnlesingId, antall: Int): List<Barnetrygdmottaker.Mottatt> {
-        val id: List<UUID> = finnNesteKlarTilBehandling(innlesingId, antall).ifEmpty { finnNesteForRetry(innlesingId, antall) }
-        return id.map { find(it)!! }
+    fun finnNesteTilBehandling(innlesingId: InnlesingId, antall: Int): Locked {
+        val lockId = UUID.randomUUID()
+        val id: List<UUID> =
+            finnNesteKlarTilBehandling(lockId, innlesingId, antall).ifEmpty {
+                finnNesteForRetry(
+                    lockId,
+                    innlesingId,
+                    antall
+                )
+            }
+        return Locked(lockId, id.map { find(it)!! })
     }
 
+    fun frigi(locked: Locked) {
+        jdbcTemplate.update(
+            """update barnetrygdmottaker set lockId = null, lockTime = null where lockId = :lockId""",
+            mapOf<String, Any>(
+                "lockId" to locked.lockId,
+            )
+        )
+    }
 
     fun find(id: UUID): Barnetrygdmottaker.Mottatt? {
         return jdbcTemplate.query(
@@ -121,43 +137,65 @@ class BarnetrygdmottakerRepository(
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en
      * annen connection (pod) så lenge transaksjonen lever.
      */
-    fun finnNesteKlarTilBehandling(innlesingId: InnlesingId, antall: Int): List<UUID> {
+    fun finnNesteKlarTilBehandling(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
         println("finnNesteKlarTilBehandling: now=$now")
-        return jdbcTemplate.queryForList(
-            """ select id 
-            | from barnetrygdmottaker
-            | where status_type = 'Klar'
-            | and innlesing_id = :innlesingId
-            | order by id asc
-            | fetch first :antall rows only for update skip locked
+        jdbcTemplate.update(
+            """update barnetrygdmottaker set lockId = :lockId, lockTime = :now::timestamptz
+                | where id in (
+                | select id 
+                | from barnetrygdmottaker
+                | where status_type = 'Klar'
+                | and innlesing_id = :innlesingId
+                | and lockId is null
+                | order by id asc
+                | fetch first :antall rows only for update skip locked)
            """.trimMargin(),
             mapOf(
                 "now" to now,
                 "innlesingId" to innlesingId.toUUID().toString(),
-                "antall" to antall
+                "antall" to antall,
+                "lockId" to lockId,
+            ),
+        )
+
+        return jdbcTemplate.queryForList(
+            """select id from barnetrygdmottaker where lockId = :lockId""".trimMargin(),
+            mapOf(
+                "lockId" to lockId
             ),
             UUID::class.java
         )
     }
 
-    fun finnNesteForRetry(innlesingId: InnlesingId, antall: Int): List<UUID> {
+    fun finnNesteForRetry(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
         println("finnNesteKlarForRetry: now=$now")
-        return jdbcTemplate.queryForList(
-            """select id
+        jdbcTemplate.update(
+            """update barnetrygdmottaker
+               |set lockId = :lockId, lockTime = :now::timestamptz
+               |where id in (
+               |select id
                | from barnetrygdmottaker
                | where status_type = 'Retry' 
                |and karantene_til < (:now)::timestamptz
                | and karantene_til is not null 
-               | and innlesing_id = :innlesingId 
+               | and innlesing_id = :innlesingId
+               | and lockId is null
                | order by karantene_til asc 
-               | fetch first :antall rows only for update skip locked
+               | fetch first :antall rows only for update skip locked)
            """.trimMargin(),
             mapOf(
                 "now" to now,
                 "innlesingId" to innlesingId.toUUID().toString(),
-                "antall" to antall
+                "antall" to antall,
+                "lockId" to lockId,
+            ),
+        )
+        return jdbcTemplate.queryForList(
+            """select id from barnetrygdmottaker where lockId = :lockId""",
+            mapOf(
+                "lockId" to lockId,
             ),
             UUID::class.java
         )
@@ -245,4 +283,6 @@ class BarnetrygdmottakerRepository(
             )
         }
     }
+
+    data class Locked(val lockId: UUID, val data: List<Barnetrygdmottaker.Mottatt>)
 }

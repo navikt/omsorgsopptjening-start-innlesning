@@ -56,79 +56,81 @@ class BarnetrygdmottakerService(
     }
 
     fun processForInnlesingId(innlesingId: InnlesingId): List<Barnetrygdmottaker>? {
-        val barnetrygdmottaker = transactionTemplate.execute {
-            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId, 10).map { barnetrygdmottaker ->
-                Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
-                    Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
-                        try {
-                            log.info("Start prosessering")
-                            barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
+        val låsteTilBehandling = transactionTemplate.execute {
+            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId, 10)
+        }
+        try {
+            val barnetrygdmottaker: List<Barnetrygdmottaker.Mottatt?>? =
+                låsteTilBehandling?.data?.map { barnetrygdmottaker ->
+                    Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
+                        Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
+                            try {
+                                log.info("Start prosessering")
+                                transactionTemplate.execute {
+                                    barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
 
-                                val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
+                                        val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
 
-                                val rådata = Rådata()
+                                        val rådata = Rådata()
 
-                                val barnetrygdResponse = client.hentBarnetrygd(
-                                    ident = barnetrygdmottaker.ident,
-                                    filter = filter,
-                                ).also {
-                                    rådata.leggTil(it.rådataFraKilde)
-                                }
+                                        val barnetrygdResponse = client.hentBarnetrygd(
+                                            ident = barnetrygdmottaker.ident,
+                                            filter = filter,
+                                        ).also {
+                                            rådata.leggTil(it.rådataFraKilde)
+                                        }
 
-                                val hjelpestønad = barnetrygdResponse.barnetrygdsaker
-                                    .associateBy { it.omsorgsyter }
-                                    .mapValues { (_, persongrunnlag) ->
-                                        val hjelpestønad = hjelpestønadService.hentHjelpestønad(
-                                            persongrunnlag = persongrunnlag,
-                                            filter = filter
-                                        ).onEach { rådata.leggTil(it.second) }
+                                        val hjelpestønad = barnetrygdResponse.barnetrygdsaker
+                                            .associateBy { it.omsorgsyter }
+                                            .mapValues { (_, persongrunnlag) ->
+                                                val hjelpestønad = hjelpestønadService.hentHjelpestønad(
+                                                    persongrunnlag = persongrunnlag,
+                                                    filter = filter
+                                                ).onEach { rådata.leggTil(it.second) }
 
-                                        persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
+                                                persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
+                                            }
+                                            .map { it.value }
+
+                                        kafkaProducer.send(
+                                            createKafkaMessage(
+                                                barnetrygdmottaker = barnetrygdmottaker,
+                                                persongrunnlag = hjelpestønad,
+                                                rådata = rådata,
+                                            )
+                                        ).get()
+
+                                        barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
+
+                                        log.info("Melding prosessert")
                                     }
-                                    .map { it.value }
-
-                                kafkaProducer.send(
-                                    createKafkaMessage(
-                                        barnetrygdmottaker = barnetrygdmottaker,
-                                        persongrunnlag = hjelpestønad,
-                                        rådata = rådata,
-                                    )
-                                ).get()
-
-                                barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
-
-                                log.info("Melding prosessert")
-                            }
-                        } catch (ex: NoClassDefFoundError) {
-                            log.error("Feil ved prosessering av melding", ex)
-                            throw ex
-                        } catch (ex: OutOfMemoryError) {
-                            log.error("Feil ved prosessering av melding", ex)
-                            throw ex
-                        } catch (ex: KafkaException) {
-                            log.error("Feil ved prosessering av melding", ex)
-                            throw ex
-                        } catch (ex: SQLException) {
-                            log.error("Feil ved prosessering av melding", ex)
-                            throw ex
-                        } catch (ex: Throwable) {
-                            log.error("Fikk feil ved prosessering av melding", ex)
-                            barnetrygdmottaker.retry(ex.stackTraceToString()).let {
-                                if (it.status is Barnetrygdmottaker.Status.Feilet) {
-                                    log.error("Gir opp videre prosessering av melding")
                                 }
-                                barnetrygdmottakerRepository.updateStatus(it)
+                            } catch (ex: Throwable) {
+                                log.error("Fikk feil ved prosessering av melding", ex)
+                                try {
+                                    transactionTemplate.execute {
+                                        barnetrygdmottaker.retry(ex.stackTraceToString()).let {
+                                            if (it.status is Barnetrygdmottaker.Status.Feilet) {
+                                                log.error("Gir opp videre prosessering av melding")
+                                            }
+                                            barnetrygdmottakerRepository.updateStatus(it)
+                                        }
+                                    }
+                                    null
+                                } catch (ex: Throwable) {
+                                    log.error("Feil ved oppdatering av status til retry", ex)
+                                    null
+                                }
+                            } finally {
+                                log.info("Slutt prosessering")
                             }
-                            null
-                        } finally {
-                            log.info("Slutt prosessering")
                         }
                     }
                 }
-            }
+            return barnetrygdmottaker?.filterNotNull()?.ifEmpty { null }
+        } finally {
+            låsteTilBehandling?.let { barnetrygdmottakerRepository.frigi(it) }
         }
-        // nonFatalException?.let { ex -> throw ex }
-        return barnetrygdmottaker?.filterNotNull()?.ifEmpty { null }
     }
 
     private fun createKafkaMessage(

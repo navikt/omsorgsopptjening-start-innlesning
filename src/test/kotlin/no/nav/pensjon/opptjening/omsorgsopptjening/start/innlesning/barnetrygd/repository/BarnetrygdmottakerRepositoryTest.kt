@@ -94,7 +94,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.updateStatus(mottaker.retry("noe gikk gærnt"))
 
-        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1)).isEmpty() //2
+        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1).data).isEmpty() //2
         assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)) //3
     }
 
@@ -112,26 +112,18 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        //krev ny transaksjon slik at det opprettes ny connection
-        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW)
-
         transactionTemplate.execute {
             //låser den aktuelle raden for denne transaksjonens varighet
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5))
+            val locked1 = barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)
+            val locked2 = barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)
+            barnetrygdmottakerRepository.frigi(locked1)
+            val locked3 = barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)
+            barnetrygdmottakerRepository.frigi(locked2)
+            barnetrygdmottakerRepository.frigi(locked3)
 
-            //opprett ny transaksjon mens den forrige fortsatt lever
-            transactionTemplate.execute {
-                //skal ikke finne noe siden raden er låst pga "select for update skip locked"
-                assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1)).isEmpty()
-            }
-            //fortsatt samme transaksjon
-            Assertions.assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5))
-        } //rad ikke låst lenger ved transaksjon slutt
-
-
-        //ny transaksjon finner raden da den ikke lenger er låst
-        transactionTemplate.execute {
-            assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)).hasSize(1)
+            assertThat(locked1.data).isNotEmpty()
+            assertThat(locked2.data).isEmpty()
+            assertThat(locked3.data).isNotEmpty()
         }
     }
 
