@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFr
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.periode.Periode
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HentHjelpestønadResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadClient
@@ -27,23 +28,42 @@ class HjelpestønadService(
                 fom = filter.min(),
                 tom = filter.max()
             ).let { response ->
-                response.vedtak.map { vedtak ->
-                    PersongrunnlagMelding.Hjelpestønadperiode(
-                        fom = nedreGrense(
-                            måned = vedtak.fom,
-                            grense = filter.min()
-                        ),
-                        tom = øvreGrense(
-                            måned = vedtak.tom,
-                            grense = filter.max()
-                        ),
-                        omsorgstype = when (vedtak.omsorgstype) {
-                            HjelpestønadType.FORHØYET_SATS_3 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
-                            HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4
-                        },
-                        omsorgsmottaker = vedtak.ident,
-                        kilde = Kilde.INFOTRYGD,
+                response.vedtak.mapNotNull { vedtak ->
+                    val fom = nedreGrense(
+                        måned = vedtak.fom,
+                        grense = filter.min()
                     )
+                    val tom = øvreGrense(
+                        måned = vedtak.tom,
+                        grense = filter.max()
+                    )
+
+                    val tomPeriode = Periode(fom, tom).antallMoneder() == 0
+
+                    when (tomPeriode) {
+                        true -> {
+                            null
+                        }
+
+                        false -> {
+                            PersongrunnlagMelding.Hjelpestønadperiode(
+                                fom = nedreGrense(
+                                    måned = vedtak.fom,
+                                    grense = filter.min()
+                                ),
+                                tom = øvreGrense(
+                                    måned = vedtak.tom,
+                                    grense = filter.max()
+                                ),
+                                omsorgstype = when (vedtak.omsorgstype) {
+                                    HjelpestønadType.FORHØYET_SATS_3 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
+                                    HjelpestønadType.FORHØYET_SATS_4 -> Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_4
+                                },
+                                omsorgsmottaker = vedtak.ident,
+                                kilde = Kilde.INFOTRYGD,
+                            )
+                        }
+                    }
                 } to response.rådataFraKilde
             }
         }
