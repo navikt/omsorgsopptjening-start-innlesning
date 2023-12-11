@@ -11,15 +11,13 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.KafkaException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
-import java.sql.SQLException
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class BarnetrygdmottakerService(

@@ -139,7 +139,6 @@ class BarnetrygdmottakerRepository(
      */
     fun finnNesteKlarTilBehandling(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
-        println("finnNesteKlarTilBehandling: now=$now")
         jdbcTemplate.update(
             """update barnetrygdmottaker set lockId = :lockId, lockTime = :now::timestamptz
                 | where id in (
@@ -170,7 +169,6 @@ class BarnetrygdmottakerRepository(
 
     fun finnNesteForRetry(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
-        println("finnNesteKlarForRetry: now=$now")
         jdbcTemplate.update(
             """update barnetrygdmottaker
                |set lockId = :lockId, lockTime = :now::timestamptz
@@ -235,25 +233,7 @@ class BarnetrygdmottakerRepository(
             Long::class.java,
         )!!
     }
-
-    fun printTables() {
-        jdbcTemplate.query(
-            """select id, status_type, statushistorikk
-                |from barnetrygdmottaker""".trimMargin(),
-            PrintMapper()
-        )
-    }
-
-    internal class PrintMapper : RowMapper<String> {
-        override fun mapRow(rs: ResultSet, rowNum: Int): String {
-            for (i in 1..rs.metaData.columnCount) {
-                println("${rs.metaData.getColumnName(i)} : ${rs.getObject(i)}")
-            }
-            return "hello"
-        }
-    }
-
-
+    
     fun oppdaterFeiledeRaderTilKlar(innlesingId: UUID): Int {
         val nyStatus = serialize(Barnetrygdmottaker.Status.Klar())
         return jdbcTemplate.update(

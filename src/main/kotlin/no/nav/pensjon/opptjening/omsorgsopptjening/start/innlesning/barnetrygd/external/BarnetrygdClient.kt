@@ -36,7 +36,7 @@ class BarnetrygdClient(
 
     /**
      * Signaliserer til barnetrygd-systemet at de skal sende oss identen til alle mottakere av barnetrygd i året [ar]
-     * og fremover. Barnetrydmottakerne publiseres til topic [no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics.BARNETRYGDMOTTAKER].
+     * og fremover. Barnetrydmottakerne publiseres til topic \$BARNETRYGDMOTTAKERE_TOPIC.
      */
     fun bestillBarnetrygdmottakere(
         ar: Int

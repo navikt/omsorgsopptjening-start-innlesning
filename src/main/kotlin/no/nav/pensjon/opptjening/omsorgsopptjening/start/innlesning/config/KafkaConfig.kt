@@ -1,6 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaErrorHandler
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
@@ -18,8 +17,7 @@ import java.io.Serializable
 @Configuration
 @Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
 class KafkaConfig(
-    @Value("\${kafka.brokers}") private val aivenBootstrapServers: String,
-    private val errorHandler: BarnetrygdmottakerKafkaErrorHandler
+    @Value("\${kafka.brokers}") private val aivenBootstrapServers: String
 ) {
     @Bean
     @Profile("dev-gcp", "prod-gcp")

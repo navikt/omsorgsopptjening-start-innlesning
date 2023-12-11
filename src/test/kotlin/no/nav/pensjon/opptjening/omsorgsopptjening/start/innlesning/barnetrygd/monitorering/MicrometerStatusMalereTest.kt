@@ -89,7 +89,6 @@ class MicrometerStatusMalereTest {
         val okCount = registry.get("pensjonopptjening_applikasjonsstatus_ok").gauge().value().toInt()
         assertThat(okCount).isZero()
         val manglerCount = registry.get("pensjonopptjening_applikasjonsstatus_ukjent").gauge().value().toInt()
-        println("Mangler: $manglerCount")
         assertThat(manglerCount).isOne()
     }
 }

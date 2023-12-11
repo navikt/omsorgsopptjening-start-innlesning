@@ -6,7 +6,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -14,7 +13,6 @@ import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturnConsecutively
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Clock
 import java.time.Instant

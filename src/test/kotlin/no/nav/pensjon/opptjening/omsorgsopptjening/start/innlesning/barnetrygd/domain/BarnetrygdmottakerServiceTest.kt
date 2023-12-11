@@ -86,9 +86,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdService.process()
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also {
-                assertEquals(1, it.antallForsøk)
-                assertEquals(3, it.maxAntallForsøk)
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also { retry ->
+                assertEquals(1, retry.antallForsøk)
+                assertEquals(3, retry.maxAntallForsøk)
             }
         }
 
@@ -174,9 +174,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdService.process()
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                assertEquals(1, it.antallForsøk)
-                assertEquals(3, it.maxAntallForsøk)
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
+                assertEquals(1, retry.antallForsøk)
+                assertEquals(3, retry.maxAntallForsøk)
             }
         }
 
@@ -226,9 +226,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         barnetrygdService.process()
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                assertEquals(1, it.antallForsøk)
-                assertEquals(3, it.maxAntallForsøk)
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
+                assertEquals(1, retry.antallForsøk)
+                assertEquals(3, retry.maxAntallForsøk)
             }
         }
     }
@@ -300,21 +300,21 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         barnetrygdService.process()
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker1.id).also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                assertEquals(1, it.antallForsøk)
-                assertEquals(3, it.maxAntallForsøk)
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
+                assertEquals(1, retry.antallForsøk)
+                assertEquals(3, retry.maxAntallForsøk)
             }
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker2.id).also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                assertEquals(1, it.antallForsøk)
-                assertEquals(3, it.maxAntallForsøk)
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
+                assertEquals(1, retry.antallForsøk)
+                assertEquals(3, retry.maxAntallForsøk)
             }
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker3.id).also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                assertEquals(1, it.antallForsøk)
-                assertEquals(3, it.maxAntallForsøk)
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
+                assertEquals(1, retry.antallForsøk)
+                assertEquals(3, retry.maxAntallForsøk)
             }
         }
     }
@@ -444,9 +444,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             assertInstanceOf(Barnetrygdmottaker.Status.Ferdig::class.java, it!!.status)
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker2.id).also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also {
-                assertEquals(1, it.antallForsøk)
-                assertEquals(3, it.maxAntallForsøk)
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
+                assertEquals(1, retry.antallForsøk)
+                assertEquals(3, retry.maxAntallForsøk)
             }
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker3.id).also {

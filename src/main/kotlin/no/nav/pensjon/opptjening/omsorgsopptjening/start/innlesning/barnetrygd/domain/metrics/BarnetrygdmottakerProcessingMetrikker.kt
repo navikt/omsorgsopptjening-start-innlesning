@@ -16,15 +16,12 @@ class BarnetrygdmottakerProcessingMetrikker(registry: MeterRegistry) : MetricsMÃ
 
 
     override fun mÃ¥l(lambda: () -> List<Barnetrygdmottaker>?): List<Barnetrygdmottaker>? {
-        return timer.recordCallable(lambda)?.also {
-            println("$it")
-            it.forEach {
-                when (it.status) {
-                    is Barnetrygdmottaker.Status.Feilet -> antallFeilet.increment()
-                    is Barnetrygdmottaker.Status.Ferdig -> antallFerdig.increment()
-                    is Barnetrygdmottaker.Status.Klar -> antallKlar.increment()
-                    is Barnetrygdmottaker.Status.Retry -> antallRetry.increment()
-                }
+        return timer.recordCallable(lambda)?.onEach {
+            when (it.status) {
+                is Barnetrygdmottaker.Status.Feilet -> antallFeilet.increment()
+                is Barnetrygdmottaker.Status.Ferdig -> antallFerdig.increment()
+                is Barnetrygdmottaker.Status.Klar -> antallKlar.increment()
+                is Barnetrygdmottaker.Status.Retry -> antallRetry.increment()
             }
         }
     }
