@@ -29,6 +29,10 @@ object HentBarnetrygdResponseHandler {
                     else -> {
                         deserialize<FagsakListeWrapper>(response.body!!).let { wrapper ->
                             when {
+                                wrapper.fagsaker == null -> {
+                                    throw HentBarnetrygdException("Liste med barnetrygdsaker mangler")
+                                }
+
                                 wrapper.fagsaker.isEmpty() -> {
                                     throw HentBarnetrygdException("Liste med barnetrygdsaker er tom")
                                 }
@@ -71,7 +75,7 @@ data class HentBarnetrygdException(val msg: String) : RuntimeException(msg)
 
 
 private data class FagsakListeWrapper(
-    val fagsaker: List<BarnetrygdSak>
+    val fagsaker: List<BarnetrygdSak>?
 )
 
 internal data class BarnetrygdSak(

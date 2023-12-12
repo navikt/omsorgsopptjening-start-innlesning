@@ -149,6 +149,25 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         }
 
         @Test
+        fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok men uten liste`() {
+            Mdc.scopedMdc(CorrelationId.generate()) {
+                Mdc.scopedMdc(InnlesingId.generate()) {
+                    wiremock.`hent-barnetrygd ok uten fagsakfelt`()
+
+                    assertThrows<HentBarnetrygdException> {
+                        client.hentBarnetrygd(
+                            ident = "123",
+                            filter = GyldigÅrsintervallFilter(2020)
+                        )
+                    }.also {
+                        assertContains(it.msg, "Liste med barnetrygdsaker mangler")
+                    }
+                }
+            }
+        }
+
+
+        @Test
         fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok og saker mangler barnetrygdperioder`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
