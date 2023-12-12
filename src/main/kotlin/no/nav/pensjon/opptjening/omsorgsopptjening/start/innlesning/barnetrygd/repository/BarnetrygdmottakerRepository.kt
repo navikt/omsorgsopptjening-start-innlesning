@@ -233,19 +233,22 @@ class BarnetrygdmottakerRepository(
             Long::class.java,
         )!!
     }
-    
+
     fun oppdaterFeiledeRaderTilKlar(innlesingId: UUID): Int {
         val nyStatus = serialize(Barnetrygdmottaker.Status.Klar())
         return jdbcTemplate.update(
             //language=postgres-psql
             """
             update barnetrygdmottaker 
-             set status = '$nyStatus'::jsonb,
-             statushistorikk = statushistorikk || '$nyStatus'::jsonb,
+             set status = (:nyStatus::jsonb),
+             statushistorikk = statushistorikk || (:nyStatus::jsonb),
              status_type = 'Klar'
-             where innlesing_id = '$innlesingId' and status_type = 'Feilet'
+             where innlesing_id = :innlesingId and status_type = 'Feilet'
         """.trimIndent(),
-            emptyMap<String, Any>()
+            mapOf<String, Any>(
+                "nyStatus" to nyStatus,
+                "innlesingId" to innlesingId.toString(),
+            )
         )
     }
 
