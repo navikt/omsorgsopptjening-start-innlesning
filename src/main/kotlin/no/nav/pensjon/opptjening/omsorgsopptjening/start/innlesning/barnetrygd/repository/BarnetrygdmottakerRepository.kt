@@ -31,15 +31,14 @@ class BarnetrygdmottakerRepository(
 
     fun insertBatch(barnetrygdmottaker: List<Barnetrygdmottaker.Transient>) {
         jdbcTemplate.batchUpdate(
-            """insert into barnetrygdmottaker (ident, correlation_id, innlesing_id, status, status_type, karantene_til, statushistorikk)
-             | values (:ident, :correlation_id, :innlesing_id, to_jsonb(:status::jsonb), :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
+            """insert into barnetrygdmottaker (ident, correlation_id, innlesing_id, status_type, karantene_til, statushistorikk)
+             | values (:ident, :correlation_id, :innlesing_id, :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
             barnetrygdmottaker
                 .map {
                     mapOf(
                         "ident" to it.ident,
                         "correlation_id" to it.correlationId.toString(),
                         "innlesing_id" to it.innlesingId.toString(),
-                        "status" to serialize(it.status),
                         "status_type" to when (it.status) {
                             is Barnetrygdmottaker.Status.Feilet -> "Feilet"
                             is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
@@ -59,15 +58,13 @@ class BarnetrygdmottakerRepository(
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
         jdbcTemplate.update(
             """update barnetrygdmottaker 
-                |set status = to_jsonb(:status::jsonb), 
-                | statushistorikk = to_jsonb(:statushistorikk::jsonb) ,
+                |set statushistorikk = to_jsonb(:statushistorikk::jsonb) ,
                 | status_type = :status_type,
                 | karantene_til = :karantene_til::timestamptz
                 | where id = :id""".trimMargin(),
             MapSqlParameterSource(
                 mapOf<String, Any?>(
                     "id" to barnetrygdmottaker.id,
-                    "status" to serialize(barnetrygdmottaker.status),
                     "status_type" to when (barnetrygdmottaker.status) {
                         is Barnetrygdmottaker.Status.Feilet -> "Feilet"
                         is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
@@ -240,8 +237,7 @@ class BarnetrygdmottakerRepository(
             //language=postgres-psql
             """
             update barnetrygdmottaker 
-             set status = (:nyStatus::jsonb),
-             statushistorikk = statushistorikk || (:nyStatus::jsonb),
+             set statushistorikk = statushistorikk || (:nyStatus::jsonb),
              status_type = 'Klar'
              where innlesing_id = :innlesingId and status_type = 'Feilet'
         """.trimIndent(),
