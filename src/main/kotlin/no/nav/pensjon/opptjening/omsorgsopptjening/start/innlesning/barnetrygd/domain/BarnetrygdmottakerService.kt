@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.lang.reflect.UndeclaredThrowableException
 import java.time.Instant
 import java.util.*
 
@@ -103,8 +104,13 @@ class BarnetrygdmottakerService(
                                         log.info("Melding prosessert")
                                     }
                                 }
-                            } catch (ex: Throwable) {
-                                log.error("Fikk feil ved prosessering av melding", ex)
+                            } catch (outerEx: Throwable) {
+                                val ex = when (outerEx) {
+                                    is UndeclaredThrowableException -> outerEx.undeclaredThrowable
+                                    else -> outerEx
+                                }
+                                log.warn("Fikk feil ved prosessering av melding: ${ex::class.qualifiedName}")
+
                                 try {
                                     transactionTemplate.execute {
                                         barnetrygdmottaker.retry(ex.stackTraceToString()).let {
@@ -116,7 +122,7 @@ class BarnetrygdmottakerService(
                                     }
                                     null
                                 } catch (ex: Throwable) {
-                                    log.error("Feil ved oppdatering av status til retry", ex)
+                                    log.error("Feil ved oppdatering av status til retry: ${ex::class.qualifiedName}",)
                                     null
                                 }
                             } finally {

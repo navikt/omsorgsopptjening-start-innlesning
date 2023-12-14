@@ -8,6 +8,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetricsFeilmåling
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetrikker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.feilinfo.FeilinfoService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.junit.jupiter.api.Assertions.assertInstanceOf
@@ -47,6 +48,9 @@ class BarnetrygdmottakerKafkaListenerTest {
         @Autowired
         private lateinit var metrikkFeilmåling: BarnetrygdMottakerListenerMetricsFeilmåling
 
+        @Autowired
+        private lateinit var feilinfoService: FeilinfoService
+
         private val handler: BarnetrygdmottakerMessageHandler = mock()
         private val ack: Acknowledgment = mock()
         private val gyldigRecord: ConsumerRecord<String, String> = ConsumerRecord<String, String>(
@@ -76,7 +80,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at innlesingen ikke eksisterer kastes det en ny exception`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling, feilinfoService)
             whenever(handler.handle(any())).thenThrow(BarnetrygdInnlesingException.EksistererIkke("17de91e9-b01a-4d95-84bc-80630ded678e"))
             assertThrows<BarnetrygdInnlesingException.EksistererIkke> {
                 listener.poll(
@@ -90,7 +94,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at vi mottar en melding med ukjent dataformat kastes en ny exception`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling, feilinfoService)
 
             assertThrows<KafkaMeldingDeserialiseringException> {
                 listener.poll(
@@ -104,7 +108,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at innlesingen er i ugyldig tilstand kastes en ny exception som signaliserer at innlesingen skal invalideres`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling, feilinfoService)
 
             whenever(handler.handle(any())).thenThrow(
                 BarnetrygdInnlesingException.UgyldigTistand(
@@ -124,7 +128,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at det oppstår en ukjent feil ved prosessering av innlesingen kastes en ny exception som signaliserer at innlesingen skal invalideres`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling, feilinfoService)
 
             whenever(handler.handle(any())).thenThrow(
                 IncorrectUpdateSemanticsDataAccessException("something weird with the db")
