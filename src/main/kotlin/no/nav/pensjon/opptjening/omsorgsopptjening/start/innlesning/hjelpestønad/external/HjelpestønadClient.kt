@@ -34,7 +34,8 @@ class HjelpestønadClient(
     ): HentHjelpestønadResponse {
         return webClient
             .get()
-            .uri("/api/hjelpestonad?fnr=$fnr&fom=$fom&tom=$tom")
+            .uri("/api/hjelpestonad?fom=$fom&tom=$tom")
+            .header("fnr", fnr)
             .header(CorrelationId.identifier, Mdc.getCorrelationId().toString())
             .header(InnlesingId.identifier, Mdc.getInnlesingId().toString())
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
