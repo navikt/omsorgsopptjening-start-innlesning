@@ -76,7 +76,7 @@ spec:
     max: 8
   resources:
     limits:
-      cpu: "2"
+      cpu: 500m
       memory: 4096Mi
     requests:
       cpu: 100m
