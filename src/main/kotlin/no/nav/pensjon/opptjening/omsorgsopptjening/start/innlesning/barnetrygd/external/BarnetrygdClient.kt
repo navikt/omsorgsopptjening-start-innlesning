@@ -29,7 +29,7 @@ class BarnetrygdClient(
     @Qualifier("barnetrygdTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${BARNETRYGD_URL}") private val url: String,
     private val barnetrygdClientMetrikker: BarnetrygdClientMetrikker,
-    webClientBuilder: WebClient.Builder,git
+    webClientBuilder: WebClient.Builder,
 ) {
     private val webClient: WebClient = webClientBuilder.baseUrl(url).build()
 
