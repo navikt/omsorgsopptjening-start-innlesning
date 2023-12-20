@@ -30,8 +30,9 @@ class BarnetrygdClient(
     @Qualifier("barnetrygdTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${BARNETRYGD_URL}") private val url: String,
     private val barnetrygdClientMetrikker: BarnetrygdClientMetrikker,
+    webClientBuilder: WebClient.Builder,
 ) {
-    private val webClient: WebClient = WebClient.builder().baseUrl(url).build()
+    private val webClient: WebClient = webClientBuilder.baseUrl(url).build()
 
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdClient::class.java)

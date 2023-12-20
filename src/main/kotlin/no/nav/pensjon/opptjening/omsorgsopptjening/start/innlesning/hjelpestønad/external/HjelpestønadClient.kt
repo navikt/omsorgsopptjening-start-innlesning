@@ -24,8 +24,9 @@ import java.util.function.Predicate
 class HjelpestønadClient(
     @Qualifier("hjelpestonadTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${HJELPESTONAD_URL}") private val baseUrl: String,
+    webClientBuilder: WebClient.Builder,
 ) {
-    private val webClient: WebClient = WebClient.builder().baseUrl(baseUrl).build()
+    private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).build()
 
     internal fun hentHjelpestønad(
         fnr: String,
