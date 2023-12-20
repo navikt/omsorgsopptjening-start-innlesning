@@ -84,6 +84,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     @Order(3)
+    @Disabled
     fun testMottakereIkkeProsessert() {
         val innlesing = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(

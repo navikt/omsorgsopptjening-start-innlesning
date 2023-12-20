@@ -4,6 +4,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.metrics.BarnetrygdmottakerProcessingMetrikker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.metrics.BarnetrygdClientMetrikker
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -27,6 +29,7 @@ import java.util.function.Predicate
 class BarnetrygdClient(
     @Qualifier("barnetrygdTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${BARNETRYGD_URL}") private val url: String,
+    private val barnetrygdClientMetrikker: BarnetrygdClientMetrikker,
 ) {
     private val webClient: WebClient = WebClient.builder().baseUrl(url).build()
 
@@ -62,7 +65,15 @@ class BarnetrygdClient(
      * om eventuelle relaterte saker. En relatert sak er en annen person enn [ident] som har/har hatt barnetrygd for en/flere
      * av personene [ident] har/har hatt omsorg for.
      */
+
     fun hentBarnetrygd(
+        ident: String,
+        filter: GyldigÅrsintervallFilter
+    ): HentBarnetrygdResponse {
+        return barnetrygdClientMetrikker.mål { hentBarnetrygdInternal(ident, filter) }!!
+    }
+
+    fun hentBarnetrygdInternal(
         ident: String,
         filter: GyldigÅrsintervallFilter
     ): HentBarnetrygdResponse {

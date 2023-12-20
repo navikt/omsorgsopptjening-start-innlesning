@@ -6,6 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.Instant.now
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -52,8 +53,12 @@ class StatusService(
     }
 
     private fun mottakereIkkeProsessert(innlesing: BarnetrygdInnlesing, antallFerdigeMottakere: Long): Boolean {
+        val now = Clock.systemUTC().instant()
+        val behandlingsperiode = 1.hours.toJavaDuration()
         val forventetAntallIdentiteter = innlesing.forventetAntallIdentiteter
-        return if (forventetAntallIdentiteter == null) {
+        val gammelNokTilÅSjekke = innlesing.forespurtTidspunkt.plus(behandlingsperiode).isBefore(now)
+        return if (gammelNokTilÅSjekke) false
+        else if (forventetAntallIdentiteter == null) {
             log.error("Innlesing ${innlesing.id} mangler forventet antall mottakere")
             true
         } else {
@@ -61,7 +66,7 @@ class StatusService(
         }
     }
 
-    private fun harFeilededMottakere() : Boolean {
+    private fun harFeilededMottakere(): Boolean {
         return mottakerRepo.finnAntallMottakereMedStatus(Barnetrygdmottaker.Status.Feilet::class) > 0
     }
 
