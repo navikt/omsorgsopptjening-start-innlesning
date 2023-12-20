@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class HjelpestønadClientMetrikker(registry: MeterRegistry) : MetricsMåling<HentHjelpestønadResponse?> {
 
-    private val timer = registry.timer("henthjelpestønad", "tidsbruk", "hentet")
+    private val timer = registry.timer("henthjelpestonad", "tidsbruk", "hentet")
 
     override fun mål(lambda: () -> HentHjelpestønadResponse?): HentHjelpestønadResponse? {
         return timer.recordCallable(lambda)!!
