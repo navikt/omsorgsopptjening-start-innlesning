@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.metrics.HjelpestønadClientMetrikker
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -24,11 +25,20 @@ import java.util.function.Predicate
 class HjelpestønadClient(
     @Qualifier("hjelpestonadTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${HJELPESTONAD_URL}") private val baseUrl: String,
+    internal val hjelpestønadClientMetrikker: HjelpestønadClientMetrikker,
     webClientBuilder: WebClient.Builder,
 ) {
     private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).build()
 
     internal fun hentHjelpestønad(
+        fnr: String,
+        fom: LocalDate,
+        tom: LocalDate
+    ): HentHjelpestønadResponse {
+        return hjelpestønadClientMetrikker.mål { hentHjelpestønadInternal(fnr, fom, tom) }!!
+    }
+
+    private fun hentHjelpestønadInternal(
         fnr: String,
         fom: LocalDate,
         tom: LocalDate
@@ -78,12 +88,12 @@ class HjelpestønadClient(
 
 data class HentHjelpestønadException(val msg: String) : RuntimeException(msg)
 
-internal data class HentHjelpestønadResponse(
+data class HentHjelpestønadResponse(
     val vedtak: List<HjelpestønadVedtak>,
     val rådataFraKilde: RådataFraKilde
 )
 
-internal data class HjelpestønadVedtak(
+data class HjelpestønadVedtak(
     val id: Int,
     val ident: String,
     val fom: YearMonth,
@@ -91,7 +101,7 @@ internal data class HjelpestønadVedtak(
     val omsorgstype: HjelpestønadType
 )
 
-internal enum class HjelpestønadType {
+enum class HjelpestønadType {
     FORHØYET_SATS_3,
     FORHØYET_SATS_4;
 }
