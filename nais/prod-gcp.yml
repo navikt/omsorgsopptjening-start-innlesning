@@ -46,6 +46,8 @@ spec:
       value: teamfamilie.aapen-familie-ba-sak-identer-med-barnetrygd
     - name: BARNETRYGDMOTTAKERE_CONSUMER_GROUP
       value: omsorgsopptjening-start-innlesning
+  envFrom:
+    - secret: unleash-api-token
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.nav.no
@@ -53,6 +55,7 @@ spec:
     outbound:
       external:
         - host: omsorgsopptjening-hjelpestonad-db-proxy.prod-fss-pub.nais.io
+        - host: pensjonopptjening-unleash-api.nav.cloud.nais.io
       rules:
         - application: familie-ba-sak
           namespace: teamfamilie
