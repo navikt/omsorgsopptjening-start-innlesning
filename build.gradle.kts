@@ -16,6 +16,7 @@ val awaitilityVersion = "4.2.0"
 val wiremockVersion = "3.2.0"
 val micrometerRegistryPrometheusVersion = "1.11.5"
 val mockitoKotlinVersion = "5.1.0"
+val unleashVersion = "9.2.0"
 
 val snappyJavaVersion = "1.1.10.5"
 val snakeYamlVersion = "2.2"
@@ -63,6 +64,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
+    implementation("io.getunleash:unleash-client-java:$unleashVersion")
 
     // DB
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
