@@ -14,6 +14,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -168,6 +169,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
 
         @Test
+        @Disabled("restkjøring av prodsaker")
         fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok og saker mangler barnetrygdperioder`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {

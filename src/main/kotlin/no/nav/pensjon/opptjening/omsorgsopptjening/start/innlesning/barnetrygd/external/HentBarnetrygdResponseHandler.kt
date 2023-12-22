@@ -37,9 +37,18 @@ object HentBarnetrygdResponseHandler {
                                     throw HentBarnetrygdException("Liste med barnetrygdsaker er tom")
                                 }
 
+                                /*
+                                TODO(Tillater dette for å få kjørt ferdig en del rest-saker fra prodkjøringen.
+                                    Gejenstående tilfeller er en blanding av saker som ikke burde vært sendt til oss
+                                    i første omgang, og saker hvor relaterte saker ikke har noen perioder. Siden
+                                    det er fair å anta at noen av de sistnevnte er aktuell for godskriving, prøver vi
+                                    å behandle selv om det potensielt ikke eksisterer noen perioder på verken
+                                    bruker eller relatert.
+                                )
                                 wrapper.fagsaker.any { it.barnetrygdPerioder.isEmpty() } -> {
                                     throw HentBarnetrygdException("En eller flere av barnetrygdsakene mangler perioder")
                                 }
+                                */
 
                                 else -> {
                                     HentBarnetrygdResponse(

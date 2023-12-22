@@ -32,7 +32,7 @@ class BarnetrygdmottakerProcessingThread(
             try {
                 if (unleash.isEnabled(UnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)) {
                     barnetrygdmottakerProcessingMetrikker.mål {
-                        service.process() ?: run {
+                        service.process()?.let { null } ?: run {
                             Thread.sleep(1000)
                             null
                         }

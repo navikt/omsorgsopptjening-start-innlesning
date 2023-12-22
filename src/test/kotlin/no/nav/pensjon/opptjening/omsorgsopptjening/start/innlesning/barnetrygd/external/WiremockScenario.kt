@@ -85,6 +85,29 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
     )
 }
 
+fun WireMockExtension.`hent-barnetrygd ok - ingen perioder`(): StubMapping {
+    return this.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+            .withExpectedRequestHeadersHentBarnetryd()
+            .willReturn(
+                WireMock.ok()
+                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .withBody(
+                        """
+                            {
+                                "fagsaker": [
+                                    {
+                                        "fagsakEiersIdent":"12345678910",
+                                        "barnetrygdPerioder":[]
+                                    }
+                                ]
+                            }
+                        """.trimIndent()
+                    )
+            )
+    )
+}
+
 fun WireMockExtension.`hent-barnetrygd ok uten fagsaker`(): StubMapping {
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))

@@ -15,6 +15,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - ingen hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -514,6 +515,38 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             PersongrunnlagMelding.persongrunnlag.single().also { sak ->
                 assertEquals(1, sak.omsorgsperioder.size)
                 assertEquals(1, sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
+                assertEquals(0, sak.hjelpestønadsperioder.count())
+            }
+        }
+    }
+
+    @Test
+    fun `omsorgsgrunnlag kan sende både tom barnetrygd og hjelpestønad dersom ingen eksisterer`() {
+        val captor = argumentCaptor<ProducerRecord<String, String>> { }
+        given(kafkaTemplate.send(captor.capture())).willAnswer {
+            CompletableFuture.completedFuture(it.arguments[0])
+        }
+        given(clock.instant()).willReturn(Instant.now())
+
+        val innlesing = lagreFullførtInnlesing()
+
+        barnetrygdmottakerRepository.insert(
+            Barnetrygdmottaker.Transient(
+                ident = "12345678910",
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            )
+        )
+
+        wiremock.`hent-barnetrygd ok - ingen perioder`()
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        barnetrygdService.process()
+
+        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
+            PersongrunnlagMelding.persongrunnlag.single().also { sak ->
+                assertEquals(0, sak.omsorgsperioder.count())
+                assertEquals(0, sak.hjelpestønadsperioder.count())
             }
         }
     }
