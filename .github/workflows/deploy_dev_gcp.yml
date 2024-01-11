@@ -52,6 +52,6 @@ jobs:
         uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          RESOURCE: nais/dev-gcp.yml,nais/dev-gcp-q1.yml,nais/unleash-apitoken-dev-gcp.yml
+          RESOURCE: nais/dev-gcp.yml,nais/unleash-apitoken-dev-gcp.yml
           CLUSTER: dev-gcp
           IMAGE: ${{ env.IMAGE_GHCR }}
