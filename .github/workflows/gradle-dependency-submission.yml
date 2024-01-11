@@ -16,7 +16,7 @@ jobs:
     permissions: # The Dependency Submission API requires write permission
       contents: write
     steps:
-      # JAVA 17
+      # JAVA 21
       - name: 'Checkout'
         uses: actions/checkout@v4.1.1 # ratchet:actions/checkout@v3
       - name: 'Java 21'
