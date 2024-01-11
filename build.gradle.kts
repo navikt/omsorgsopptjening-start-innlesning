@@ -2,30 +2,30 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "1.0.65"
-val navTokenSupportVersion = "3.2.0"
+val navTokenSupportVersion = "4.0.3"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "7.4"
-val postgresqlVersion = "42.7.0"
+val postgresqlVersion = "42.7.1"
 val flywayCoreVersion = "9.22.3"
 val testcontainersVersion = "1.19.3"
 val jacksonVersion = "2.15.3"
 val springKafkaTestVersion = "3.0.11"
 val azureAdClient = "0.0.7"
-val assertjVersion = "3.24.2"
+val assertjVersion = "3.25.1"
 val awaitilityVersion = "4.2.0"
 val wiremockVersion = "3.2.0"
-val micrometerRegistryPrometheusVersion = "1.11.5"
-val mockitoKotlinVersion = "5.1.0"
+val micrometerRegistryPrometheusVersion = "1.12.2"
+val mockitoKotlinVersion = "5.2.1"
 val unleashVersion = "9.2.0"
 
 val snappyJavaVersion = "1.1.10.5"
 val snakeYamlVersion = "2.2"
 
 plugins {
-    kotlin("jvm") version "1.9.10"
-    kotlin("plugin.spring") version "1.9.10"
+    kotlin("jvm") version "1.9.22"
+    kotlin("plugin.spring") version "1.9.22"
     id("org.springframework.boot") version "3.1.5"
-    id("com.github.ben-manes.versions") version "0.49.0"
+    id("com.github.ben-manes.versions") version "0.50.0"
 }
 
 apply(plugin = "io.spring.dependency-management")
@@ -34,7 +34,7 @@ group = "no.nav.pensjon.opptjening"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -95,7 +95,7 @@ tasks.test {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }
 
