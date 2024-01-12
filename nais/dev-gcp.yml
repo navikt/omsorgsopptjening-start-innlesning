@@ -18,6 +18,8 @@ spec:
       claims:
         groups:
           - id: "7ef907b4-ec9f-47dd-ab41-4e54ba32ceb1" #AAD pensjonopptjening testgruppe
+  secureLogs:
+    enabled: true
   gcp:
     sqlInstances:
       - type: POSTGRES_14

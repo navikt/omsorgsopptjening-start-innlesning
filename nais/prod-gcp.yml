@@ -18,6 +18,8 @@ spec:
       claims:
         groups:
           - id: "abd710c7-b01d-48e6-98b9-83ff615edf26" #AAD nais-team-pensjonopptjening
+  secureLogs:
+    enabled: true
   gcp:
     sqlInstances:
       - type: POSTGRES_14
