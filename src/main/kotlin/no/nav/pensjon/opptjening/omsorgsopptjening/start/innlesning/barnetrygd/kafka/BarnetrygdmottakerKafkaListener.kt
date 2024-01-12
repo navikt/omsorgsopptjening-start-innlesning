@@ -8,7 +8,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetricsFeilmåling
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetrikker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.feilinfo.FeilinfoService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -22,11 +21,11 @@ class BarnetrygdmottakerKafkaListener(
     private val handler: BarnetrygdmottakerMessageHandler,
     private val barnetrygdMottakerListenerMetrikker: BarnetrygdMottakerListenerMetrikker,
     private val barnetrygdMottakerListenerMetricsFeilmåling: BarnetrygdMottakerListenerMetricsFeilmåling,
-    private val feilinfoService: FeilinfoService,
 ) {
 
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdmottakerKafkaListener::class.java)
+        private val secureLog = LoggerFactory.getLogger("secure")
     }
 
     @KafkaListener(
@@ -42,8 +41,8 @@ class BarnetrygdmottakerKafkaListener(
             barnetrygdMottakerListenerMetrikker.mål { consumerRecord.deserialiser() }
         } catch (ex: KafkaMeldingDeserialiseringException) {
             barnetrygdMottakerListenerMetricsFeilmåling.målfeil {}
-            feilinfoService.lagre("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding ${ex.consumerRecord}, exception: $ex")
-            log.info("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding")
+            log.error("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding")
+            secureLog.error("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding", ex)
             throw ex
         }
 
@@ -65,7 +64,7 @@ class BarnetrygdmottakerKafkaListener(
             throw InvalidateOnExceptionWrapper(listOf(ex.id), ex)
         } catch (ex: Throwable) {
             log.info("Ukjent feil ved prosessering av melding, exception: ${ex::class.simpleName}. Invaliderer melding dersom problemet vedvarer etter retries.")
-            feilinfoService.lagre("Ukjent feil ved prosessering av melding, exception: ${ex.stackTraceToString()}")
+            secureLog.info("Ukjent feil ved prosessering av melding, exception: ${ex::class.simpleName}. Invaliderer melding dersom problemet vedvarer etter retries.", ex)
             //TODO dersom vi leser fra to forskjellige innlesinger vil begge være med i listen her siden vi ikke helt vet hvilken som feilet - sjekker status i InnlesingInvalidatingRetryListener - finne en bedre løsning?
             throw InvalidateOnExceptionWrapper(kafkaMelding.groupBy { it.requestId.toString() }.keys.toList(), ex)
         }
