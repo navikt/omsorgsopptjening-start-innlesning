@@ -47,6 +47,22 @@ sealed class Barnetrygdmottaker {
         fun retry(melding: String): Mottatt {
             return copy(statushistorikk = statushistorikk + status.retry(melding))
         }
+
+        fun avsluttet(melding: String): Mottatt {
+            return copy(statushistorikk = statushistorikk + status.avsluttet(melding))
+        }
+
+        fun stoppet(melding: String): Mottatt {
+            return copy(statushistorikk = statushistorikk + status.avsluttet(melding))
+        }
+
+        fun klar(): Mottatt {
+            return if (status is Status.Klar) {
+                this
+            } else {
+                copy(statushistorikk = statushistorikk + status.klar())
+            }
+        }
     }
 
     @JsonTypeInfo(
@@ -62,6 +78,18 @@ sealed class Barnetrygdmottaker {
 
         open fun retry(melding: String): Status {
             throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Retry")
+        }
+
+        open fun avsluttet(melding: String): Status {
+            throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Avsluttet")
+        }
+
+        open fun klar(): Status {
+            throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Klar")
+        }
+
+        open fun stoppet(): Status {
+            throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Stoppet")
         }
 
         @JsonTypeName("Klar")
@@ -113,6 +141,20 @@ sealed class Barnetrygdmottaker {
                     }
                 }
             }
+        }
+
+        @JsonTypeName("Avsluttet")
+        data class Avsluttet(
+            val tidspunkt: Instant = Instant.now(),
+            val begrunnelse: String,
+        ) {
+        }
+
+        @JsonTypeName("Stoppet")
+        data class Stoppet(
+            val tidspunkt: Instant = Instant.now(),
+            val begrunnelse: String,
+        ) {
         }
 
         @JsonTypeName("Feilet")
