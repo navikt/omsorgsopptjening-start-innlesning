@@ -105,11 +105,11 @@ sealed class Barnetrygdmottaker {
             }
 
             override fun avsluttet(melding: String): Status {
-                return Avsluttet(melding = melding)
+                return Avsluttet(begrunnelse = melding)
             }
 
             override fun stoppet(melding: String): Status {
-                return Avsluttet(melding = melding)
+                return Stoppet(begrunnelse = melding)
             }
         }
 
@@ -151,11 +151,11 @@ sealed class Barnetrygdmottaker {
             }
 
             override fun avsluttet(melding: String): Status {
-                return Avsluttet(melding = melding)
+                return Avsluttet(begrunnelse = melding)
             }
 
             override fun stoppet(melding: String): Status {
-                return Avsluttet(melding = melding)
+                return Stoppet(begrunnelse = melding)
             }
 
             override fun klar(): Status {
@@ -166,7 +166,7 @@ sealed class Barnetrygdmottaker {
         @JsonTypeName("Avsluttet")
         data class Avsluttet(
             val tidspunkt: Instant = Instant.now(),
-            val melding: String,
+            val begrunnelse: String,
         ) : Status() {
         }
 
@@ -176,7 +176,7 @@ sealed class Barnetrygdmottaker {
             val begrunnelse: String,
         ) : Status() {
             override fun avsluttet(melding: String): Status {
-                return Avsluttet(melding = melding)
+                return Avsluttet(begrunnelse = melding)
             }
 
             override fun klar(): Status {
@@ -189,11 +189,11 @@ sealed class Barnetrygdmottaker {
             val tidspunkt: Instant = Instant.now(),
         ) : Status() {
             override fun avsluttet(melding: String): Status {
-                return Avsluttet(melding = melding)
+                return Avsluttet(begrunnelse = melding)
             }
 
             override fun stoppet(melding: String): Status {
-                return Avsluttet(melding = melding)
+                return Stoppet(begrunnelse = melding)
             }
 
             override fun klar(): Status {
