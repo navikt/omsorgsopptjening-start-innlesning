@@ -28,6 +28,7 @@ class AdminWebApi(
         @RequestParam("uuidliste") uuidString: String,
         @RequestParam("begrunnelse") begrunnelse: String? = null
     ): ResponseEntity<String> {
+        log.info("admin: stopper meldinger")
         val uuids = try {
             parseUUIDListe(uuidString)
         } catch (ex: Throwable) {
@@ -48,6 +49,7 @@ class AdminWebApi(
             val respons = responsStrenger.joinToString("\n")
             return ResponseEntity.ok(respons)
         } catch (ex: Throwable) {
+            secureLog.info("admin:stopp feilet", ex)
             return ResponseEntity.internalServerError()
                 .contentType(MediaType.TEXT_PLAIN)
                 .body("Feil ved prosessering: $ex")

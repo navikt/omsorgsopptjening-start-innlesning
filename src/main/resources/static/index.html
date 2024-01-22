@@ -10,7 +10,7 @@
     <script>
         function init() {
             let tjeneste = localStorage.getItem("tjeneste");
-            let hjelpetekst_skjult = localStorage.getItem("hjelpetekst") == "hidden"
+            let hjelpetekst_skjult = localStorage.getItem("hjelpetekst") === "hidden"
             if (tjeneste) {
                 document.getElementById("tjeneste").value = tjeneste
             } else {
@@ -56,6 +56,7 @@
 
         function oppdater_miljo() {
             let env = document.getElementById("environmentLabel")
+
             function setColor(bgColor, textColor) {
                 env.style.backgroundColor = bgColor
                 env.style.color = textColor
@@ -67,20 +68,20 @@
 
             switch (document.location.hostname) {
                 case "localhost":
-                    setColor("darkblue","white")
+                    setColor("darkblue", "white")
                     setText("Localhost")
                     break;
-                case "omsorgsopptjening-bestem-pensjonsopptjening.intern.dev.nav.no":
-                    setColor("lightgreen","black")
+                case "omsorgsopptjening-start-innlesning.intern.dev.nav.no":
+                    setColor("lightgreen", "black")
                     setText("Test")
                     break;
-                case "omsorgsopptjening-bestem-pensjonsopptjening.intern.nav.no":
-                    setColor("red","yellow")
+                case "omsorgsopptjening-start-innlesning.intern.nav.no":
+                    setColor("red", "yellow")
                     setText("PRODUKSJON")
                     break;
                 default:
-                    setColor("yellow","black")
-                    setText("ukjent domene: "+document.location.hostname)
+                    setColor("yellow", "black")
+                    setText("ukjent domene: " + document.location.hostname)
             }
         }
 
@@ -101,7 +102,7 @@
                 hjelpetekst.hidden = true
                 button.textContent = "Vis hjelpetekst"
             }
-            localStorage.setItem("hjelpetekst", hjelpetekst.hidden?"hidden":"shown")
+            localStorage.setItem("hjelpetekst", hjelpetekst.hidden ? "hidden" : "shown")
         }
     </script>
 </head>
@@ -117,12 +118,16 @@
 <br>
 <br>
 
-<div id="hjelpetekst" class="hjelpetekst" >
-<p>
+<div id="hjelpetekst" class="hjelpetekst">
+    <p>
     <ul>
-    <li>Begrunnelse har ingen funksjonell betydning, men tas vare på i databasen som dokumentasjon</li>
-    <li>Hver UUID vil behandles i separate transaksjoner, og resultatet (inkludert feil pga exceptions) vil returneres tilbake per uuid</li>
-    <li>For UUID'ene vil tegn som ikke er gyldige i en UUID fjernes, og blanke linjer ignoreres. Hver UUID må være på en separat linje.</li>
+        <li>Begrunnelse har ingen funksjonell betydning, men tas vare på i databasen som dokumentasjon</li>
+        <li>Hver UUID vil behandles i separate transaksjoner, og resultatet (inkludert feil pga exceptions) vil
+            returneres tilbake per uuid
+        </li>
+        <li>For UUID'ene vil tegn som ikke er gyldige i en UUID fjernes, og blanke linjer ignoreres. Hver UUID må være
+            på en separat linje.
+        </li>
     </ul>
     <ul>
         <li>(regler)</li>
