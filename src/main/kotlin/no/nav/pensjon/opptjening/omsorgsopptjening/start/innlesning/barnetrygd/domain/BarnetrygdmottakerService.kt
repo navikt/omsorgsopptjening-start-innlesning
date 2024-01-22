@@ -122,7 +122,7 @@ class BarnetrygdmottakerService(
                                     }
                                     null
                                 } catch (ex: Throwable) {
-                                    log.error("Feil ved oppdatering av status til retry: ${ex::class.qualifiedName}",)
+                                    log.error("Feil ved oppdatering av status til retry: ${ex::class.qualifiedName}")
                                     null
                                 }
                             } finally {
@@ -164,5 +164,89 @@ class BarnetrygdmottakerService(
 
     fun rekjørFeilede(innlesingId: UUID): Int {
         return barnetrygdmottakerRepository.oppdaterFeiledeRaderTilKlar(innlesingId)
+    }
+
+    fun stopp(id: UUID, melding: String): StoppResultat {
+        return barnetrygdmottakerRepository.find(id)?.let { mottatt ->
+            when (mottatt.status) {
+                is Barnetrygdmottaker.Status.Feilet -> {
+                    mottatt.stoppet(melding = melding).let {
+                        barnetrygdmottakerRepository.updateStatus(it)
+                        StoppResultat.STOPPET
+                    }
+                }
+
+                is Barnetrygdmottaker.Status.Avsluttet -> StoppResultat.ALLEREDE_AVSLUTTET
+                is Barnetrygdmottaker.Status.Ferdig -> StoppResultat.ALLEREDE_FERDIG
+                is Barnetrygdmottaker.Status.Klar -> {
+                    mottatt.stoppet(melding = melding).let {
+                        barnetrygdmottakerRepository.updateStatus(it)
+                        StoppResultat.STOPPET
+                    }
+                }
+
+                is Barnetrygdmottaker.Status.Retry -> {
+                    mottatt.stoppet(melding = melding).let {
+                        barnetrygdmottakerRepository.updateStatus(it)
+                        StoppResultat.STOPPET
+                    }
+                }
+
+                is Barnetrygdmottaker.Status.Stoppet -> StoppResultat.ALLEREDE_STOPPET
+            }
+        } ?: StoppResultat.IKKE_FUNNET
+    }
+
+    fun avslutt(id: UUID, melding: String): AvsluttResultat {
+        return barnetrygdmottakerRepository.find(id)?.let { mottatt ->
+            when (mottatt.status) {
+                is Barnetrygdmottaker.Status.Feilet -> {
+                    mottatt.avsluttet(melding = melding).let {
+                        barnetrygdmottakerRepository.updateStatus(it)
+                        AvsluttResultat.AVSLUTTET
+                    }
+                }
+
+                is Barnetrygdmottaker.Status.Avsluttet -> AvsluttResultat.ALLEREDE_AVSLUTTET
+                is Barnetrygdmottaker.Status.Ferdig -> AvsluttResultat.ALLEREDE_FERDIG
+                is Barnetrygdmottaker.Status.Klar -> {
+                    mottatt.avsluttet(melding = melding).let {
+                        barnetrygdmottakerRepository.updateStatus(it)
+                        AvsluttResultat.AVSLUTTET
+                    }
+                }
+
+                is Barnetrygdmottaker.Status.Retry -> {
+                    mottatt.avsluttet(melding = melding).let {
+                        barnetrygdmottakerRepository.updateStatus(it)
+                        AvsluttResultat.AVSLUTTET
+                    }
+                }
+
+                is Barnetrygdmottaker.Status.Stoppet -> {
+                    mottatt.avsluttet(melding = melding).let {
+                        barnetrygdmottakerRepository.updateStatus(it)
+                        AvsluttResultat.AVSLUTTET
+                    }
+                }
+            }
+        } ?: AvsluttResultat.IKKE_FUNNET
+    }
+
+    enum class StoppResultat {
+        ALLEREDE_STOPPET,
+        ALLEREDE_AVSLUTTET,
+        ALLEREDE_FERDIG,
+        STOPPET,
+        UKJENT_TILSTAND,
+        IKKE_FUNNET
+    }
+
+    enum class AvsluttResultat {
+        ALLEREDE_AVSLUTTET,
+        ALLEREDE_FERDIG,
+        AVSLUTTET,
+        UKJENT_TILSTAND,
+        IKKE_FUNNET
     }
 }

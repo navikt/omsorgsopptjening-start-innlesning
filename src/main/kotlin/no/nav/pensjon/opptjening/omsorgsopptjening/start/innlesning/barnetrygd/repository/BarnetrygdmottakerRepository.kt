@@ -46,6 +46,8 @@ class BarnetrygdmottakerRepository(
                             is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
                             is Barnetrygdmottaker.Status.Klar -> "Klar"
                             is Barnetrygdmottaker.Status.Retry -> "Retry"
+                            is Barnetrygdmottaker.Status.Avsluttet -> "Avsluttet"
+                            is Barnetrygdmottaker.Status.Stoppet -> "Stoppet"
                         },
                         "karantene_til" to when (val s = it.status) {
                             is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
@@ -72,6 +74,8 @@ class BarnetrygdmottakerRepository(
                         is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
                         is Barnetrygdmottaker.Status.Klar -> "Klar"
                         is Barnetrygdmottaker.Status.Retry -> "Retry"
+                        is Barnetrygdmottaker.Status.Avsluttet -> "Avsluttet"
+                        is Barnetrygdmottaker.Status.Stoppet -> "Stoppet"
                     },
                     "karantene_til" to when (val s = barnetrygdmottaker.status) {
                         is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
@@ -260,7 +264,6 @@ class BarnetrygdmottakerRepository(
             )
         )
     }
-
 
     internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {
         override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker.Mottatt {

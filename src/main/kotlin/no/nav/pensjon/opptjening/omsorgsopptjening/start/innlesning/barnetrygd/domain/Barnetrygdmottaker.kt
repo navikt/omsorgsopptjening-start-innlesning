@@ -6,7 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 
 
 sealed class Barnetrygdmottaker {
@@ -53,10 +53,10 @@ sealed class Barnetrygdmottaker {
         }
 
         fun stoppet(melding: String): Mottatt {
-            return copy(statushistorikk = statushistorikk + status.avsluttet(melding))
+            return copy(statushistorikk = statushistorikk + status.stoppet(melding))
         }
 
-        fun klar(): Mottatt {
+        fun klar(melding: String): Mottatt {
             return if (status is Status.Klar) {
                 this
             } else {
@@ -88,7 +88,7 @@ sealed class Barnetrygdmottaker {
             throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Klar")
         }
 
-        open fun stoppet(): Status {
+        open fun stoppet(melding: String): Status {
             throw IllegalArgumentException("Kan ikke gå fra status:${this::class.java} til Stoppet")
         }
 
@@ -102,6 +102,14 @@ sealed class Barnetrygdmottaker {
 
             override fun retry(melding: String): Status {
                 return Retry(melding = melding)
+            }
+
+            override fun avsluttet(melding: String): Status {
+                return Avsluttet(melding = melding)
+            }
+
+            override fun stoppet(melding: String): Status {
+                return Avsluttet(melding = melding)
             }
         }
 
@@ -141,25 +149,56 @@ sealed class Barnetrygdmottaker {
                     }
                 }
             }
+
+            override fun avsluttet(melding: String): Status {
+                return Avsluttet(melding = melding)
+            }
+
+            override fun stoppet(melding: String): Status {
+                return Avsluttet(melding = melding)
+            }
+
+            override fun klar(): Status {
+                return Klar()
+            }
         }
 
         @JsonTypeName("Avsluttet")
         data class Avsluttet(
             val tidspunkt: Instant = Instant.now(),
-            val begrunnelse: String,
-        ) {
+            val melding: String,
+        ) : Status() {
         }
 
         @JsonTypeName("Stoppet")
         data class Stoppet(
             val tidspunkt: Instant = Instant.now(),
             val begrunnelse: String,
-        ) {
+        ) : Status() {
+            override fun avsluttet(melding: String): Status {
+                return Avsluttet(melding = melding)
+            }
+
+            override fun klar(): Status {
+                return Klar()
+            }
         }
 
         @JsonTypeName("Feilet")
         data class Feilet(
             val tidspunkt: Instant = Instant.now(),
-        ) : Status()
+        ) : Status() {
+            override fun avsluttet(melding: String): Status {
+                return Avsluttet(melding = melding)
+            }
+
+            override fun stoppet(melding: String): Status {
+                return Avsluttet(melding = melding)
+            }
+
+            override fun klar(): Status {
+                return Klar()
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.security.token.support.core.api.Protected
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
@@ -15,7 +16,7 @@ import java.util.*
 @RestController
 @Protected
 class AdminWebApi(
-    barnetrygdmottakerService: BarnetrygdmottakerService
+    private val barnetrygdmottakerService: BarnetrygdmottakerService
 ) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(AdminWebApi::class.java)
@@ -24,18 +25,64 @@ class AdminWebApi(
 
     @PostMapping("/start/stopp", consumes = [APPLICATION_FORM_URLENCODED_VALUE], produces = [TEXT_PLAIN_VALUE])
     fun stoppMeldinger(
-        @RequestParam("uuidliste") meldingerString: String,
+        @RequestParam("uuidliste") uuidString: String,
         @RequestParam("begrunnelse") begrunnelse: String? = null
     ): ResponseEntity<String> {
-        return ResponseEntity.ok("Ikke implementert: stopp-flere")
+        val uuids = try {
+            parseUUIDListe(uuidString)
+        } catch (ex: Throwable) {
+            return ResponseEntity.badRequest().body("Kunne ikke parse uuid'ene")
+        }
+
+        try {
+            val responsStrenger =
+                uuids.map { id ->
+                    try {
+                        val resultat = barnetrygdmottakerService.stopp(id, begrunnelse ?: "")
+                        resultat.toString()
+                    } catch (ex: Throwable) {
+                        secureLog.info("Fikk exception under kansellering av oppgave", ex)
+                        "$id: Feilet, ${ex::class.simpleName}"
+                    }
+                }
+            val respons = responsStrenger.joinToString("\n")
+            return ResponseEntity.ok(respons)
+        } catch (ex: Throwable) {
+            return ResponseEntity.internalServerError()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body("Feil ved prosessering: $ex")
+        }
     }
 
     @PostMapping("/start/avslutt", consumes = [APPLICATION_FORM_URLENCODED_VALUE], produces = [TEXT_PLAIN_VALUE])
     fun avslutt(
-        @RequestParam("uuidliste") meldingerString: String,
+        @RequestParam("uuidliste") uuidString: String,
         @RequestParam("begrunnelse") begrunnelse: String? = null
     ): ResponseEntity<String> {
-        return ResponseEntity.ok("Ikke implementert: avslutt-flere")
+        val uuids = try {
+            parseUUIDListe(uuidString)
+        } catch (ex: Throwable) {
+            return ResponseEntity.badRequest().body("Kunne ikke parse uuid'ene")
+        }
+
+        try {
+            val responsStrenger =
+                uuids.map { id ->
+                    try {
+                        val resultat = barnetrygdmottakerService.avslutt(id, begrunnelse ?: "")
+                        resultat.toString()
+                    } catch (ex: Throwable) {
+                        secureLog.info("Fikk exception under kansellering av oppgave", ex)
+                        "$id: Feilet, ${ex::class.simpleName}"
+                    }
+                }
+            val respons = responsStrenger.joinToString("\n")
+            return ResponseEntity.ok(respons)
+        } catch (ex: Throwable) {
+            return ResponseEntity.internalServerError()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body("Feil ved prosessering: $ex")
+        }
     }
 
     fun parseUUIDListe(meldingerString: String): List<UUID> {
