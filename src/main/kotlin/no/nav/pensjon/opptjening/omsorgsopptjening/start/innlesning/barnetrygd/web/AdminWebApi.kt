@@ -8,6 +8,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -33,6 +34,10 @@ class AdminWebApi(
             parseUUIDListe(uuidString)
         } catch (ex: Throwable) {
             return ResponseEntity.badRequest().body("Kunne ikke parse uuid'ene")
+        }
+
+        if (uuids.isEmpty()) {
+            return ResponseEntity.badRequest().body("Ingen uuid'er oppgitt")
         }
 
         try {
@@ -67,6 +72,10 @@ class AdminWebApi(
             return ResponseEntity.badRequest().body("Kunne ikke parse uuid'ene")
         }
 
+        if (uuids.isEmpty()) {
+            return ResponseEntity.badRequest().body("Ingen uuid'er oppgitt")
+        }
+
         try {
             val responsStrenger =
                 uuids.map { id ->
@@ -92,5 +101,10 @@ class AdminWebApi(
             .map { it.replace("[^0-9a-f-]".toRegex(), "") }
             .filter { it.isNotEmpty() }
             .map { UUID.fromString(it.trim()) }
+    }
+
+    @GetMapping("/start/ping")
+    fun ping(): ResponseEntity<String> {
+        return ResponseEntity.ok("pong")
     }
 }
