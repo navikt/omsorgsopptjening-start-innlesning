@@ -81,7 +81,7 @@ class AdminWebApi(
                 uuids.map { id ->
                     try {
                         val resultat = barnetrygdmottakerService.avslutt(id, begrunnelse ?: "")
-                        resultat.toString()
+                        "$id: $resultat"
                     } catch (ex: Throwable) {
                         secureLog.info("Fikk exception under kansellering av oppgave", ex)
                         "$id: Feilet, ${ex::class.simpleName}"
