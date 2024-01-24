@@ -88,7 +88,7 @@ Alle `BarnetrygdmottakerMelding` på kafka leses inn og persisteres i databasen.
 
 Det er lagt inn 2 mekanismer for at vi skal være sikre på at vi får lest alle meldingene fra kafka:
 
-* Barnetrgydsystemet markerer start/slutt for en bestemt forsendelse identifisert av en id
+* Barnetrygdsystemet markerer start/slutt for en bestemt forsendelse identifisert av en id
 * Dersom en melding i forsendelsen ikke lar seg prosessere, invalideres hele forsendelsen med aktuell id
     * I praksis innebærer dette at hele forsendelsen og alle tilknyttede meldinger forkastes (slettes i db), påfølgende
       meldinger for samme forsendelse vil ignorerers.
@@ -122,6 +122,25 @@ oppdateres, og den aktuelle barnetrygdmottakeren vil havne i karantene for vider
 blokkerer prosesseringen av andre barnetrygdmottakere). Etter at karantenetiden er utløpt, vil raden forsøkes på nytt x
 antall ganger opp til et maksimum - når maksimum er nådd uten at raden er prosessert ferdig, vil statusen settes til `Feilet`
 og det vil være behov for manuell intervensjon.
+
+#### Administrasjonsgrensesnitt
+
+Et administrasjonsgrensesnitt er tilgjengelig på:
+
+* Produksjon: 
+  * https://omsorgsopptjening-start-innlesning.intern.nav.no/
+
+* Test: 
+  * https://omsorgsopptjening-start-innlesning.intern.dev.nav.no/
+
+Foreløpig er kun to operasjoner tilgjengelig der. Man kan enten stoppe
+eller avslutte en behandling. Forskjellen på de to er at en stoppet behandling
+ikke regnes som ferdig, og dermed vil overvåking fortsatt kunne varsle på
+at innlesingen ikke er ferdig prosessert. Avsluttet betyr derimot at barnetrygdmottakeren
+regnes som ferdig prosessert, selv om denne prosesseringen resultere i feil.
+
+Videre informasjon om tilgjengelige operasjoner og hvordan de brukes ligger
+i hjelpeteksten i  grensesnittet.
 
 ## Lokalt oppsett
 Start docker daemon eller colima

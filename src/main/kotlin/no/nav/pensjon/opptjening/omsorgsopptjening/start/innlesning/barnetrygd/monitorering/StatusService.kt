@@ -40,8 +40,16 @@ class StatusService(
         }
     }
 
-    private fun finnAntallFerdigeMottakere(innlesing: BarnetrygdInnlesing): Long =
-        mottakerRepo.finnAntallMottakereMedStatusForInnlesing(Barnetrygdmottaker.Status.Ferdig::class, innlesing.id)
+    private fun finnAntallFerdigeMottakere(innlesing: BarnetrygdInnlesing): Long {
+        val ferdige =
+            mottakerRepo.finnAntallMottakereMedStatusForInnlesing(Barnetrygdmottaker.Status.Ferdig::class, innlesing.id)
+        val avsluttede = mottakerRepo.finnAntallMottakereMedStatusForInnlesing(
+            Barnetrygdmottaker.Status.Avsluttet::class,
+            innlesing.id
+        )
+        return ferdige + avsluttede
+
+    }
 
     private fun ikkeProsessert(innlesing: BarnetrygdInnlesing): Boolean {
         return innlesing !is BarnetrygdInnlesing.Ferdig
