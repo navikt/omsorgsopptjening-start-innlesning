@@ -12,11 +12,13 @@ class FrigiLaserTask(
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
     }
 
-    @Scheduled(cron = "*/15 * * * * *")
+    @Scheduled(cron = "0 * * * * *")
     fun run() {
         try {
-            log.info("Frigir gamle låser")
-            barnetrygdmottakerRepo.frigiGamleLåser()
+            val frigitt = barnetrygdmottakerRepo.frigiGamleLåser()
+            if (frigitt > 0) {
+                log.info("Frigjorde $frigitt gamle låser")
+            }
         } catch (ex: Throwable) {
             log.error("Feil ved frigiving av gamle låser", ex)
         }

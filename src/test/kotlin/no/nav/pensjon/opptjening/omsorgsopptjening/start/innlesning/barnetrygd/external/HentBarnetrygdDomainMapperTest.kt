@@ -13,6 +13,7 @@ import kotlin.test.Test
 class HentBarnetrygdDomainMapperTest {
     @Test
     fun `tilpasser periodene i forhold til begrensningene i filteret`() {
+
         assertThat(
             HentBarnetrygdDomainMapper.map(
                 external = listOf(

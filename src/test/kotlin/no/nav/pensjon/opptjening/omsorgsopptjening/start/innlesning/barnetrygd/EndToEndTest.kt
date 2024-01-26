@@ -13,6 +13,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.BarnetrygdWebApi
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -40,6 +41,11 @@ class EndToEndTest : SpringContextTest.WithKafka() {
 
     @Test
     fun `leser melding fra barnetryd topic, prosesserer meldingen og sender ny melding til intern topic`() {
+        // TODO: Denne sleep'en må til for at testen skal passere på kommandolinje hos meg (jan), men
+        // passerer andre steder. Skyldes antagelig at testene ikke er godt nok isolert.
+        Thread.sleep(2000)
+        assertThat(listener.size()).isZero()
+
         wiremock.`bestill-personer-med-barnetrygd accepted`()
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
@@ -68,6 +74,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 )
             )
         )
+
+        Thread.sleep(2000)
+        assertThat(listener.size()).isOne()
 
         listener.removeFirstRecord(3).let { consumerRecord ->
             assertEquals(

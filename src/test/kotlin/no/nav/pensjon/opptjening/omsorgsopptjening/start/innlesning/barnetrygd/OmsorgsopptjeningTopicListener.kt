@@ -28,6 +28,10 @@ class OmsorgsopptjeningTopicListener {
         ack.acknowledge()
     }
 
+    fun size(): Int {
+        return records.size
+    }
+
     fun removeFirstRecord(maxSeconds: Int): ConsumerRecord<String, String> {
         var secondsPassed = 0
         while (secondsPassed < maxSeconds && records.isEmpty()) {
