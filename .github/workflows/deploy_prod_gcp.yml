@@ -1,9 +1,11 @@
 name: Bygg og deploy omsorgsopptjening-start-innlesning til prod-gcp
 
 on:
-  push:
-    branches:
-      - main
+  # TODO: Har satt tom workflow-run for å hindre at applikasjonen deployes så lenge den ikke er i drift. Endre dette før neste kjøring
+  workflow_run:
+  # push:
+  #  branches:
+  #    - main
 jobs:
   tag_build_and_deploy:
     name: 'Build, deploy and tag'
