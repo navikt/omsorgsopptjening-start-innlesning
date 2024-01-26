@@ -9,7 +9,7 @@ class FrigiLaserTask(
     val barnetrygdmottakerRepo: BarnetrygdmottakerRepository,
 ) {
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(this::class.java)
+        private val log: Logger = LoggerFactory.getLogger(FrigiLaserTask::class.java)
     }
 
     @Scheduled(cron = "0 * * * * *")
