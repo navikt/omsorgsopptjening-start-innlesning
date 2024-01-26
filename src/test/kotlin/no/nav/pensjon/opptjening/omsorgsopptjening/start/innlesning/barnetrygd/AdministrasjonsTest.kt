@@ -197,6 +197,24 @@ class AdministrasjonsTest : SpringContextTest.NoKafka() {
     }
 
 
+    @Test
+    fun `kan restarte en melding som er feilet`() {
+        val innlesing = lagreFullførtInnlesing()
+        val barnetrygdmottaker = lagreBarnetrygdMottaker(innlesing).retry("Feilet").retry("").retry("").retry("").let {
+            barnetrygdmottakerRepository.updateStatus(it)
+            barnetrygdmottakerRepository.find(it.id)
+        }!!
+        assertThat(barnetrygdmottaker.status).isInstanceOf(Barnetrygdmottaker.Status.Feilet::class.java)
+
+        val restartResultat = barnetrygdmottakerService.restart(barnetrygdmottaker.id)
+        assertThat(restartResultat).isEqualTo(BarnetrygdmottakerService.RestartResultat.RESTARTET)
+        barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
+            assertThat(it).isNotNull()
+            assertThat(it!!.status).isInstanceOf(Barnetrygdmottaker.Status.Klar::class.java)
+        }
+    }
+
+
     private fun lagreBarnetrygdMottaker(innlesing: BarnetrygdInnlesing): Barnetrygdmottaker.Mottatt {
         return barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(

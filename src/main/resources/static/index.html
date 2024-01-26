@@ -48,6 +48,10 @@
                     setActionAndText("/start/avslutt", "Avslutt")
                     setBeskrivelseEnabled(true)
                     break;
+                case "restart":
+                    setActionAndText("/start/restart", "Restart")
+                    setBeskrivelseEnabled(true)
+                    break;
                 default:
                     setActionAndText("INVALID", "Feil: ukjent tjeneste: " + tjeneste)
             }
@@ -142,6 +146,7 @@
     <select id="tjeneste" onchange="velg_tjeneste()">
         <option value="stopp">Stopp</option>
         <option value="avslutt">Avslutt</option>
+        <option value="restart">Restart</option>
     </select>
 </form>
 

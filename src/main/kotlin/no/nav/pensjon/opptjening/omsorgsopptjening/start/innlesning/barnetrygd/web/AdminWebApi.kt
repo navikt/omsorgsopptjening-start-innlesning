@@ -96,6 +96,41 @@ class AdminWebApi(
         }
     }
 
+    @PostMapping("/start/restart", consumes = [APPLICATION_FORM_URLENCODED_VALUE], produces = [TEXT_PLAIN_VALUE])
+    fun restart(
+        @RequestParam("uuidliste") uuidString: String,
+        @RequestParam("begrunnelse") begrunnelse: String? = null
+    ): ResponseEntity<String> {
+        val uuids = try {
+            parseUUIDListe(uuidString)
+        } catch (ex: Throwable) {
+            return ResponseEntity.badRequest().body("Kunne ikke parse uuid'ene")
+        }
+
+        if (uuids.isEmpty()) {
+            return ResponseEntity.badRequest().body("Ingen uuid'er oppgitt")
+        }
+
+        try {
+            val responsStrenger =
+                uuids.map { id ->
+                    try {
+                        val resultat = barnetrygdmottakerService.restart(id)
+                        "$id: $resultat"
+                    } catch (ex: Throwable) {
+                        secureLog.info("Fikk exception under restart av oppgave", ex)
+                        "$id: Feilet, ${ex::class.simpleName}"
+                    }
+                }
+            val respons = responsStrenger.joinToString("\n")
+            return ResponseEntity.ok(respons)
+        } catch (ex: Throwable) {
+            return ResponseEntity.internalServerError()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body("Feil ved prosessering: $ex")
+        }
+    }
+
     fun parseUUIDListe(meldingerString: String): List<UUID> {
         return meldingerString.lines()
             .map { it.replace("[^0-9a-f-]".toRegex(), "") }

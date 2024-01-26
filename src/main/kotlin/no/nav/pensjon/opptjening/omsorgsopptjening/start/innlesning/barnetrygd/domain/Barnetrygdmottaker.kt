@@ -56,6 +56,10 @@ sealed class Barnetrygdmottaker {
             return copy(statushistorikk = statushistorikk + status.stoppet(melding))
         }
 
+        fun klar(): Mottatt {
+            return copy(statushistorikk = statushistorikk + status.klar())
+        }
+
         fun klar(melding: String): Mottatt {
             return if (status is Status.Klar) {
                 this

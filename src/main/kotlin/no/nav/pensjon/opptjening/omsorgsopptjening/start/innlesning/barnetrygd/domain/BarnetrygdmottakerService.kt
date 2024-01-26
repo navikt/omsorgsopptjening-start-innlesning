@@ -233,12 +233,33 @@ class BarnetrygdmottakerService(
         } ?: AvsluttResultat.IKKE_FUNNET
     }
 
+    fun restart(id: UUID): RestartResultat {
+        fun restart(
+            mottatt: Barnetrygdmottaker.Mottatt,
+        ): RestartResultat {
+            return mottatt.klar().let {
+                barnetrygdmottakerRepository.updateStatus(it)
+                RestartResultat.RESTARTET
+            }
+        }
+        return barnetrygdmottakerRepository.find(id)?.let { mottatt ->
+            when (mottatt.status) {
+                is Barnetrygdmottaker.Status.Feilet -> restart(mottatt)
+                is Barnetrygdmottaker.Status.Avsluttet -> restart(mottatt)
+                is Barnetrygdmottaker.Status.Ferdig -> restart(mottatt)
+                is Barnetrygdmottaker.Status.Klar -> RestartResultat.IKKE_NODVENDIG
+                is Barnetrygdmottaker.Status.Retry -> restart(mottatt)
+                is Barnetrygdmottaker.Status.Stoppet -> restart(mottatt)
+            }
+        } ?: RestartResultat.IKKE_FUNNET
+    }
+
+
     enum class StoppResultat {
         ALLEREDE_STOPPET,
         ALLEREDE_AVSLUTTET,
         ALLEREDE_FERDIG,
         STOPPET,
-        UKJENT_TILSTAND,
         IKKE_FUNNET
     }
 
@@ -246,7 +267,12 @@ class BarnetrygdmottakerService(
         ALLEREDE_AVSLUTTET,
         ALLEREDE_FERDIG,
         AVSLUTTET,
-        UKJENT_TILSTAND,
-        IKKE_FUNNET
+        IKKE_FUNNET,
+    }
+
+    enum class RestartResultat {
+        RESTARTET,
+        IKKE_NODVENDIG,
+        IKKE_FUNNET,
     }
 }
