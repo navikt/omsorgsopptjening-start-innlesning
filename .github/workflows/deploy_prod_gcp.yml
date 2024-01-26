@@ -3,6 +3,7 @@ name: Bygg og deploy omsorgsopptjening-start-innlesning til prod-gcp
 on:
   # TODO: Har satt tom workflow-run for å hindre at applikasjonen deployes så lenge den ikke er i drift. Endre dette før neste kjøring
   workflow_run:
+  # bytt tilbake til dette når applikasjonen aktiveres igjen
   # push:
   #  branches:
   #    - main
