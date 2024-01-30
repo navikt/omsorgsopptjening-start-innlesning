@@ -77,6 +77,7 @@ spec:
     port: "8080"
     path: /actuator/prometheus
   replicas:
+    # satt til 0 for ikke å bruke ressurser mens det er idle, må skrus opp igjen til faktisk kjøring
     min: 0
     max: 0
   resources:
