@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     steps:
       # PULLER REPO
       - name: 'Pull repo'
@@ -49,9 +50,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # DEPLOYER dev-gcp
       - name: 'Deploy omsorgsopptjening-start-innlesning to dev-gcp'
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           RESOURCE: nais/dev-gcp.yml,nais/unleash-apitoken-dev-gcp.yml
           CLUSTER: dev-gcp
           IMAGE: ${{ env.IMAGE_GHCR }}
