@@ -2,30 +2,30 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "1.0.65"
-val navTokenSupportVersion = "4.0.3"
+val navTokenSupportVersion = "4.1.8"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "7.4"
-val postgresqlVersion = "42.7.1"
+val postgresqlVersion = "42.7.3"
 val flywayCoreVersion = "9.22.3"
-val testcontainersVersion = "1.19.3"
-val jacksonVersion = "2.15.3"
-val springKafkaTestVersion = "3.0.11"
+val testcontainersVersion = "1.19.8"
+val jacksonVersion = "2.17.1"
+val springKafkaTestVersion = "3.2.0"
 val azureAdClient = "0.0.7"
-val assertjVersion = "3.25.1"
-val awaitilityVersion = "4.2.0"
-val wiremockVersion = "3.2.0"
-val micrometerRegistryPrometheusVersion = "1.12.2"
-val mockitoKotlinVersion = "5.2.1"
-val unleashVersion = "9.2.0"
+val assertjVersion = "3.26.0"
+val awaitilityVersion = "4.2.1"
+val wiremockVersion = "3.6.0"
+val micrometerRegistryPrometheusVersion = "1.13.0"
+val mockitoKotlinVersion = "5.3.1"
+val unleashVersion = "9.2.2"
 
 val snappyJavaVersion = "1.1.10.5"
 val snakeYamlVersion = "2.2"
 
 plugins {
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.spring") version "1.9.22"
-    id("org.springframework.boot") version "3.1.5"
-    id("com.github.ben-manes.versions") version "0.50.0"
+    kotlin("jvm") version "2.0.0"
+    kotlin("plugin.spring") version "2.0.0"
+    id("org.springframework.boot") version "3.3.0"
+    id("com.github.ben-manes.versions") version "0.51.0"
 }
 
 apply(plugin = "io.spring.dependency-management")
@@ -85,7 +85,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion")
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
-    testImplementation("org.wiremock:wiremock:$wiremockVersion")
+    testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
 }
 
 tasks.test {
