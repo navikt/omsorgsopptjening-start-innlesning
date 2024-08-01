@@ -61,7 +61,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         innlesingRepository.fullført(innlesing.ferdig())
 
-        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1))
+        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1)).isNotNull()
     }
 
     @Test
@@ -88,12 +88,12 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)) //1
+        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)) //1.isNotNull()
 
         barnetrygdmottakerRepository.updateStatus(mottaker.retry("noe gikk gærnt"))
 
         assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1).data).isEmpty() //2
-        assertNotNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)) //3
+        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 5)) //3.isNotNull()
     }
 
     @Test

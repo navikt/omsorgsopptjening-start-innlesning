@@ -19,6 +19,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -34,7 +35,6 @@ import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
-import kotlin.test.assertEquals
 
 class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     @Autowired
@@ -88,8 +88,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         barnetrygdService.process()
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also { retry ->
-                assertEquals(1, retry.antallForsøk)
-                assertEquals(3, retry.maxAntallForsøk)
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
             }
         }
 
@@ -176,8 +176,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         barnetrygdService.process()
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
-                assertEquals(1, retry.antallForsøk)
-                assertEquals(3, retry.maxAntallForsøk)
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
             }
         }
 
@@ -228,8 +228,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
-                assertEquals(1, retry.antallForsøk)
-                assertEquals(3, retry.maxAntallForsøk)
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
             }
         }
     }
@@ -302,20 +302,20 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker1.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
-                assertEquals(1, retry.antallForsøk)
-                assertEquals(3, retry.maxAntallForsøk)
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
             }
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker2.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
-                assertEquals(1, retry.antallForsøk)
-                assertEquals(3, retry.maxAntallForsøk)
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
             }
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker3.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
-                assertEquals(1, retry.antallForsøk)
-                assertEquals(3, retry.maxAntallForsøk)
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
             }
         }
     }
@@ -446,12 +446,12 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker2.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
-                assertEquals(1, retry.antallForsøk)
-                assertEquals(3, retry.maxAntallForsøk)
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
             }
         }
         barnetrygdmottakerRepository.find(barnetrygdmottaker3.id).also {
-            assertInstanceOf(Barnetrygdmottaker.Status.Ferdig::class.java, it!!.status)
+            assertThat(it?.status).isInstanceOf(Barnetrygdmottaker.Status.Ferdig::class.java)
         }
     }
 
@@ -480,10 +480,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
             PersongrunnlagMelding.persongrunnlag.single().also { sak ->
-                assertEquals(1, sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
-                assertEquals(
-                    1,
-                    sak.hjelpestønadsperioder.count { it.omsorgstype == Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3 })
+                assertThat(sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD }).isEqualTo(1)
+                assertThat(sak.hjelpestønadsperioder.count { it.omsorgstype == Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3 }).isEqualTo(1)
             }
         }
     }
@@ -511,11 +509,11 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdService.process()
 
-        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
-            PersongrunnlagMelding.persongrunnlag.single().also { sak ->
-                assertEquals(1, sak.omsorgsperioder.size)
-                assertEquals(1, sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD })
-                assertEquals(0, sak.hjelpestønadsperioder.count())
+        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
+            persongrunnlagMelding.persongrunnlag.single().also { sak ->
+                assertThat(sak.omsorgsperioder).hasSize(1)
+                assertThat(sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD }).isEqualTo(1)
+                assertThat(sak.hjelpestønadsperioder).isEmpty()
             }
         }
     }
@@ -545,8 +543,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
             PersongrunnlagMelding.persongrunnlag.single().also { sak ->
-                assertEquals(0, sak.omsorgsperioder.count())
-                assertEquals(0, sak.hjelpestønadsperioder.count())
+                assertThat(sak.omsorgsperioder).isEmpty()
+                assertThat(sak.hjelpestønadsperioder).isEmpty()
             }
         }
     }

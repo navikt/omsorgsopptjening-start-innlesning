@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -30,13 +31,13 @@ class BarnetrygdInnlesingRepositoryTest : SpringContextTest.NoKafka() {
         val ferdig = startet.ferdig()
 
         val b = innlesingRepository.bestilt(bestilt)
-        assertEquals(b, innlesingRepository.finn(bestilt.id.toString()))
+        assertThat(innlesingRepository.finn(bestilt.id.toString())).isEqualTo(b)
         val s = innlesingRepository.start(startet)
-        assertEquals(s, innlesingRepository.finn(bestilt.id.toString()))
+        assertThat(innlesingRepository.finn(bestilt.id.toString())).isEqualTo(s)
         val f = innlesingRepository.fullført(ferdig)
-        assertEquals(f, innlesingRepository.finn(bestilt.id.toString()))
+        assertThat(innlesingRepository.finn(bestilt.id.toString())).isEqualTo(f)
         innlesingRepository.invalider(bestilt.id.toUUID())
-        assertNull(innlesingRepository.finn(bestilt.id.toString()))
+        assertThat(innlesingRepository.finn(bestilt.id.toString())).isNull()
     }
 
     @Test

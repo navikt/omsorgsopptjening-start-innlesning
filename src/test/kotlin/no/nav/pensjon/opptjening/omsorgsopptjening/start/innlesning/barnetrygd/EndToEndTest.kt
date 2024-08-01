@@ -79,15 +79,18 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         assertThat(listener.size()).isOne()
 
         listener.removeFirstRecord(3).let { consumerRecord ->
-            assertEquals(
+            assertThat(
+                consumerRecord.key()
+            ).isEqualTo(
                 """
                     {"ident":"12345678910"}
                 """.trimIndent(),
-                consumerRecord.key()
             )
             deserialize<PersongrunnlagMelding>(consumerRecord.value()).also {
-                assertEquals("12345678910", it.omsorgsyter)
-                assertEquals(
+                assertThat(it.omsorgsyter).isEqualTo("12345678910")
+                assertThat(
+                    it.persongrunnlag
+                ).isEqualTo(
                     listOf(
                         PersongrunnlagMelding.Persongrunnlag.of(
                             omsorgsyter = "12345678910",
@@ -113,7 +116,6 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                             ),
                         )
                     ),
-                    it.persongrunnlag
                 )
                 assertEquals(
                     """
@@ -121,8 +123,8 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                     """.trimIndent(),
                     serialize(it.rådata)
                 )
-                assertEquals(innlesingId, it.innlesingId.toString())
-                assertNotNull(it.correlationId) //opprettes internt
+                assertThat(it.innlesingId.toString()).isEqualTo(innlesingId)
+                assertThat(it.correlationId).isNotNull() //opprettes internt
             }
         }
     }

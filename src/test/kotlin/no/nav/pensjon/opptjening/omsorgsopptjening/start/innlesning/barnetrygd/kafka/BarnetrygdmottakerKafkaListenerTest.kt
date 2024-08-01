@@ -10,6 +10,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.k
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -335,11 +336,11 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             innlesingRepository.finn(innlesing.id.toString())!!.also { barnetrygdInnlesing ->
                 assertInstanceOf(BarnetrygdInnlesing.Ferdig::class.java, barnetrygdInnlesing).also {
-                    assertEquals(innlesing.id, it.id)
-                    assertEquals(innlesing.år, 2020)
-                    assertNotNull(it.forespurtTidspunkt)
-                    assertNotNull(it.startTidspunkt)
-                    assertNotNull(it.ferdigTidspunkt)
+                    assertThat(it.id).isEqualTo(innlesing.id)
+                    assertThat(innlesing.år).isEqualTo(2020)
+                    assertThat(it.forespurtTidspunkt).isNotNull()
+                    assertThat(it.startTidspunkt).isNotNull()
+                    assertThat(it.ferdigTidspunkt).isNotNull()
                 }
             }
         }
@@ -356,7 +357,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             sendStartInnlesingKafka(innlesing.id.toString())
             Thread.sleep(1000)
-            assertNotNull(innlesingRepository.finn(innlesing.id.toString()))
+            assertThat(innlesingRepository.finn(innlesing.id.toString())).isNotNull()
 
             sendStartInnlesingKafka(innlesing.id.toString())
             Thread.sleep(1000)

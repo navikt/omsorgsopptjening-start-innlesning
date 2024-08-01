@@ -25,7 +25,6 @@ class AdministrasjonsTest : SpringContextTest.NoKafka() {
     private lateinit var barnetrygdmottakerService: BarnetrygdmottakerService
 
     companion object {
-        const val OPPTJENINGSÅR = 2023
         const val BEGRUNNELSE = "Fordi jeg vil!"
     }
 

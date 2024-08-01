@@ -13,7 +13,7 @@ class TransactionTemplateConfig {
     @Bean
     fun transactionTemplate(transactionManager: PlatformTransactionManager): TransactionTemplate {
         return TransactionTemplate(transactionManager).apply {
-            setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW)
+            propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
         }
     }
 }
