@@ -73,6 +73,10 @@ spec:
     enabled: true
     port: "8080"
     path: /actuator/prometheus
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   replicas:
     # satt til 0 for ikke å bruke ressurser mens det er idle, må skrus opp igjen til faktisk kjøring
     min: 0
