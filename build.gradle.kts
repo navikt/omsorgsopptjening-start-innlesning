@@ -1,8 +1,9 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "1.0.70"
-val navTokenSupportVersion = "5.0.1"
+val navTokenSupportVersion = "5.0.2"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"
 val postgresqlVersion = "42.7.3"
@@ -12,13 +13,13 @@ val jacksonVersion = "2.17.1"
 val springKafkaTestVersion = "3.2.2"
 val azureAdClient = "0.0.7"
 val assertjVersion = "3.26.3"
-val awaitilityVersion = "4.2.1"
+val awaitilityVersion = "4.2.2"
 val wiremockVersion = "3.9.1"
-val micrometerRegistryPrometheusVersion = "1.13.2"
+val micrometerRegistryPrometheusVersion = "1.13.3"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.4"
 
-val snappyJavaVersion = "1.1.10.5"
+val snappyJavaVersion = "1.1.10.6"
 val snakeYamlVersion = "2.2"
 
 plugins {
@@ -93,9 +94,9 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "21"
+    compilerOptions {
+        freeCompilerArgs.add("-Xjsr305=strict")
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
