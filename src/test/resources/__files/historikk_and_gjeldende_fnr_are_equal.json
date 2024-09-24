@@ -1,0 +1,39 @@
+{
+  "data": {
+    "hentPerson": {
+      "folkeregisteridentifikator": [
+        {
+          "identifikasjonsnummer": "04010012797",
+          "status": "I_BRUK",
+          "type": "FNR",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG"
+          }
+        },
+        {
+          "identifikasjonsnummer": "04010012797",
+          "status": "OPPHOERT",
+          "type": "DNR",
+          "metadata": {
+            "historisk": true,
+            "master": "FREG"
+          }
+        }
+      ],
+      "foedsel": [
+        {
+          "foedselsaar": 2000,
+          "foedselsdato": "2000-01-04",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG",
+            "endringer": []
+          }
+        }
+      ],
+      "doedsfall": [],
+      "forelderBarnRelasjon": []
+    }
+  }
+}

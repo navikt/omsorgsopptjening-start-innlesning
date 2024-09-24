@@ -1,3 +1,4 @@
+PDL_URL: http://localhost:9991/graphql
 BARNETRYGD_URL: http://localhost:9991
 BARNETRYGD_API_ID: dev-gcp.barnetrygd.id
 HJELPESTONAD_URL: http://localhost:9991
