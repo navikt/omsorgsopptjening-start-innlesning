@@ -1,0 +1,28 @@
+{
+  "errors": [
+    {
+      "message": "Ikke tilgang til å se person",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "hentPerson"
+      ],
+      "extensions": {
+        "details": {
+          "type": "abac-deny",
+          "cause": "konsument har ikke tilgang til tema",
+          "policy": "N/A"
+        },
+        "code": "unauthorized",
+        "classification": "ExecutionAborted"
+      }
+    }
+  ],
+  "data": {
+    "hentPerson": null
+  }
+}

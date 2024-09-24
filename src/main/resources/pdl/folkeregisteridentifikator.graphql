@@ -1,0 +1,75 @@
+query pdlPerson($ident: ID!) {
+    hentPerson(ident: $ident) {
+        foedsel {
+            foedselsaar
+            foedselsdato
+            foedeland
+            foedested
+            foedekommune
+            folkeregistermetadata{
+                ajourholdstidspunkt
+            }
+            metadata {
+                master
+                historisk
+                endringer {
+                    registrert
+                }
+            }
+        }
+         doedsfall {
+            doedsdato
+        }
+        forelderBarnRelasjon {
+            relatertPersonsIdent
+            relatertPersonsRolle
+            minRolleForPerson
+            relatertPersonUtenFolkeregisteridentifikator {
+                navn {
+                    fornavn
+                    mellomnavn
+                    etternavn
+                }
+                foedselsdato
+                statsborgerskap
+                kjoenn
+            }
+            folkeregistermetadata {
+                ajourholdstidspunkt
+                gyldighetstidspunkt
+                opphoerstidspunkt
+                kilde
+                aarsak
+                sekvens
+            }
+            metadata {
+                opplysningsId
+                master
+                endringer {
+                    type
+                    registrert
+                    registrertAv
+                    systemkilde
+                    kilde
+                    hendelseId
+                }
+                historisk
+            }
+        }
+        folkeregisteridentifikator(historikk: true) {
+            identifikasjonsnummer
+            status
+            type
+            folkeregistermetadata{
+                ajourholdstidspunkt
+            }
+            metadata {
+                master
+                historisk
+                endringer {
+                    registrert
+                }
+            }
+        }
+    }
+}

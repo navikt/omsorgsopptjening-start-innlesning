@@ -1,0 +1,38 @@
+{
+  "data": {
+    "hentPerson": {
+      "folkeregisteridentifikator": [
+        {
+          "identifikasjonsnummer": "01018212345",
+          "status": "I_BRUK",
+          "type": "FNR",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG"
+          }
+        },
+        {
+          "identifikasjonsnummer": "61018212345",
+          "status": "OPPHOERT",
+          "type": "FNR",
+          "metadata": {
+            "historisk": true,
+            "master": "FREG"
+          }
+        }
+      ],
+      "foedsel": [
+        {
+          "foedselsaar": 1982,
+          "foedselsdato": "1982-01-01",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG"
+          }
+        }
+      ],
+      "doedsfall": [],
+      "forelderBarnRelasjon": []
+    }
+  }
+}

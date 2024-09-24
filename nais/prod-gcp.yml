@@ -32,6 +32,10 @@ spec:
           - name: omsorginnlesning
             envVarPrefix: DATABASE
   env:
+    - name: PDL_URL
+      value: https://pdl-api.prod-fss-pub.nais.io/graphql
+    - name: PDL_API_ID
+      value: prod-fss.pdl.pdl-api
     - name: SPRING_PROFILES_ACTIVE
       value: prod-gcp
     - name: BARNETRYGD_URL

@@ -23,6 +23,7 @@ import java.util.UUID
 sealed class SpringContextTest {
 
     companion object {
+        const val PDL_PATH = "/graphql"
         const val WIREMOCK_PORT = 9991
     }
 

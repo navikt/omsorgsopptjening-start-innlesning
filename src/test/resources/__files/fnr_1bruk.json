@@ -1,0 +1,221 @@
+{
+  "data": {
+    "hentIdenter": {
+      "identer": [
+        {
+          "ident": "1234567891234",
+          "gruppe": "AKTORID"
+        }
+      ]
+    },
+    "hentPerson": {
+      "folkeregisteridentifikator": [
+        {
+          "identifikasjonsnummer": "12345678910",
+          "status": "I_BRUK",
+          "type": "FNR",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG"
+          }
+        }
+      ],
+      "foedsel": [
+        {
+          "foedselsaar": 2000,
+          "foedselsdato": "2000-01-01",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG"
+          }
+        }
+      ],
+      "doedsfall": [],
+      "forelderBarnRelasjon": [
+        {
+          "relatertPersonsIdent": "01122012345",
+          "relatertPersonsRolle": "BARN",
+          "minRolleForPerson": "MOR",
+          "relatertPersonUtenFolkeregisteridentifikator": null,
+          "folkeregistermetadata": {
+            "ajourholdstidspunkt": "2023-09-14T12:59:35",
+            "gyldighetstidspunkt": "2023-09-14T12:59:35",
+            "opphoerstidspunkt": null,
+            "kilde": "Dolly",
+            "aarsak": null,
+            "sekvens": null
+          },
+          "metadata": {
+            "opplysningsId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1",
+            "master": "FREG",
+            "endringer": [
+              {
+                "type": "OPPRETT",
+                "registrert": "2023-09-14T13:00:32",
+                "registrertAv": "Folkeregisteret",
+                "systemkilde": "FREG",
+                "kilde": "Dolly",
+                "hendelseId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1"
+              }
+            ],
+            "historisk": false
+          }
+        },
+        {
+          "relatertPersonsIdent": "01052012345",
+          "relatertPersonsRolle": "BARN",
+          "minRolleForPerson": "MOR",
+          "relatertPersonUtenFolkeregisteridentifikator": null,
+          "folkeregistermetadata": {
+            "ajourholdstidspunkt": "2023-09-14T12:59:35",
+            "gyldighetstidspunkt": "2023-09-14T12:59:35",
+            "opphoerstidspunkt": null,
+            "kilde": "Dolly",
+            "aarsak": null,
+            "sekvens": null
+          },
+          "metadata": {
+            "opplysningsId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1",
+            "master": "FREG",
+            "endringer": [
+              {
+                "type": "OPPRETT",
+                "registrert": "2023-09-14T13:00:32",
+                "registrertAv": "Folkeregisteret",
+                "systemkilde": "FREG",
+                "kilde": "Dolly",
+                "hendelseId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1"
+              }
+            ],
+            "historisk": false
+          }
+        },
+        {
+          "relatertPersonsIdent": "07081812345",
+          "relatertPersonsRolle": "BARN",
+          "minRolleForPerson": "MOR",
+          "relatertPersonUtenFolkeregisteridentifikator": null,
+          "folkeregistermetadata": {
+            "ajourholdstidspunkt": "2023-09-14T12:59:35",
+            "gyldighetstidspunkt": "2023-09-14T12:59:35",
+            "opphoerstidspunkt": null,
+            "kilde": "Dolly",
+            "aarsak": null,
+            "sekvens": null
+          },
+          "metadata": {
+            "opplysningsId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1",
+            "master": "FREG",
+            "endringer": [
+              {
+                "type": "OPPRETT",
+                "registrert": "2023-09-14T13:00:32",
+                "registrertAv": "Folkeregisteret",
+                "systemkilde": "FREG",
+                "kilde": "Dolly",
+                "hendelseId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1"
+              }
+            ],
+            "historisk": false
+          }
+        },
+        {
+          "relatertPersonsIdent": "07081812345",
+          "relatertPersonsRolle": "BARN",
+          "minRolleForPerson": "MOR",
+          "relatertPersonUtenFolkeregisteridentifikator": null,
+          "folkeregistermetadata": {
+            "ajourholdstidspunkt": "2023-09-14T12:59:35",
+            "gyldighetstidspunkt": "2023-09-14T12:59:35",
+            "opphoerstidspunkt": null,
+            "kilde": "Dolly",
+            "aarsak": null,
+            "sekvens": null
+          },
+          "metadata": {
+            "opplysningsId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1",
+            "master": "FREG",
+            "endringer": [
+              {
+                "type": "OPPRETT",
+                "registrert": "2023-09-14T13:00:32",
+                "registrertAv": "Folkeregisteret",
+                "systemkilde": "FREG",
+                "kilde": "Dolly",
+                "hendelseId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1"
+              }
+            ],
+            "historisk": false
+          }
+        },
+        {
+          "relatertPersonsIdent": "03041212345",
+          "relatertPersonsRolle": "BARN",
+          "minRolleForPerson": "MOR",
+          "relatertPersonUtenFolkeregisteridentifikator": null,
+          "folkeregistermetadata": {
+            "ajourholdstidspunkt": "2023-09-14T12:59:35",
+            "gyldighetstidspunkt": "2023-09-14T12:59:35",
+            "opphoerstidspunkt": null,
+            "kilde": "Dolly",
+            "aarsak": null,
+            "sekvens": null
+          },
+          "metadata": {
+            "opplysningsId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1",
+            "master": "FREG",
+            "endringer": [
+              {
+                "type": "OPPRETT",
+                "registrert": "2023-09-14T13:00:32",
+                "registrertAv": "Folkeregisteret",
+                "systemkilde": "FREG",
+                "kilde": "Dolly",
+                "hendelseId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1"
+              }
+            ],
+            "historisk": false
+          }
+        },
+        {
+          "relatertPersonsIdent": null,
+          "relatertPersonsRolle": "MOR",
+          "minRolleForPerson": "BARN",
+          "relatertPersonUtenFolkeregisteridentifikator": {
+            "navn": {
+              "fornavn": "Uemosjonell",
+              "mellomnavn": "Kjempende",
+              "etternavn": "Kjeltring"
+            },
+            "foedselsdato": "1941-11-21",
+            "statsborgerskap": "AFG",
+            "kjoenn": "UKJENT"
+          },
+          "folkeregistermetadata": {
+            "ajourholdstidspunkt": "2023-09-14T12:59:35",
+            "gyldighetstidspunkt": "2023-09-14T12:59:35",
+            "opphoerstidspunkt": null,
+            "kilde": "Dolly",
+            "aarsak": null,
+            "sekvens": null
+          },
+          "metadata": {
+            "opplysningsId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1",
+            "master": "FREG",
+            "endringer": [
+              {
+                "type": "OPPRETT",
+                "registrert": "2023-09-14T13:00:32",
+                "registrertAv": "Folkeregisteret",
+                "systemkilde": "FREG",
+                "kilde": "Dolly",
+                "hendelseId": "76cefd01-c99b-45f3-a3ef-ae2d574848d1"
+              }
+            ],
+            "historisk": false
+          }
+        }
+      ]
+    }
+  }
+}

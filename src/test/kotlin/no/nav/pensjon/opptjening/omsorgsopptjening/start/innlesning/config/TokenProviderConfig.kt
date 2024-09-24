@@ -7,6 +7,8 @@ import pensjon.opptjening.azure.ad.client.mock.MockTokenProvider
 
 @Configuration
 class TokenProviderConfig {
+    @Bean("pdlTokenProvider")
+    fun pdlTokenProvider(): TokenProvider = MockTokenProvider(MOCK_TOKEN)
 
     @Bean("barnetrygdTokenProvider")
     fun barnetrygd(): TokenProvider = MockTokenProvider(MOCK_TOKEN)

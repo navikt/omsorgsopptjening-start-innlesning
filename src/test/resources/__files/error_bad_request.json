@@ -1,0 +1,24 @@
+{
+  "errors": [
+    {
+      "message": "Ugyldig ident",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "hentPerson"
+      ],
+      "extensions": {
+        "id": "ugyldig_ident",
+        "code": "bad_request",
+        "classification": "ValidationError"
+      }
+    }
+  ],
+  "data": {
+    "hentPerson": null
+  }
+}

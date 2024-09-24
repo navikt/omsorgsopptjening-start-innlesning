@@ -1,0 +1,39 @@
+{
+  "data": {
+    "hentPerson": {
+      "folkeregisteridentifikator": [
+        {
+          "identifikasjonsnummer": "12345678919",
+          "status": "I_BRUK",
+          "type": "FNR",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG"
+          }
+        },
+        {
+          "identifikasjonsnummer": "01987654321",
+          "status": "OPPHOERT",
+          "type": "DNR",
+          "metadata": {
+            "historisk": true,
+            "master": "FREG"
+          }
+        }
+      ],
+      "foedsel": [
+        {
+          "foedselsaar": 2000,
+          "foedselsdato": "2000-01-01",
+          "metadata": {
+            "historisk": false,
+            "master": "FREG",
+            "endringer": []
+          }
+        }
+      ],
+      "doedsfall": [],
+      "forelderBarnRelasjon": []
+    }
+  }
+}
