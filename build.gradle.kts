@@ -3,29 +3,29 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "1.0.70"
-val navTokenSupportVersion = "5.0.2"
+val navTokenSupportVersion = "5.0.5"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"
-val postgresqlVersion = "42.7.3"
+val postgresqlVersion = "42.7.4"
 val flywayCoreVersion = "9.22.3"
 val testcontainersVersion = "1.20.1"
 val jacksonVersion = "2.17.1"
-val springKafkaTestVersion = "3.2.2"
+val springKafkaTestVersion = "3.2.4"
 val azureAdClient = "0.0.7"
 val assertjVersion = "3.26.3"
 val awaitilityVersion = "4.2.2"
 val wiremockVersion = "3.9.1"
-val micrometerRegistryPrometheusVersion = "1.13.3"
+val micrometerRegistryPrometheusVersion = "1.13.4"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.4"
 
-val snappyJavaVersion = "1.1.10.6"
-val snakeYamlVersion = "2.2"
+val snappyJavaVersion = "1.1.10.7"
+val snakeYamlVersion = "2.3"
 
 plugins {
     kotlin("jvm") version "2.0.20"
     kotlin("plugin.spring") version "2.0.20"
-    id("org.springframework.boot") version "3.3.2"
+    id("org.springframework.boot") version "3.3.4"
     id("com.github.ben-manes.versions") version "0.51.0"
 }
 
