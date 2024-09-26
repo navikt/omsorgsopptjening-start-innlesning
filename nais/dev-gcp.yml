@@ -22,7 +22,7 @@ spec:
     enabled: true
   gcp:
     sqlInstances:
-      - type: POSTGRES_14
+      - type: POSTGRES_16
         cascadingDelete: true
         diskAutoresize: true
         pointInTimeRecovery: true
@@ -86,8 +86,8 @@ spec:
       runtime: java
   replicas:
     # satt til 0 for ikke å bruke ressurser mens det er idle, må skrus opp igjen til faktisk kjøring
-    min: 0
-    max: 0
+    min: 1
+    max: 1
   resources:
     limits:
       cpu: "2"
