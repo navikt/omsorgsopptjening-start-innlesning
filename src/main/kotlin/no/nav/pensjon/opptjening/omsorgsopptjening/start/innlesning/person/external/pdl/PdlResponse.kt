@@ -43,7 +43,8 @@ data class HentPersonQueryResponse(
 
     fun toDomain(): Person {
         return Person(
-            identhistorikk = identhistorikk(),
+            fnr = identhistorikk().gjeldende().ident,
+            historiske = identhistorikk().historikk().map { it.ident }.toSet()
         )
     }
 }

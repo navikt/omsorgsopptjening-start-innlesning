@@ -13,6 +13,7 @@ sealed class Barnetrygdmottaker {
     abstract val id: UUID?
     abstract val opprettet: Instant?
     abstract val ident: String
+    abstract val person: Person?
     abstract val correlationId: CorrelationId
     abstract val statushistorikk: List<Status>
     abstract val innlesingId: InnlesingId
@@ -25,6 +26,7 @@ sealed class Barnetrygdmottaker {
     ) : Barnetrygdmottaker() {
         override val id = null
         override val opprettet = null
+        override val person = null
         override val statushistorikk: List<Status> = listOf(Status.Klar())
         override val status: Status get() = statushistorikk.last()
     }
@@ -33,6 +35,7 @@ sealed class Barnetrygdmottaker {
         override val id: UUID,
         override val opprettet: Instant,
         override val ident: String,
+        override val person: Person? = null,
         override val correlationId: CorrelationId,
         override val innlesingId: InnlesingId,
         override val statushistorikk: List<Status> = listOf(Status.Klar()),
