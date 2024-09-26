@@ -18,6 +18,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl.`pdl fnr ett i bruk`
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
@@ -123,6 +124,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             )
         )
 
+        wiremock.`pdl fnr ett i bruk`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .inScenario("feilOgFerdig")
@@ -328,6 +330,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             CompletableFuture.completedFuture(it.arguments[0])
         }
 
+        wiremock.`pdl fnr ett i bruk`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .withRequestBody(equalToJson("""{"ident":"12345678911","fraDato":"2023-01-01"}"""))
@@ -473,6 +476,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             )
         )
 
+        wiremock.`pdl fnr ett i bruk`()
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 
@@ -504,6 +508,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             )
         )
 
+        wiremock.`pdl fnr ett i bruk`()
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
@@ -536,6 +541,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             )
         )
 
+        wiremock.`pdl fnr ett i bruk`()
         wiremock.`hent-barnetrygd ok - ingen perioder`()
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 

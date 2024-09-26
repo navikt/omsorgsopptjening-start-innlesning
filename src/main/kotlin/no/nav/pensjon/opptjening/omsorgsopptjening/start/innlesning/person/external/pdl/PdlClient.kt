@@ -20,7 +20,7 @@ import pensjon.opptjening.azure.ad.client.TokenProvider
 import java.net.URI
 
 @Component
-internal class PdlClient(
+class PdlClient(
     @Value("\${PDL_URL}") private val pdlUrl: String,
     @Qualifier("pdlTokenProvider") private val tokenProvider: TokenProvider,
     registry: MeterRegistry,
@@ -65,7 +65,7 @@ internal class PdlClient(
 }
 
 @Component
-internal class GraphqlQuery(
+class GraphqlQuery(
     @Value("classpath:pdl/folkeregisteridentifikator.graphql")
     private val hentPersonQuery: Resource,
 ) {

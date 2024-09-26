@@ -10,6 +10,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.TokenProviderConfig.Companion.MOCK_TOKEN
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model.PersonOppslagException
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestClientException
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 internal class PdlServiceTest : SpringContextTest.NoKafka() {
 
@@ -124,7 +124,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     )
                 )
 
-                assertNotNull(pdlService.hentPerson(FNR))
+                assertThat(pdlService.hentPerson(FNR)).isNotNull()
             }
         }
     }
@@ -157,7 +157,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                 )
 
                 val error = assertThrows<PdlException> { pdlService.hentPerson(FNR) }
-                assertEquals(PdlErrorCode.SERVER_ERROR, error.code)
+                assertThat(error.code).isEqualTo(PdlErrorCode.SERVER_ERROR)
                 wiremock.verify(4, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
             }
         }
@@ -178,7 +178,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
 
                 val error = assertThrows<PersonOppslagException> { pdlService.hentPerson(FNR) }
                 assertInstanceOf(PdlException::class.java, error.cause).also {
-                    assertEquals(PdlErrorCode.NOT_FOUND, it.code)
+                    assertThat(it.code).isEqualTo(PdlErrorCode.NOT_FOUND)
                 }
                 wiremock.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
             }

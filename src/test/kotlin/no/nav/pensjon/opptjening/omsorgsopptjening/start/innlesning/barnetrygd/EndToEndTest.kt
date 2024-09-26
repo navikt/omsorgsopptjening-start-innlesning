@@ -13,6 +13,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.BarnetrygdWebApi
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl.`pdl fnr ett i bruk`
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -45,6 +46,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         Thread.sleep(2000)
         assertThat(listener.size()).isZero()
 
+        wiremock.`pdl fnr ett i bruk`()
         wiremock.`bestill-personer-med-barnetrygd accepted`()
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()

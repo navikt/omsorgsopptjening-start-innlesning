@@ -10,6 +10,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl.PdlService
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -28,6 +29,7 @@ class BarnetrygdmottakerService(
     private val transactionTemplate: TransactionTemplate,
     private val hjelpestønadService: HjelpestønadService,
     private val barnetrygdInnlesingRepository: BarnetrygdInnlesingRepository,
+    private val pdlService: PdlService,
     @Value("\${OMSORGSOPPTJENING_TOPIC}") val omsorgsopptjeningTopic: String
 ) {
     companion object {
@@ -71,6 +73,9 @@ class BarnetrygdmottakerService(
                                         val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
 
                                         val rådata = Rådata()
+
+                                        val person = pdlService.hentPerson(barnetrygdmottaker.ident)
+                                        println("%%% PERSON: $person")
 
                                         val barnetrygdResponse = client.hentBarnetrygd(
                                             ident = barnetrygdmottaker.ident,

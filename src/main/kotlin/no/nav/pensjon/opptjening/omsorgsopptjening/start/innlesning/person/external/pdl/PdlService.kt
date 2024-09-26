@@ -6,7 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model
 import org.springframework.stereotype.Service
 
 @Service
-internal class PdlService(
+class PdlService(
     private val pdlClient: PdlClient
 ) : PersonOppslag {
 
@@ -26,5 +26,3 @@ internal class PdlService(
 internal class PdlException(pdlError: PdlError?) : RuntimeException(pdlError?.message ?: "Unknown error from PDL") {
     val code: PdlErrorCode? = pdlError?.extensions?.code
 }
-
-internal class PdlMottatDataException(message: String) : RuntimeException(message)

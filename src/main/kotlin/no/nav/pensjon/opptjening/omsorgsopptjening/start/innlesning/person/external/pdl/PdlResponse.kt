@@ -6,19 +6,19 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Person
 import java.time.LocalDateTime
 
-internal data class PdlResponse(
+data class PdlResponse(
     val data: PdlData,
     private val errors: List<PdlError>? = null
 ) {
     val error: PdlError? = errors?.firstOrNull()
 }
 
-internal data class PdlData(
+data class PdlData(
     val hentPerson: HentPersonQueryResponse?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-internal data class HentPersonQueryResponse(
+data class HentPersonQueryResponse(
     val folkeregisteridentifikator: List<Folkeregisteridentifikator>,
 ) {
     private fun identhistorikk(): IdentHistorikk {
@@ -49,7 +49,7 @@ internal data class HentPersonQueryResponse(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-internal data class Folkeregisteridentifikator(
+data class Folkeregisteridentifikator(
     val identifikasjonsnummer: String,
     val status: Status,
     val type: Type,
@@ -65,18 +65,18 @@ internal data class Folkeregisteridentifikator(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-internal data class Metadata(
+data class Metadata(
     val historisk: Boolean,
     val master: String,
     val endringer: List<Endring> = emptyList()
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-internal data class Folkeregistermetadata(
+data class Folkeregistermetadata(
     val ajourholdstidspunkt: LocalDateTime? = null
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-internal data class Endring(
+data class Endring(
     val registrert: LocalDateTime
 )
