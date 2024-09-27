@@ -7,7 +7,7 @@ val navTokenSupportVersion = "5.0.5"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"
 val postgresqlVersion = "42.7.4"
-val flywayCoreVersion = "9.22.3"
+val flywayCoreVersion = "10.18.1"
 val testcontainersVersion = "1.20.1"
 val jacksonVersion = "2.17.1"
 val springKafkaTestVersion = "3.2.4"
@@ -71,6 +71,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
 
     // These are transitive dependencies, but overriding them on top level due to vulnerabilities
     // (and in some cases, the wrong version being picked)

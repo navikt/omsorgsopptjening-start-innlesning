@@ -15,7 +15,7 @@ no.nav.security.jwt:
 
 spring.datasource:
   driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-  url: jdbc:tc:postgresql:14:///test
+  url: jdbc:tc:postgresql:16:///test
   username: test
   password: test
 

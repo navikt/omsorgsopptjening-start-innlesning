@@ -34,21 +34,26 @@ class PostgresqlTestContainer private constructor(image: String) : PostgreSQLCon
     }
 
     companion object {
-        val instance: PostgresqlTestContainer = PostgresqlTestContainer("postgres:14.9-alpine")
+        val instance: PostgresqlTestContainer = createInstance()
+
         private val dataSource = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = "jdbc:tc:postgresql:14:///test"
+            jdbcUrl = "jdbc:tc:postgresql:16:///test"
             username = instance.username
             password = instance.password
         })
 
         fun createInstance(name: String): DataSource {
-            val instance = PostgresqlTestContainer("postgres:14.9-alpine")
+            val instance = createInstance()
             val dataSource = HikariDataSource(HikariConfig().apply {
-                jdbcUrl = "jdbc:tc:postgresql:14:///$name"
+                jdbcUrl = "jdbc:tc:postgresql:16:///$name"
                 username = instance.username
                 password = instance.password
             })
             return dataSource
+        }
+
+        private fun createInstance(): PostgresqlTestContainer {
+            return PostgresqlTestContainer("postgres:16.4-alpine")
         }
     }
 }
