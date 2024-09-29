@@ -18,6 +18,7 @@ val wiremockVersion = "3.9.1"
 val micrometerRegistryPrometheusVersion = "1.13.4"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.4"
+val jsonAssertVersion = "1.5.2"
 
 val snappyJavaVersion = "1.1.10.7"
 val snakeYamlVersion = "2.3"
@@ -88,6 +89,8 @@ dependencies {
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
     testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
+//    testImplementation("org.scyscreamer:jsonassert:$jsonAssertVersion")
+    testImplementation("org.skyscreamer:jsonassert:1.5.2")
 }
 
 tasks.test {

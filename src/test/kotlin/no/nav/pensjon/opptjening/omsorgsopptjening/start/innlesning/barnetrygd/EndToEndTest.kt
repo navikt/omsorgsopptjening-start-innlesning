@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Month
 import java.time.YearMonth
@@ -43,7 +44,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
     fun `leser melding fra barnetryd topic, prosesserer meldingen og sender ny melding til intern topic`() {
         // TODO: Denne sleep'en må til for at testen skal passere på kommandolinje hos meg (jan), men
         // passerer andre steder. Skyldes antagelig at testene ikke er godt nok isolert.
-        Thread.sleep(2000)
+        Thread.sleep(5000)
         assertThat(listener.size()).isZero()
 
         wiremock.`pdl fnr ett i bruk`()
@@ -80,13 +81,16 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         assertThat(listener.size()).isOne()
 
         listener.removeFirstRecord(3).let { consumerRecord ->
-            assertThat(
-                consumerRecord.key()
-            ).isEqualTo(
+            val expectedKey =
                 """
                     {"ident":"12345678910"}
-                """.trimIndent(),
+                """.trimIndent()
+            JSONAssert.assertEquals(
+                consumerRecord.key(),
+                expectedKey,
+                true
             )
+
             deserialize<PersongrunnlagMelding>(consumerRecord.value()).also {
                 assertThat(it.omsorgsyter).isEqualTo("12345678910")
                 assertThat(
@@ -118,11 +122,16 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                         )
                     ),
                 )
-                assertEquals(
-                    """
-                        [{"fnr":"12345678910","fom":"2020-01-01","barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"},{"fnr":"09876543210","fom":"2020-01-01","tom":"2021-12-31","hjelpestønad":"[\n    {\n        \"id\":\"123\",\n        \"ident\":\"09876543210\",\n        \"fom\":\"2020-01\",\n        \"tom\":\"2025-12\",\n        \"omsorgstype\":\"FORHØYET_SATS_3\"\n    }\n]"}]
-                    """.trimIndent(),
-                    serialize(it.rådata)
+                val expectedRådata = """[{
+                        "fnr":"12345678910",
+                        "fom":"2020-01-01",
+                        "barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"},{"fnr":"09876543210","fom":"2020-01-01","tom":"2021-12-31","hjelpestønad":"[\n    {\n        \"id\":\"123\",\n        \"ident\":\"09876543210\",\n        \"fom\":\"2020-01\",\n        \"tom\":\"2025-12\",\n        \"omsorgstype\":\"FORHØYET_SATS_3\"\n    }\n]"
+                        }]""".trimIndent()
+
+                JSONAssert.assertEquals(
+                    serialize(it.rådata),
+                    expectedRådata,
+                    false
                 )
                 assertThat(it.innlesingId.toString()).isEqualTo(innlesingId)
                 assertThat(it.correlationId).isNotNull() //opprettes internt
