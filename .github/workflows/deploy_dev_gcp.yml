@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.runs-on }}
-          path: build/test-results/test
+          path: build/reports/tests/test
 
       # DEPLOYER dev-gcp
       - name: 'Deploy omsorgsopptjening-start-innlesning to dev-gcp'
