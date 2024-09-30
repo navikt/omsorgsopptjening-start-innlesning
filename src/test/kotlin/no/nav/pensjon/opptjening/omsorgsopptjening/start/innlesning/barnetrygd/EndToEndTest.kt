@@ -44,7 +44,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
     fun `leser melding fra barnetryd topic, prosesserer meldingen og sender ny melding til intern topic`() {
         // TODO: Denne sleep'en må til for at testen skal passere på kommandolinje hos meg (jan), men
         // passerer andre steder. Skyldes antagelig at testene ikke er godt nok isolert.
+        println("*** BEFORE SLEEP: ${kafkaProducer.kafkaAdmin}")
         Thread.sleep(5000)
+        println("*** AFTER SLEEP: ${kafkaProducer.kafkaAdmin}")
         assertThat(listener.size()).isZero()
 
         wiremock.`pdl fnr ett i bruk`()
