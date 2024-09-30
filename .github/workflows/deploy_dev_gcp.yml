@@ -48,6 +48,15 @@ jobs:
           docker push ${{ env.IMAGE }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # UPLOAD FAILED TEST RESULTS
+      - name: 'Upload test results'
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: build/test-results/test
+
       # DEPLOYER dev-gcp
       - name: 'Deploy omsorgsopptjening-start-innlesning to dev-gcp'
         uses: nais/deploy/actions/deploy@v2

@@ -114,4 +114,8 @@ tasks.withType<Test> {
             TestLogEvent.SKIPPED
         )
     }
+    reports {
+        junitXml.required.set(true)
+        html.required.set(true)
+    }
 }

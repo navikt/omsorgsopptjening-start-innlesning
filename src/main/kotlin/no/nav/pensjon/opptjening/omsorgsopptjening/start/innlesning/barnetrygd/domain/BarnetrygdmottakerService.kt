@@ -74,10 +74,8 @@ class BarnetrygdmottakerService(
 
                                         val rådata = Rådata()
 
-                                        /*
                                         val person = pdlService.hentPerson(barnetrygdmottaker.ident)
                                         println("%%% PERSON: $person")
-                                        */
 
                                         val barnetrygdResponse = client.hentBarnetrygd(
                                             ident = barnetrygdmottaker.ident,
