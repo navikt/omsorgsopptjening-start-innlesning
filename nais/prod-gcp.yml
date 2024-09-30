@@ -22,7 +22,7 @@ spec:
     enabled: true
   gcp:
     sqlInstances:
-      - type: POSTGRES_14
+      - type: POSTGRES_16
         cascadingDelete: false
         diskAutoresize: true
         pointInTimeRecovery: true
