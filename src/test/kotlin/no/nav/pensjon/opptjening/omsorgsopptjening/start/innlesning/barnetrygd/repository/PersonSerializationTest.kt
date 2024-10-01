@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class PersonSerializationTest {
-    @Disabled
     @Test
     fun `kan serialisere og deserialisere en person med kun gjeldende ident`() {
         val person = Person(
