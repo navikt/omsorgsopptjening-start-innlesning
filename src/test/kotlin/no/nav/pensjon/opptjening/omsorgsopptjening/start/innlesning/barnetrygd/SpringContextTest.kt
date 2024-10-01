@@ -17,14 +17,15 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import java.util.UUID
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 @DirtiesContext
 sealed class SpringContextTest {
-
     companion object {
         const val PDL_PATH = "/graphql"
         const val WIREMOCK_PORT = 9991
+        const val READINESS_TOPIC = "readiness-topic"
     }
 
     @BeforeEach
@@ -37,7 +38,12 @@ sealed class SpringContextTest {
     class NoKafka : SpringContextTest()
 
     @ActiveProfiles("kafkaIntegrationTest")
-    @EmbeddedKafka(partitions = 1, topics = [BarnetrygdmottakerKafkaTopic.NAME, Topics.Omsorgsopptjening.NAME])
+    @EmbeddedKafka(
+        partitions = 1,
+        topics = [BarnetrygdmottakerKafkaTopic.NAME,
+            Topics.Omsorgsopptjening.NAME,
+            READINESS_TOPIC]
+    )
     @SpringBootTest(classes = [Application::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
@@ -45,6 +51,12 @@ sealed class SpringContextTest {
 
         @Autowired
         lateinit var kafkaProducer: KafkaTemplate<String, String>
+
+        fun ensureKafkaIsReady() {
+            val future = kafkaProducer.send(READINESS_TOPIC, "key", "msg")
+            future.get(10, TimeUnit.SECONDS)
+            println("READINESS_TOPIC.length = ${READINESS_TOPIC.length}")
+        }
 
         fun sendStartInnlesingKafka(
             requestId: String
