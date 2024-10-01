@@ -74,8 +74,10 @@ class BarnetrygdmottakerService(
 
                                         val rådata = Rådata()
 
+                                        val beforePersonOppslag = System.currentTimeMillis()
                                         val person = pdlService.hentPerson(barnetrygdmottaker.ident)
-                                        println("%%% PERSON: $person")
+                                        val afterPersonOppslag = System.currentTimeMillis()
+                                        println("%%% PERSON: $person (oppslag: ${afterPersonOppslag - beforePersonOppslag} ms")
 
                                         val barnetrygdResponse = client.hentBarnetrygd(
                                             ident = barnetrygdmottaker.ident,
