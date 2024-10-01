@@ -14,9 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import java.net.Socket
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -52,13 +54,40 @@ sealed class SpringContextTest {
         @Autowired
         lateinit var kafkaProducer: KafkaTemplate<String, String>
 
+        @Autowired
+        lateinit var kafkaBroker: EmbeddedKafkaBroker
+
         fun ensureKafkaIsReady() {
             Thread.sleep(1000)
             val future = kafkaProducer.send(READINESS_TOPIC, "key", "msg")
             kafkaProducer.flush()
             future.get(10, TimeUnit.SECONDS)
             println("READINESS_TOPIC.length = ${READINESS_TOPIC.length}")
+            println("KAFKA BROKER: $kafkaBroker")
         }
+
+        fun awaitKafkaBroker(timeoutSeconds: Int = 60) {
+            var attempts = 0
+            val maxAttempts = timeoutSeconds * 10
+            val brokerAddress = kafkaBroker.brokersAsString
+            println("BrokerAddress: $brokerAddress")
+            val host = brokerAddress.split(":").first()
+            val port = brokerAddress.substringAfter(":").toInt()
+
+            while (attempts < maxAttempts) {
+                try {
+                    Socket("localhost", port).use {
+                        println("awaitKafkaBroker: Kafka is ready (attempts=$attempts)")
+                        return
+                    }
+                } catch (e: Exception) {
+                    Thread.sleep(100)
+                }
+                attempts++
+            }
+            throw RuntimeException("awaitKafkaBroker: Kafka broker did not start without $timeoutSeconds seconds")
+        }
+
 
         fun sendStartInnlesingKafka(
             requestId: String

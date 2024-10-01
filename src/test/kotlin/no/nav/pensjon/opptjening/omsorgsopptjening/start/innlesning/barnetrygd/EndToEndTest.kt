@@ -43,6 +43,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
     @Test
     fun `leser melding fra barnetryd topic, prosesserer meldingen og sender ny melding til intern topic`() {
         ensureKafkaIsReady()
+        awaitKafkaBroker(60)
         // TODO: Denne sleep'en må til for at testen skal passere på kommandolinje hos meg (jan), men
         // passerer andre steder. Skyldes antagelig at testene ikke er godt nok isolert.
         println("*** BEFORE SLEEP: ${kafkaProducer.kafkaAdmin}")
