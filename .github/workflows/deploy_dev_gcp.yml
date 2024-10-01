@@ -13,6 +13,15 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - name: 'Check available disk space on /tmp (1)'
+        run: df -h /tmp
+
+      - name: 'Remount larger /tmp'
+        run: sudo mount -o remount,size=3G,noatime /tmp
+
+      - name: 'Check available disk space on /tmp (2)'
+        run: df -h /tmp
+
       # PULLER REPO
       - name: 'Pull repo'
         uses: actions/checkout@v4.1.1
@@ -48,6 +57,10 @@ jobs:
           docker push ${{ env.IMAGE }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Check available disk space on /tmp after failure'
+        if: failure()
+        run: df -h /tmp
 
       # UPLOAD FAILED TEST RESULTS
       - name: 'Upload test results'
