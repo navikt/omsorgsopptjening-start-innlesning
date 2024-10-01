@@ -45,7 +45,7 @@ jobs:
       # BYGGER DOCKER CONTAINER
       - name: 'Bygg og publiser docker image'
         run: |
-          ./gradlew build
+          ./gradlew clean build
           docker build --tag ${{ env.IMAGE }} .
           docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${{ secrets.GITHUB_TOKEN }}
           docker push ${{ env.IMAGE }}
