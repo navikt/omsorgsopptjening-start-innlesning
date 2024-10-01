@@ -20,10 +20,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.annotation.DirtiesContext
 import java.time.Month
 import java.time.YearMonth
 import java.util.UUID
 
+@DirtiesContext
 class EndToEndTest : SpringContextTest.WithKafka() {
 
     @Autowired
