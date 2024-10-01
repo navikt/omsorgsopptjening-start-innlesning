@@ -33,3 +33,14 @@ management:
         enabled: true
     prometheus:
       enabled: true
+spring.kafka:
+  consumer:
+    properties:
+      session.timeout.ms: 60000
+      request.timeout.ms: 60000
+    auto-offset-reset: earliest
+  producer:
+    properties:
+      request.timeout.ms: 60000
+      delivery.timeout.ms: 120000
+    retries: 5

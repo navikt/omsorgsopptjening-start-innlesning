@@ -53,7 +53,9 @@ sealed class SpringContextTest {
         lateinit var kafkaProducer: KafkaTemplate<String, String>
 
         fun ensureKafkaIsReady() {
+            Thread.sleep(1000)
             val future = kafkaProducer.send(READINESS_TOPIC, "key", "msg")
+            kafkaProducer.flush()
             future.get(10, TimeUnit.SECONDS)
             println("READINESS_TOPIC.length = ${READINESS_TOPIC.length}")
         }
