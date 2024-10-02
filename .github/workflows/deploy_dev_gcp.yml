@@ -57,7 +57,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.runs-on }}
+          name: failed-test-results
           path: build/reports/tests/test
 
       # DEPLOYER dev-gcp
