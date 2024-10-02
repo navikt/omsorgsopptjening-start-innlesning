@@ -19,10 +19,11 @@ class HjelpestønadService(
     private val hjelpestønadClient: HjelpestønadClient
 ) {
     internal fun hentHjelpestønad(
-        persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
+//        persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
+        omsorgsmottakere: Set<String>,
         filter: GyldigÅrsintervallFilter,
     ): List<Pair<List<PersongrunnlagMelding.Hjelpestønadperiode>, RådataFraKilde>> {
-        return persongrunnlag.hentOmsorgsmottakere().map { omsorgsmottaker ->
+        return omsorgsmottakere.map { omsorgsmottaker ->
             hentHjelpestønad(
                 fnr = omsorgsmottaker,
                 fom = filter.min(),

@@ -7,6 +7,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.BarnetrygdClient
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.HentBarnetrygdResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain.HjelpestønadService
@@ -83,21 +84,22 @@ class BarnetrygdmottakerService(
                                         val barnetrygdResponse = client.hentBarnetrygd(
                                             ident = barnetrygdmottaker.ident,
                                             filter = filter,
-                                        ).also {
-                                            rådata.leggTil(it.rådataFraKilde)
+                                        )
+                                        rådata.leggTil(barnetrygdResponse.rådataFraKilde)
+
+                                        val persongrunnlag = getPersongrunnlag(barnetrygdResponse)
+
+                                        val hjelpestønad = persongrunnlag.map { persongrunnlag ->
+                                            val hjelpestønad = hjelpestønadService.hentHjelpestønad(
+                                                // persongrunnlag = persongrunnlag,
+                                                omsorgsmottakere = persongrunnlag.hentOmsorgsmottakere(),
+                                                filter = filter
+                                            )
+                                            val hjelpestønadRådata = hjelpestønad.map { it.second }
+                                            hjelpestønadRådata.onEach { rådata.leggTil(it) }
+
+                                            persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
                                         }
-
-                                        val hjelpestønad = barnetrygdResponse.barnetrygdsaker
-                                            .associateBy { it.omsorgsyter }
-                                            .mapValues { (_, persongrunnlag) ->
-                                                val hjelpestønad = hjelpestønadService.hentHjelpestønad(
-                                                    persongrunnlag = persongrunnlag,
-                                                    filter = filter
-                                                ).onEach { rådata.leggTil(it.second) }
-
-                                                persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
-                                            }
-                                            .map { it.value }
 
                                         kafkaProducer.send(
                                             createKafkaMessage(
@@ -144,6 +146,11 @@ class BarnetrygdmottakerService(
             låsteTilBehandling?.let { barnetrygdmottakerRepository.frigi(it) }
         }
     }
+
+    private fun getPersongrunnlag(barnetrygdResponse: HentBarnetrygdResponse) =
+        barnetrygdResponse.barnetrygdsaker
+            .groupBy { it.omsorgsyter }
+            .map { it.value.single() }
 
     private fun createKafkaMessage(
         barnetrygdmottaker: Barnetrygdmottaker,
