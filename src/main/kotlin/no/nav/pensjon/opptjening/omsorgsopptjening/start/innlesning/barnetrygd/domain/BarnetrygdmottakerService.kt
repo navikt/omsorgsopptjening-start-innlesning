@@ -87,23 +87,30 @@ class BarnetrygdmottakerService(
 
                     val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
 
-                    val person = pdlService.hentPerson(barnetrygdmottaker.ident)
+//                    val person = pdlService.hentPerson(barnetrygdmottaker.ident)
+                    // temporary
+                    val person = Person(barnetrygdmottaker.ident, setOf(barnetrygdmottaker.ident))
                     println("%%% PERSON: $person")
 
-                    val barnetrygdResponse = hentBarnetrygd(barnetrygdmottaker, filter)
+                    val barnetrygdResponse = hentBarnetrygd(person, filter)
 
-                    val barnetrygdRådata = barnetrygdResponse.rådataFraKilde
+                    val barnetrygdRådata = barnetrygdResponse.map { it.rådataFraKilde }
 
-                    val persongrunnlag = getPersongrunnlag(barnetrygdResponse)
+                    val persongrunnlag = barnetrygdResponse.map {
+                        getPersongrunnlag(it)
+                    }
 
-                    val hjelpestønadGrunnlag = hentHjelpestønadGrunnlag(persongrunnlag, filter)
-                    val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.map { it.first }
-                    val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap { it.second }
+                    val hjelpestønadGrunnlag = persongrunnlag.map {
+                        hentHjelpestønadGrunnlag(it, filter)
+                    }
+                    val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.flatMap {
+                        it.map { it.first }
+                    }
+                    val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap {
+                        it.flatMap { it.second }
+                    }
 
-                    val rådata = Rådata(
-                        listOf(listOf(barnetrygdRådata), hjelpestønadRådata).flatten()
-                            .toMutableList()
-                    )
+                    val rådata = Rådata(barnetrygdRådata + hjelpestønadRådata)
 
                     kafkaProducer.send(
                         createKafkaMessage(
@@ -152,14 +159,16 @@ class BarnetrygdmottakerService(
     }
 
     private fun hentBarnetrygd(
-        barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
-//        person: Person,
+//        barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
+        person: Person,
         filter: GyldigÅrsintervallFilter
-    ): HentBarnetrygdResponse {
-        return client.hentBarnetrygd(
-            ident = barnetrygdmottaker.ident,
-            filter = filter,
-        )
+    ): List<HentBarnetrygdResponse> {
+        return person.historiske.map { fnr ->
+            client.hentBarnetrygd(
+                ident = fnr,
+                filter = filter,
+            )
+        }
     }
 
     private fun persongrunnlagMedHjelpestønader(
