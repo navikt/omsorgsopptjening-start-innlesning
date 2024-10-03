@@ -67,80 +67,84 @@ class BarnetrygdmottakerService(
                 låsteTilBehandling?.data?.map { barnetrygdmottaker ->
                     Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                         Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
-                            try {
-                                log.info("Start prosessering")
-                                transactionTemplate.execute {
-                                    barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
-
-                                        val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
-
-
-                                        println("%%% FØR PERSONOPPSLAG")
-                                        val beforePersonOppslag = System.currentTimeMillis()
-                                        val person = pdlService.hentPerson(barnetrygdmottaker.ident)
-                                        val afterPersonOppslag = System.currentTimeMillis()
-                                        println("%%% PERSON: $person (oppslag: ${afterPersonOppslag - beforePersonOppslag} ms")
-
-                                        val barnetrygdResponse = client.hentBarnetrygd(
-                                            ident = barnetrygdmottaker.ident,
-                                            filter = filter,
-                                        )
-                                        val barnetrygdRådata = listOf(barnetrygdResponse.rådataFraKilde)
-
-                                        val persongrunnlag = getPersongrunnlag(barnetrygdResponse)
-
-                                        val hjelpestønadGrunnlag =
-                                            persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter) }
-                                        val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.map { it.first }
-                                        val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap { it.second }
-
-                                        val rådata = Rådata(
-                                            listOf(barnetrygdRådata, hjelpestønadRådata).flatten().toMutableList()
-                                        )
-
-                                        kafkaProducer.send(
-                                            createKafkaMessage(
-                                                barnetrygdmottaker = barnetrygdmottaker,
-                                                persongrunnlag = hjelpestønadPersongrunnlag,
-                                                rådata = rådata,
-                                            )
-                                        ).get()
-
-                                        barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
-
-                                        log.info("Melding prosessert")
-                                    }
-                                }
-                            } catch (outerEx: Throwable) {
-                                val ex = when (outerEx) {
-                                    is UndeclaredThrowableException -> outerEx.undeclaredThrowable
-                                    else -> outerEx
-                                }
-                                log.warn("Fikk feil ved prosessering av melding: ${ex::class.qualifiedName}")
-
-                                try {
-                                    transactionTemplate.execute {
-                                        barnetrygdmottaker.retry(ex.stackTraceToString()).let {
-                                            if (it.status is Barnetrygdmottaker.Status.Feilet) {
-                                                log.error("Gir opp videre prosessering av melding")
-                                            }
-                                            barnetrygdmottakerRepository.updateStatus(it)
-                                        }
-                                    }
-                                    null
-                                } catch (ex: Throwable) {
-                                    log.error("Feil ved oppdatering av status til retry: ${ex::class.qualifiedName}")
-                                    null
-                                }
-                            } finally {
-                                log.info("Slutt prosessering")
-                            }
+                            prosesserMottattBarnetrygmottaker(barnetrygdmottaker)
                         }
                     }
                 }
             return barnetrygdmottaker?.filterNotNull()?.ifEmpty { null }
         } finally {
             låsteTilBehandling?.let { barnetrygdmottakerRepository.frigi(it) }
+        }
+    }
+
+    private fun prosesserMottattBarnetrygmottaker(
+        barnetrygdmottaker: Barnetrygdmottaker.Mottatt
+    ): Barnetrygdmottaker.Mottatt? {
+        return try {
+            log.info("Start prosessering")
+            transactionTemplate.execute {
+                barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
+
+                    val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
+
+
+                    val person = pdlService.hentPerson(barnetrygdmottaker.ident)
+                    println("%%% PERSON: $person")
+
+                    val barnetrygdResponse = client.hentBarnetrygd(
+                        ident = barnetrygdmottaker.ident,
+                        filter = filter,
+                    )
+                    val barnetrygdRådata = barnetrygdResponse.rådataFraKilde
+
+                    val persongrunnlag = getPersongrunnlag(barnetrygdResponse)
+
+                    val hjelpestønadGrunnlag =
+                        persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter) }
+                    val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.map { it.first }
+                    val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap { it.second }
+
+                    val rådata = Rådata(
+                        listOf(listOf(barnetrygdRådata), hjelpestønadRådata).flatten()
+                            .toMutableList()
+                    )
+
+                    kafkaProducer.send(
+                        createKafkaMessage(
+                            barnetrygdmottaker = barnetrygdmottaker,
+                            persongrunnlag = hjelpestønadPersongrunnlag,
+                            rådata = rådata,
+                        )
+                    ).get()
+
+                    barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
+
+                    log.info("Melding prosessert")
+                }
+            } // end transaction
+        } catch (outerEx: Throwable) {
+            val ex = when (outerEx) {
+                is UndeclaredThrowableException -> outerEx.undeclaredThrowable
+                else -> outerEx
+            }
+            log.warn("Fikk feil ved prosessering av melding: ${ex::class.qualifiedName}")
+
+            try {
+                transactionTemplate.execute {
+                    barnetrygdmottaker.retry(ex.stackTraceToString()).let {
+                        if (it.status is Barnetrygdmottaker.Status.Feilet) {
+                            log.error("Gir opp videre prosessering av melding")
+                        }
+                        barnetrygdmottakerRepository.updateStatus(it)
+                    }
+                }
+                null
+            } catch (ex: Throwable) {
+                log.error("Feil ved oppdatering av status til retry: ${ex::class.qualifiedName}")
+                null
+            }
+        } finally {
+            log.info("Slutt prosessering")
         }
     }
 
