@@ -87,20 +87,16 @@ class BarnetrygdmottakerService(
 
                     val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
 
-
                     val person = pdlService.hentPerson(barnetrygdmottaker.ident)
                     println("%%% PERSON: $person")
 
-                    val barnetrygdResponse = client.hentBarnetrygd(
-                        ident = barnetrygdmottaker.ident,
-                        filter = filter,
-                    )
+                    val barnetrygdResponse = hentBarnetrygd(barnetrygdmottaker, filter)
+
                     val barnetrygdRådata = barnetrygdResponse.rådataFraKilde
 
                     val persongrunnlag = getPersongrunnlag(barnetrygdResponse)
 
-                    val hjelpestønadGrunnlag =
-                        persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter) }
+                    val hjelpestønadGrunnlag = hentHjelpestønadGrunnlag(persongrunnlag, filter)
                     val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.map { it.first }
                     val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap { it.second }
 
@@ -146,6 +142,24 @@ class BarnetrygdmottakerService(
         } finally {
             log.info("Slutt prosessering")
         }
+    }
+
+    private fun hentHjelpestønadGrunnlag(
+        persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
+        filter: GyldigÅrsintervallFilter
+    ): List<Pair<PersongrunnlagMelding.Persongrunnlag, List<RådataFraKilde>>> {
+        return persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter) }
+    }
+
+    private fun hentBarnetrygd(
+        barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
+//        person: Person,
+        filter: GyldigÅrsintervallFilter
+    ): HentBarnetrygdResponse {
+        return client.hentBarnetrygd(
+            ident = barnetrygdmottaker.ident,
+            filter = filter,
+        )
     }
 
     private fun persongrunnlagMedHjelpestønader(
