@@ -3,7 +3,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val domeneVersion = "1.0.70"
+// val domeneVersion = "1.0.70"
+val domeneVersion = "2.0.2"
 val navTokenSupportVersion = "5.0.5"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"

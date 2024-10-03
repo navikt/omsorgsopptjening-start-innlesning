@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
@@ -73,7 +74,6 @@ class BarnetrygdmottakerService(
 
                                         val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
 
-                                        val rådata = Rådata()
 
                                         println("%%% FØR PERSONOPPSLAG")
                                         val beforePersonOppslag = System.currentTimeMillis()
@@ -85,17 +85,23 @@ class BarnetrygdmottakerService(
                                             ident = barnetrygdmottaker.ident,
                                             filter = filter,
                                         )
-                                        rådata.leggTil(barnetrygdResponse.rådataFraKilde)
+                                        val barnetrygdRådata = listOf(barnetrygdResponse.rådataFraKilde)
 
                                         val persongrunnlag = getPersongrunnlag(barnetrygdResponse)
 
-                                        val persongrunnlagMedHjelpestønad =
-                                            persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter, rådata) }
+                                        val hjelpestønadGrunnlag =
+                                            persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter) }
+                                        val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.map { it.first }
+                                        val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap { it.second }
+
+                                        val rådata = Rådata(
+                                            listOf(barnetrygdRådata, hjelpestønadRådata).flatten().toMutableList()
+                                        )
 
                                         kafkaProducer.send(
                                             createKafkaMessage(
                                                 barnetrygdmottaker = barnetrygdmottaker,
-                                                persongrunnlag = persongrunnlagMedHjelpestønad,
+                                                persongrunnlag = hjelpestønadPersongrunnlag,
                                                 rådata = rådata,
                                             )
                                         ).get()
@@ -141,17 +147,15 @@ class BarnetrygdmottakerService(
     private fun persongrunnlagMedHjelpestønader(
         persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
         filter: GyldigÅrsintervallFilter,
-        rådata: Rådata,
-    ): PersongrunnlagMelding.Persongrunnlag {
+    ): Pair<PersongrunnlagMelding.Persongrunnlag, List<RådataFraKilde>> {
         val hjelpestønad = hjelpestønadService.hentHjelpestønad(
             // persongrunnlag = persongrunnlag,
             omsorgsmottakere = persongrunnlag.hentOmsorgsmottakere(),
             filter = filter
         )
         val hjelpestønadRådata = hjelpestønad.map { it.second }
-        hjelpestønadRådata.onEach { rådata.leggTil(it) }
         val hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
-        return persongrunnlag.leggTilHjelpestønad(hjelpestønadsperioder)
+        return Pair(persongrunnlag.medHjelpestønadPerioder(hjelpestønadsperioder), hjelpestønadRådata)
     }
 
     private fun getPersongrunnlag(barnetrygdResponse: HentBarnetrygdResponse) =
