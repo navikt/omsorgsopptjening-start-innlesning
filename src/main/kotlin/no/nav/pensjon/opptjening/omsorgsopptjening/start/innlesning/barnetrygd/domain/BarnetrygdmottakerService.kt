@@ -89,22 +89,13 @@ class BarnetrygdmottakerService(
 
                                         val persongrunnlag = getPersongrunnlag(barnetrygdResponse)
 
-                                        val hjelpestønad = persongrunnlag.map { persongrunnlag ->
-                                            val hjelpestønad = hjelpestønadService.hentHjelpestønad(
-                                                // persongrunnlag = persongrunnlag,
-                                                omsorgsmottakere = persongrunnlag.hentOmsorgsmottakere(),
-                                                filter = filter
-                                            )
-                                            val hjelpestønadRådata = hjelpestønad.map { it.second }
-                                            hjelpestønadRådata.onEach { rådata.leggTil(it) }
-
-                                            persongrunnlag.leggTilHjelpestønad(hjelpestønad.flatMap { it.first })
-                                        }
+                                        val persongrunnlagMedHjelpestønad =
+                                            persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter, rådata) }
 
                                         kafkaProducer.send(
                                             createKafkaMessage(
                                                 barnetrygdmottaker = barnetrygdmottaker,
-                                                persongrunnlag = hjelpestønad,
+                                                persongrunnlag = persongrunnlagMedHjelpestønad,
                                                 rådata = rådata,
                                             )
                                         ).get()
@@ -145,6 +136,22 @@ class BarnetrygdmottakerService(
         } finally {
             låsteTilBehandling?.let { barnetrygdmottakerRepository.frigi(it) }
         }
+    }
+
+    private fun persongrunnlagMedHjelpestønader(
+        persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
+        filter: GyldigÅrsintervallFilter,
+        rådata: Rådata,
+    ): PersongrunnlagMelding.Persongrunnlag {
+        val hjelpestønad = hjelpestønadService.hentHjelpestønad(
+            // persongrunnlag = persongrunnlag,
+            omsorgsmottakere = persongrunnlag.hentOmsorgsmottakere(),
+            filter = filter
+        )
+        val hjelpestønadRådata = hjelpestønad.map { it.second }
+        hjelpestønadRådata.onEach { rådata.leggTil(it) }
+        val hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
+        return persongrunnlag.leggTilHjelpestønad(hjelpestønadsperioder)
     }
 
     private fun getPersongrunnlag(barnetrygdResponse: HentBarnetrygdResponse) =
