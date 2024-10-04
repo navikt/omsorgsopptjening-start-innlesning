@@ -20,19 +20,7 @@
             "master": "FREG"
           }
         }
-      ],
-      "foedsel": [
-        {
-          "foedselsaar": 1982,
-          "foedselsdato": "1982-01-01",
-          "metadata": {
-            "historisk": false,
-            "master": "FREG"
-          }
-        }
-      ],
-      "doedsfall": [],
-      "forelderBarnRelasjon": []
+      ]
     }
   }
 }
