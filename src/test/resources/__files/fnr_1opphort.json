@@ -11,19 +11,7 @@
             "master": "FREG"
           }
         }
-      ],
-      "foedsel": [
-        {
-          "foedselsaar": 2000,
-          "foedselsdato": "2000-01-01",
-          "metadata": {
-            "historisk": false,
-            "master": "FREG"
-          }
-        }
-      ],
-      "doedsfall": [],
-      "forelderBarnRelasjon": []
+      ]
     }
   }
 }
