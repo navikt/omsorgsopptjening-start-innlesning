@@ -16,6 +16,22 @@ private fun WireMockExtension.pdlResponse(fileName: String): StubMapping {
     )
 }
 
+fun WireMockExtension.`pdl med ett fnr`(fnr: String): StubMapping {
+    return this.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withStatus(202)
+                    .withTransformerParameter("fnr", fnr)
+                    .withBodyFile(
+                        "fnr_1bruk_template.json"
+                    )
+            )
+    )
+}
+
+
 fun WireMockExtension.`pdl bad request`(): StubMapping {
     return this.pdlResponse("error_bad_request.json")
 }
