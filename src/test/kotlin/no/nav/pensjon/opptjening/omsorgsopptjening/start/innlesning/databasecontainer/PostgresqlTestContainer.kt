@@ -25,8 +25,10 @@ class PostgresqlTestContainer private constructor(image: String) : PostgreSQLCon
     fun removeDataFromDB() {
         dataSource.connection.apply {
             createStatement().execute(
-                """
+                """                        
                         DELETE FROM BARNETRYGDMOTTAKER;
+                        DELETE FROM INNLESING;
+                        DELETE FROM FEILINFO;
                     """
             )
             close()
