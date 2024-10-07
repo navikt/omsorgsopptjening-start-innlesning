@@ -28,7 +28,6 @@ class PostgresqlTestContainer private constructor(image: String) : PostgreSQLCon
                 """                        
                         DELETE FROM BARNETRYGDMOTTAKER;
                         DELETE FROM INNLESING;
-                        DELETE FROM FEILINFO;
                     """
             )
             close()
