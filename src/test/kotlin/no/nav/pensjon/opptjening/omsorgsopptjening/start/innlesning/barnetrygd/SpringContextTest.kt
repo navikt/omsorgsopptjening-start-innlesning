@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import java.net.Socket
 import java.util.UUID
@@ -47,6 +48,7 @@ sealed class SpringContextTest {
     @SpringBootTest(classes = [Application::class])
     @Import(KafkaIntegrationTestConfig::class)
     @EnableMockOAuth2Server
+    @DirtiesContext
     class WithKafka : SpringContextTest() {
 
         @Autowired
