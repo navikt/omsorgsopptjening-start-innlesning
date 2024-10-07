@@ -16,13 +16,11 @@ import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import java.net.Socket
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-@DirtiesContext
 sealed class SpringContextTest {
     companion object {
         const val PDL_PATH = "/graphql"

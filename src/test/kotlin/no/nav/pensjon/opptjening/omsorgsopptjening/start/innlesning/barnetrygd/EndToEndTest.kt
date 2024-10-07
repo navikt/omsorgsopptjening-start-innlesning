@@ -15,17 +15,14 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.k
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.BarnetrygdWebApi
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl.`pdl fnr ett i bruk`
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.annotation.DirtiesContext
 import java.time.Month
 import java.time.YearMonth
 import java.util.UUID
 
-@DirtiesContext
 class EndToEndTest : SpringContextTest.WithKafka() {
 
     @Autowired
