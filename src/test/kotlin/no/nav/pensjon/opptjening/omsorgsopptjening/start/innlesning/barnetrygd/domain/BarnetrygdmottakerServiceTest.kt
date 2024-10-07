@@ -32,11 +32,13 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.test.annotation.DirtiesContext
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 
+@DirtiesContext
 class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     @Autowired
     private lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository
