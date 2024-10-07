@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
+@Profile("dev-gcp", "prod-gcp", /* "kafkaIntegrationTest" */)
 class BarnetrygdmottakerProcessingThread(
     private val service: BarnetrygdmottakerService,
     private val barnetrygdmottakerProcessingMetrikker: BarnetrygdmottakerProcessingMetrikker,
