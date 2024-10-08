@@ -1,14 +1,13 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.domain
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.periode.Periode
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HentHjelpestønadResponse
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadClient
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external.HjelpestønadType
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HentHjelpestønadResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HjelpestønadClient
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HjelpestønadType
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.nedreGrense
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.øvreGrense
 import org.springframework.stereotype.Component

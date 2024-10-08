@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.person.model
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 

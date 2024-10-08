@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.tasks
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.slf4j.Logger

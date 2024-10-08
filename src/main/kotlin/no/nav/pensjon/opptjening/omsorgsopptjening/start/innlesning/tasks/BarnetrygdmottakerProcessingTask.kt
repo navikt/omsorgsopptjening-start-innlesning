@@ -1,15 +1,15 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.tasks
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
 import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.metrics.BarnetrygdmottakerProcessingMetrikker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.UnleashConfig
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 
 class BarnetrygdmottakerProcessingTask(
     private val service: BarnetrygdmottakerService,
-    private val barnetrygdmottakerProcessingMetrikker: BarnetrygdmottakerProcessingMetrikker,
+    private val metrikker: Metrikker,
     private val unleash: Unleash,
 ) : Runnable {
 
@@ -34,7 +34,7 @@ class BarnetrygdmottakerProcessingTask(
         log.info("Prosesserer alle tilgjengelige barnetrygdmottakere")
         var prosesserteMinstEnBarnetrygdmottaker = true;
         while (prosesserteMinstEnBarnetrygdmottaker) {
-            val barnetrygdmottakere = barnetrygdmottakerProcessingMetrikker.mål {
+            val barnetrygdmottakere = metrikker.tellBarnetrygdmottakerStatus {
                 service.process()
             }
             prosesserteMinstEnBarnetrygdmottaker = !barnetrygdmottakere.isNullOrEmpty()

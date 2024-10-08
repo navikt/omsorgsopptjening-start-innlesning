@@ -6,8 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetricsFeilmåling
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetrikker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -19,10 +18,8 @@ import org.springframework.stereotype.Component
 @Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
 class BarnetrygdmottakerKafkaListener(
     private val handler: BarnetrygdmottakerMessageHandler,
-    private val barnetrygdMottakerListenerMetrikker: BarnetrygdMottakerListenerMetrikker,
-    private val barnetrygdMottakerListenerMetricsFeilmåling: BarnetrygdMottakerListenerMetricsFeilmåling,
+    private val metrikker: Metrikker,
 ) {
-
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdmottakerKafkaListener::class.java)
         private val secureLog = LoggerFactory.getLogger("secure")
@@ -38,9 +35,9 @@ class BarnetrygdmottakerKafkaListener(
         acknowledgment: Acknowledgment
     ) {
         val kafkaMelding = try {
-            barnetrygdMottakerListenerMetrikker.mål { consumerRecord.deserialiser() }
+            metrikker.tellKafkaMeldingstype { consumerRecord.deserialiser() }
         } catch (ex: KafkaMeldingDeserialiseringException) {
-            barnetrygdMottakerListenerMetricsFeilmåling.målfeil {}
+            metrikker.målFeiletMelding {}
             log.error("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding")
             secureLog.error("Klarte ikke å deserialisere til kjent meldingsformat. Ignorerer melding", ex)
             throw ex

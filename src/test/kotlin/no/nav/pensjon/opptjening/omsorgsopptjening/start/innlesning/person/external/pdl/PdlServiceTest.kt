@@ -12,7 +12,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.TokenProviderConfig.Companion.MOCK_TOKEN
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model.PersonOppslagException
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.person.model.PersonOppslagException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Disabled

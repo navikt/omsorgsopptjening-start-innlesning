@@ -1,8 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model.PersonOppslag
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model.PersonOppslagException
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.person.model.PersonOppslag
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.person.model.PersonOppslagException
 import org.springframework.stereotype.Service
 
 @Service

@@ -5,14 +5,12 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetricsFeilmåling
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.metrics.BarnetrygdMottakerListenerMetrikker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -35,7 +33,6 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.test.util.ReflectionTestUtils
 import java.time.Instant
 import java.util.UUID
-import kotlin.test.assertEquals
 
 class BarnetrygdmottakerKafkaListenerTest {
 
@@ -43,10 +40,7 @@ class BarnetrygdmottakerKafkaListenerTest {
     inner class ExceptionHandlingTest : SpringContextTest.NoKafka() {
 
         @Autowired
-        private lateinit var metrikkMåling: BarnetrygdMottakerListenerMetrikker
-
-        @Autowired
-        private lateinit var metrikkFeilmåling: BarnetrygdMottakerListenerMetricsFeilmåling
+        private lateinit var metrikker: Metrikker
 
         private val handler: BarnetrygdmottakerMessageHandler = mock()
         private val ack: Acknowledgment = mock()
@@ -77,7 +71,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at innlesingen ikke eksisterer kastes det en ny exception`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikker)
             whenever(handler.handle(any())).thenThrow(BarnetrygdInnlesingException.EksistererIkke("17de91e9-b01a-4d95-84bc-80630ded678e"))
             assertThrows<BarnetrygdInnlesingException.EksistererIkke> {
                 listener.poll(
@@ -91,7 +85,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at vi mottar en melding med ukjent dataformat kastes en ny exception`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikker)
 
             assertThrows<KafkaMeldingDeserialiseringException> {
                 listener.poll(
@@ -105,7 +99,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at innlesingen er i ugyldig tilstand kastes en ny exception som signaliserer at innlesingen skal invalideres`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikker)
 
             whenever(handler.handle(any())).thenThrow(
                 BarnetrygdInnlesingException.UgyldigTistand(
@@ -125,7 +119,7 @@ class BarnetrygdmottakerKafkaListenerTest {
 
         @Test
         fun `gitt at det oppstår en ukjent feil ved prosessering av innlesingen kastes en ny exception som signaliserer at innlesingen skal invalideres`() {
-            val listener = BarnetrygdmottakerKafkaListener(handler, metrikkMåling, metrikkFeilmåling)
+            val listener = BarnetrygdmottakerKafkaListener(handler, metrikker)
 
             whenever(handler.handle(any())).thenThrow(
                 IncorrectUpdateSemanticsDataAccessException("something weird with the db")

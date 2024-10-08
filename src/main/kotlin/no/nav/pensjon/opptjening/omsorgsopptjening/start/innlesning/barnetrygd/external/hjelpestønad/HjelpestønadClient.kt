@@ -1,11 +1,11 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.external
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.hjelpestønad.metrics.HjelpestønadClientMetrikker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -25,7 +25,7 @@ import java.util.function.Predicate
 class HjelpestønadClient(
     @Qualifier("hjelpestonadTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${HJELPESTONAD_URL}") private val baseUrl: String,
-    internal val hjelpestønadClientMetrikker: HjelpestønadClientMetrikker,
+    internal val metrikker: Metrikker,
     webClientBuilder: WebClient.Builder,
 ) {
     private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).build()
@@ -35,7 +35,7 @@ class HjelpestønadClient(
         fom: LocalDate,
         tom: LocalDate
     ): HentHjelpestønadResponse {
-        return hjelpestønadClientMetrikker.mål { hentHjelpestønadInternal(fnr, fom, tom) }!!
+        return metrikker.målHentHjelpestønad { hentHjelpestønadInternal(fnr, fom, tom) }!!
     }
 
     private fun hentHjelpestønadInternal(

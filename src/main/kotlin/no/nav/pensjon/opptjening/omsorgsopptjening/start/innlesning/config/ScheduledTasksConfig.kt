@@ -2,12 +2,12 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config
 
 import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.metrics.BarnetrygdmottakerProcessingMetrikker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.StatusCheckTask
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.StatusRapporteringCachingAdapter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.tasks.BarnetrygdmottakerProcessingTask
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.tasks.FrigiLaserTask
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.BarnetrygdmottakerProcessingTask
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.FrigiLaserTask
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -20,7 +20,7 @@ class ScheduledTasksConfig(
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository,
     private val statusRapporteringCachingAdapter: StatusRapporteringCachingAdapter,
     private val barnetrygdmottakerService: BarnetrygdmottakerService,
-    private val barnetrygdmottakerProcessingMetrikker: BarnetrygdmottakerProcessingMetrikker,
+    private val metrikker: Metrikker,
     private val unleash: Unleash,
 ) {
     @Bean
@@ -37,7 +37,7 @@ class ScheduledTasksConfig(
     fun barnetrygdmottakerProcessingTask(): BarnetrygdmottakerProcessingTask {
         return BarnetrygdmottakerProcessingTask(
             service = barnetrygdmottakerService,
-            barnetrygdmottakerProcessingMetrikker = barnetrygdmottakerProcessingMetrikker,
+            metrikker = metrikker,
             unleash = unleash,
         )
     }
