@@ -3,7 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.exte
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.IdentHistorikk
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Person
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import java.time.LocalDateTime
 
 data class PdlResponse(
@@ -41,8 +41,8 @@ data class HentPersonQueryResponse(
         )
     }
 
-    fun toDomain(): Person {
-        return Person(
+    fun toDomain(): PersonId {
+        return PersonId(
             fnr = identhistorikk().gjeldende().ident,
             historiske = identhistorikk().historikk().map { it.ident }.toSet()
         )

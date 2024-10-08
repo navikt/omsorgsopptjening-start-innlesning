@@ -5,7 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Person
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Disabled
@@ -17,10 +17,8 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -109,11 +107,11 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             innlesingId = innlesing.id,
         )
         val mottatt = barnetrygdmottakerRepository.insert(barnetrygdmottaker).withPerson(
-            Person("12345123452", setOf("12345123451", "12345123452"))
+            PersonId("12345123452", setOf("12345123451", "12345123452"))
         )
         barnetrygdmottakerRepository.updatePersonIdent(mottatt)
         val oppdatert = barnetrygdmottakerRepository.find(mottatt.id)!!
-        assertThat(oppdatert.person).isEqualTo(mottatt.person)
+        assertThat(oppdatert.personId).isEqualTo(mottatt.personId)
         assertThat(oppdatert).isEqualTo(mottatt)
     }
 
