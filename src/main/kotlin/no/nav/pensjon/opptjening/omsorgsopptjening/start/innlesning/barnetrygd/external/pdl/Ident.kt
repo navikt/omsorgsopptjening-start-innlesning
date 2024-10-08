@@ -1,31 +1,16 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+sealed class Ident {
+    abstract val ident: String
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-internal data class IdenterResponse(
-    val data: IdenterDataResponse? = null,
-    private val errors: List<PdlError>? = null
-) {
-    val error: PdlError? = errors?.firstOrNull()
+    sealed class FolkeregisterIdent : Ident() {
+
+        data class Gjeldende(
+            override val ident: String
+        ) : FolkeregisterIdent()
+
+        data class Historisk(
+            override val ident: String
+        ) : FolkeregisterIdent()
+    }
 }
-
-internal data class IdenterDataResponse(
-    val hentIdenter: HentIdenter? = null
-)
-
-internal data class HentIdenter(
-    val identer: List<IdentInformasjon>
-)
-
-internal data class IdentInformasjon(
-    val ident: String,
-    val gruppe: IdentGruppe
-)
-
-enum class IdentGruppe {
-    AKTORID,
-    FOLKEREGISTERIDENT,
-    NPID
-}
-
