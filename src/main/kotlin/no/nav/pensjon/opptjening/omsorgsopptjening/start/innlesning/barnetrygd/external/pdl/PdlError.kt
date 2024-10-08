@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
