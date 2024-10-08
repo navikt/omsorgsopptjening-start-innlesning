@@ -88,7 +88,8 @@ class BarnetrygdmottakerService(
 
 //                    val person = pdlService.hentPerson(barnetrygdmottaker.ident)
                     // temporary
-                    val personId = PersonId(barnetrygdmottakerUtenPdlData.ident, setOf(barnetrygdmottakerUtenPdlData.ident))
+                    val personId =
+                        PersonId(barnetrygdmottakerUtenPdlData.ident, setOf(barnetrygdmottakerUtenPdlData.ident))
                     println("%%% PERSON: $personId")
 
                     val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(personId)

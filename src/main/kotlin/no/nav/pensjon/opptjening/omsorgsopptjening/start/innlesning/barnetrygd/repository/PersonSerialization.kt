@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 
 object PersonSerialization {
-    val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
+    private val objectMapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
 
     fun PersonId.toJson(): String {
         return objectMapper.writeValueAsString(this)

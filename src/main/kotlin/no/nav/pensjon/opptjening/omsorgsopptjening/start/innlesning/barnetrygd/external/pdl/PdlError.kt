@@ -7,9 +7,18 @@ data class PdlError(val message: String, val extensions: Extensions)
 data class Extensions(val code: PdlErrorCode)
 
 enum class PdlErrorCode {
-    @JsonProperty("unauthenticated") UNAUTHENTICATED,
-    @JsonProperty("unauthorized") UNAUTHORIZED,
-    @JsonProperty("not_found") NOT_FOUND,
-    @JsonProperty("bad_request") BAD_REQUEST,
-    @JsonProperty("server_error") SERVER_ERROR,
+    @JsonProperty("unauthenticated")
+    UNAUTHENTICATED,
+
+    @JsonProperty("unauthorized")
+    UNAUTHORIZED,
+
+    @JsonProperty("not_found")
+    NOT_FOUND,
+
+    @JsonProperty("bad_request")
+    BAD_REQUEST,
+
+    @JsonProperty("server_error")
+    SERVER_ERROR,
 }

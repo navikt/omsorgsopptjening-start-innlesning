@@ -178,8 +178,7 @@ sealed class Barnetrygdmottaker {
         data class Avsluttet(
             val tidspunkt: Instant = Instant.now(),
             val begrunnelse: String,
-        ) : Status() {
-        }
+        ) : Status()
 
         @JsonTypeName("Stoppet")
         data class Stoppet(

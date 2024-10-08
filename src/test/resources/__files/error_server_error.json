@@ -9,7 +9,8 @@
         }
       ],
       "path": [
-        "hentPerson", "bostedsadresse"
+        "hentPerson",
+        "bostedsadresse"
       ],
       "extensions": {
         "code": "server_error",

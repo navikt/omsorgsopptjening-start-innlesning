@@ -61,7 +61,10 @@ class BarnetrygdmottakerKafkaListener(
             throw InvalidateOnExceptionWrapper(listOf(ex.id), ex)
         } catch (ex: Throwable) {
             log.info("Ukjent feil ved prosessering av melding, exception: ${ex::class.simpleName}. Invaliderer melding dersom problemet vedvarer etter retries.")
-            secureLog.info("Ukjent feil ved prosessering av melding, exception: ${ex::class.simpleName}. Invaliderer melding dersom problemet vedvarer etter retries.", ex)
+            secureLog.info(
+                "Ukjent feil ved prosessering av melding, exception: ${ex::class.simpleName}. Invaliderer melding dersom problemet vedvarer etter retries.",
+                ex
+            )
             //TODO dersom vi leser fra to forskjellige innlesinger vil begge være med i listen her siden vi ikke helt vet hvilken som feilet - sjekker status i InnlesingInvalidatingRetryListener - finne en bedre løsning?
             throw InvalidateOnExceptionWrapper(kafkaMelding.groupBy { it.requestId.toString() }.keys.toList(), ex)
         }

@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import pensjon.opptjening.azure.ad.client.TokenProvider
-import pensjon.opptjening.azure.ad.client.mock.MockTokenProvider
 
 @Configuration
 @Profile("dev-gcp", "prod-gcp")

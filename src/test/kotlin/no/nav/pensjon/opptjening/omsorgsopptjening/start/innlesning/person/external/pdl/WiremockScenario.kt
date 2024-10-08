@@ -31,7 +31,7 @@ fun WireMockExtension.`pdl med ett fnr`(fnr: String): StubMapping {
     )
 }
 
-fun WireMockExtension.`pdl`(fnr: String, historiske: List<String>): StubMapping {
+fun WireMockExtension.pdl(fnr: String, historiske: List<String>): StubMapping {
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/graphql"))
             .willReturn(

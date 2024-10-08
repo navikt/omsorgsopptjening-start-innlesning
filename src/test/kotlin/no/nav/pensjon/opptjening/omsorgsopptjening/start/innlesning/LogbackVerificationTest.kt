@@ -43,6 +43,7 @@ class LogbackVerificationTest {
                 }
             """,
             string,
-            false)
+            false
+        )
     }
 }

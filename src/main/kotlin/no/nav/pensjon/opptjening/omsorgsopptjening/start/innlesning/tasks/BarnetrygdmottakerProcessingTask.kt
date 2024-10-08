@@ -32,7 +32,7 @@ class BarnetrygdmottakerProcessingTask(
 
     private fun processAllAvailableBarnetrygdMottakere() {
         log.info("Prosesserer alle tilgjengelige barnetrygdmottakere")
-        var prosesserteMinstEnBarnetrygdmottaker = true;
+        var prosesserteMinstEnBarnetrygdmottaker = true
         while (prosesserteMinstEnBarnetrygdmottaker) {
             val barnetrygdmottakere = metrikker.tellBarnetrygdmottakerStatus {
                 service.process()

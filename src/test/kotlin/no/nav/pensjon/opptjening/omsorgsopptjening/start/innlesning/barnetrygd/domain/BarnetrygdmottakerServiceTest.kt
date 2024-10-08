@@ -487,7 +487,11 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
             PersongrunnlagMelding.persongrunnlag.single().also { sak ->
                 assertThat(sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD }).isEqualTo(1)
-                assertThat(sak.hjelpestønadsperioder.count { it.omsorgstype == Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3 }).isEqualTo(1)
+                assertThat(
+                    sak.hjelpestønadsperioder.count {
+                        it.omsorgstype == Omsorgstype.HJELPESTØNAD_FORHØYET_SATS_3
+                    }
+                ).isEqualTo(1)
             }
         }
     }
