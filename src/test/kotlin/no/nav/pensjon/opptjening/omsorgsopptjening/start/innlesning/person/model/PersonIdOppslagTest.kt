@@ -7,14 +7,14 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Person
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 
-internal class PersonOppslagTest : SpringContextTest.NoKafka() {
+internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
 
     @Autowired
     lateinit var personOppslag: PersonOppslag
@@ -40,8 +40,8 @@ internal class PersonOppslagTest : SpringContextTest.NoKafka() {
                             .withBodyFile("fnr_1bruk.json")
                     )
                 )
-                val person: Person = personOppslag.hentPerson(FNR)
-                assertEquals("12345678910", person.fnr)
+                val personId: PersonId = personOppslag.hentPerson(FNR)
+                assertEquals("12345678910", personId.fnr)
             }
         }
     }
@@ -57,8 +57,8 @@ internal class PersonOppslagTest : SpringContextTest.NoKafka() {
                             .withBodyFile("fnr_samme_fnr_gjeldende_og_historisk.json")
                     )
                 )
-                val person: Person = personOppslag.hentPerson(FNR)
-                assertEquals("04010012797", person.fnr)
+                val personId: PersonId = personOppslag.hentPerson(FNR)
+                assertEquals("04010012797", personId.fnr)
             }
         }
     }

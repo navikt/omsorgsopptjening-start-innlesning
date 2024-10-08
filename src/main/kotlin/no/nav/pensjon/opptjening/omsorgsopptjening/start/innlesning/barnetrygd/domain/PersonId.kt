@@ -1,6 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
-data class Person(
+data class PersonId(
     val fnr: String,
     val historiske: Set<String>
 ) {

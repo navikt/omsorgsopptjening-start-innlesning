@@ -89,12 +89,12 @@ class BarnetrygdmottakerService(
 
 //                    val person = pdlService.hentPerson(barnetrygdmottaker.ident)
                     // temporary
-                    val person = Person(barnetrygdmottakerUtenPdlData.ident, setOf(barnetrygdmottakerUtenPdlData.ident))
-                    println("%%% PERSON: $person")
+                    val personId = PersonId(barnetrygdmottakerUtenPdlData.ident, setOf(barnetrygdmottakerUtenPdlData.ident))
+                    println("%%% PERSON: $personId")
 
-                    val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(person)
+                    val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(personId)
 
-                    val barnetrygdResponse = hentBarnetrygd(person, filter)
+                    val barnetrygdResponse = hentBarnetrygd(personId, filter)
 
                     val barnetrygdRådata = barnetrygdResponse.map { it.rådataFraKilde }
 
@@ -163,10 +163,10 @@ class BarnetrygdmottakerService(
 
     private fun hentBarnetrygd(
 //        barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
-        person: Person,
+        personId: PersonId,
         filter: GyldigÅrsintervallFilter
     ): List<HentBarnetrygdResponse> {
-        return person.historiske.map { fnr ->
+        return personId.historiske.map { fnr ->
             client.hentBarnetrygd(
                 ident = fnr,
                 filter = filter,

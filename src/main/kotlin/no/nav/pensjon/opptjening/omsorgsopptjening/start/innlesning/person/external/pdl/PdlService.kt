@@ -1,6 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Person
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model.PersonOppslag
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model.PersonOppslagException
 import org.springframework.stereotype.Service
@@ -10,7 +10,7 @@ class PdlService(
     private val pdlClient: PdlClient
 ) : PersonOppslag {
 
-    override fun hentPerson(fnr: String): Person {
+    override fun hentPerson(fnr: String): PersonId {
         try {
             val pdlResponse = pdlClient.hentPerson(fnr = fnr)
 

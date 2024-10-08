@@ -1,9 +1,9 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Person
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 
 interface PersonOppslag {
-    fun hentPerson(fnr: String): Person
+    fun hentPerson(fnr: String): PersonId
 }
 
 data class PersonOppslagException(

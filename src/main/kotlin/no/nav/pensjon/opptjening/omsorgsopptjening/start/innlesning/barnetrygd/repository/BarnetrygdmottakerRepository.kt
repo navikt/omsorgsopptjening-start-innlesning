@@ -98,8 +98,8 @@ class BarnetrygdmottakerRepository(
             MapSqlParameterSource(
                 mapOf<String, Any?>(
                     "id" to barnetrygdmottaker.id,
-                    "personid_gjeldende" to barnetrygdmottaker.person?.fnr,
-                    "personid_historikk" to barnetrygdmottaker.person?.toJson(),
+                    "personid_gjeldende" to barnetrygdmottaker.personId?.fnr,
+                    "personid_historikk" to barnetrygdmottaker.personId?.toJson(),
                 )
             )
         )
@@ -293,7 +293,7 @@ class BarnetrygdmottakerRepository(
                 correlationId = CorrelationId.fromString(rs.getString("correlation_id")),
                 statushistorikk = rs.getString("statushistorikk").deserializeList(),
                 innlesingId = InnlesingId.fromString(rs.getString("innlesing_id")),
-                person = rs.getString("personid_historikk")?.toPerson(),
+                personId = rs.getString("personid_historikk")?.toPerson(),
             )
         }
     }
