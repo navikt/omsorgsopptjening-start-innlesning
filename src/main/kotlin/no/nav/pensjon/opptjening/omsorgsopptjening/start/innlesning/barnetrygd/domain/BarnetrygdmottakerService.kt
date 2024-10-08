@@ -83,14 +83,16 @@ class BarnetrygdmottakerService(
         return try {
             log.info("Start prosessering")
             transactionTemplate.execute {
-                barnetrygdmottaker.ferdig().also { barnetrygdmottaker ->
+                barnetrygdmottaker.ferdig().also { barnetrygdmottakerUtenPdlData ->
 
-                    val filter = GyldigÅrsintervallFilter(barnetrygdmottaker.år)
+                    val filter = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
 
 //                    val person = pdlService.hentPerson(barnetrygdmottaker.ident)
                     // temporary
-                    val person = Person(barnetrygdmottaker.ident, setOf(barnetrygdmottaker.ident))
+                    val person = Person(barnetrygdmottakerUtenPdlData.ident, setOf(barnetrygdmottakerUtenPdlData.ident))
                     println("%%% PERSON: $person")
+
+                    val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(person)
 
                     val barnetrygdResponse = hentBarnetrygd(person, filter)
 
@@ -120,6 +122,7 @@ class BarnetrygdmottakerService(
                         )
                     ).get()
 
+                    barnetrygdmottakerRepository.updatePersonIdent(barnetrygdmottaker)
                     barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
 
                     log.info("Melding prosessert")
