@@ -70,6 +70,10 @@ sealed class Barnetrygdmottaker {
                 copy(statushistorikk = statushistorikk + status.klar())
             }
         }
+
+        fun withPerson(person: Person): Mottatt {
+            return copy(person = person)
+        }
     }
 
     @JsonTypeInfo(

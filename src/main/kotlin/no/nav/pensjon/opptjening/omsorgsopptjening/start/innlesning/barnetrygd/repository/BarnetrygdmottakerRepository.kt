@@ -6,6 +6,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toJson
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toPerson
 import org.jetbrains.annotations.TestOnly
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -84,6 +86,22 @@ class BarnetrygdmottakerRepository(
                     "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList(),
                 ),
             ),
+        )
+    }
+
+    fun updatePersonIdent(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
+        jdbcTemplate.update(
+            """update barnetrygdmottaker set 
+            | personid_gjeldende = :personid_gjeldende,
+            | personid_historikk = :personid_historikk::jsonb
+            | where id = :id""".trimMargin(),
+            MapSqlParameterSource(
+                mapOf<String, Any?>(
+                    "id" to barnetrygdmottaker.id,
+                    "personid_gjeldende" to barnetrygdmottaker.person?.fnr,
+                    "personid_historikk" to barnetrygdmottaker.person?.toJson(),
+                )
+            )
         )
     }
 
@@ -274,7 +292,8 @@ class BarnetrygdmottakerRepository(
                 år = rs.getInt("år"),
                 correlationId = CorrelationId.fromString(rs.getString("correlation_id")),
                 statushistorikk = rs.getString("statushistorikk").deserializeList(),
-                innlesingId = InnlesingId.fromString(rs.getString("innlesing_id"))
+                innlesingId = InnlesingId.fromString(rs.getString("innlesing_id")),
+                person = rs.getString("personid_historikk")?.toPerson(),
             )
         }
     }
