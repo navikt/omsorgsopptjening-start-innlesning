@@ -12,10 +12,10 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - ingen hjelpestønad`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok - ingen perioder`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent hjelpestønad ok - har hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent hjelpestønad ok - ingen hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent-barnetrygd ok`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl.`pdl fnr ett i bruk`

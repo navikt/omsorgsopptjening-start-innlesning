@@ -17,7 +17,7 @@ class LogbackVerificationTest {
 
     @Test
     fun `logstash-encoder fungerer`() {
-        val log = LoggerFactory.getLogger(this::class.java) as ch.qos.logback.classic.Logger
+        val log = LoggerFactory.getLogger(LogbackVerificationTest::class.java) as ch.qos.logback.classic.Logger
         val os = ByteArrayOutputStream()
 
         val logstashEncoder = LogstashEncoder()

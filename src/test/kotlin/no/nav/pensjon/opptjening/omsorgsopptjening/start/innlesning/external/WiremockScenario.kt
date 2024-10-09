@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock

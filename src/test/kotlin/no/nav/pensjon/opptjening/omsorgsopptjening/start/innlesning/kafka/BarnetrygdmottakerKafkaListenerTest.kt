@@ -1,10 +1,11 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.kafka
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.apache.kafka.clients.consumer.ConsumerRecord

@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -8,10 +8,12 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.OmsorgsopptjeningTopicListener
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`bestill-personer-med-barnetrygd accepted`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent hjelpestønad ok - har hjelpestønad`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.`hent-barnetrygd ok`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`bestill-personer-med-barnetrygd accepted`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent hjelpestønad ok - har hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.BarnetrygdWebApi
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl.`pdl fnr ett i bruk`
