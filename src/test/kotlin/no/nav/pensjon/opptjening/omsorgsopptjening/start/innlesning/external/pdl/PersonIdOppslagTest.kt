@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.model
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -39,7 +39,7 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_1bruk.json")
+                            .withBodyFile("pdl/fnr_1bruk.json")
                     )
                 )
                 val personId: PersonId = personOppslag.hentPerson(FNR)
@@ -56,7 +56,7 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_samme_fnr_gjeldende_og_historisk.json")
+                            .withBodyFile("pdl/fnr_samme_fnr_gjeldende_og_historisk.json")
                     )
                 )
                 val personId: PersonId = personOppslag.hentPerson(FNR)
@@ -74,7 +74,7 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_1opphort.json")
+                            .withBodyFile("pdl/fnr_1opphort.json")
                     )
                 )
                 assertThrows<PersonOppslagException> { personOppslag.hentPerson(FNR) }
@@ -90,7 +90,7 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_0bruk_0opphort.json")
+                            .withBodyFile("pdl/fnr_0bruk_0opphort.json")
                     )
                 )
                 assertThrows<PersonOppslagException> { personOppslag.hentPerson(FNR) }

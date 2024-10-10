@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -48,7 +48,7 @@ private fun MappingBuilder.withExpectedRequestHeadersBestillPersonerMedBarnetryg
     return this
 }
 
-
+/*
 fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
@@ -84,6 +84,40 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
             )
     )
 }
+ */
+
+fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
+    return this.`hent-barnetrygd-med-fagsaker`(
+        listOf(
+            WiremockFagsak(
+                eier = "12345678910",
+                perioder = listOf(
+                    WiremockFagsak.BarnetrygdPeriode(
+                        personIdent = "09876543210",
+                        utbetaltPerMnd = 2000,
+                        stonadFom = "2020-01",
+                        stonadTom = "2025-12",
+                    )
+                )
+            )
+        )
+    )
+}
+
+
+fun WireMockExtension.`hent-barnetrygd-med-fagsaker`(fagsaker: List<WiremockFagsak>): StubMapping {
+    return this.stubFor(
+        WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+            .withExpectedRequestHeadersHentBarnetryd()
+            .willReturn(
+                WireMock.ok()
+                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .withTransformerParameter("fagsaker", fagsaker)
+                    .withBodyFile("barnetrygd/fagsaker.json")
+            )
+    )
+}
+
 
 fun WireMockExtension.`hent-barnetrygd ok - ingen perioder`(): StubMapping {
     return this.stubFor(

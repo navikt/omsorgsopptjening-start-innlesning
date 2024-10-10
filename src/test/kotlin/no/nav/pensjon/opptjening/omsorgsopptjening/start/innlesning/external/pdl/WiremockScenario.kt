@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -11,7 +11,7 @@ private fun WireMockExtension.pdlResponse(fileName: String): StubMapping {
                 WireMock.aResponse()
                     .withHeader("Content-Type", "application/json")
                     .withStatus(202)
-                    .withBodyFile(fileName)
+                    .withBodyFile("pdl/$fileName")
             )
     )
 }
@@ -25,7 +25,7 @@ fun WireMockExtension.`pdl med ett fnr`(fnr: String): StubMapping {
                     .withStatus(202)
                     .withTransformerParameter("fnr", fnr)
                     .withBodyFile(
-                        "fnr_1bruk_template.json"
+                        "pdl/fnr_1bruk_template.json"
                     )
             )
     )
@@ -41,7 +41,7 @@ fun WireMockExtension.pdl(fnr: String, historiske: List<String>): StubMapping {
                     .withTransformerParameter("fnr", fnr)
                     .withTransformerParameter("historiske", historiske)
                     .withBodyFile(
-                        "fnr_template.json"
+                        "pdl/fnr_template.json"
                     )
             )
     )

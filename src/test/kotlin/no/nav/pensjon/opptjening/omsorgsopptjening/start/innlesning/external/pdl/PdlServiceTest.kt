@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.containing
@@ -47,7 +47,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                         WireMock.aResponse()
                             .withStatus(200)
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_1bruk.json")
+                            .withBodyFile("pdl/fnr_1bruk.json")
                     )
                 )
 
@@ -67,7 +67,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                         WireMock.aResponse()
                             .withStatus(200)
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_1bruk.json")
+                            .withBodyFile("pdl/fnr_1bruk.json")
                     )
                 )
 
@@ -89,7 +89,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                         WireMock.aResponse()
                             .withStatus(200)
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_1bruk.json")
+                            .withBodyFile("pdl/fnr_1bruk.json")
                     )
                 )
 
@@ -123,7 +123,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("fnr_1bruk.json")
+                            .withBodyFile("pdl/fnr_1bruk.json")
                     )
                 )
 
@@ -155,7 +155,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("error_server_error.json")
+                            .withBodyFile("pdl/error_server_error.json")
                     )
                 )
 
@@ -175,7 +175,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("error_not_found.json")
+                            .withBodyFile("pdl/error_not_found.json")
                     )
                 )
 
@@ -196,7 +196,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("error_unauthenticated.json")
+                            .withBodyFile("pdl/error_unauthenticated.json")
                     )
                 )
 
@@ -217,7 +217,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("error_unauthorized.json")
+                            .withBodyFile("pdl/error_unauthorized.json")
                     )
                 )
 
@@ -238,7 +238,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
                         WireMock.aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBodyFile("error_bad_request.json")
+                            .withBodyFile("pdl/error_bad_request.json")
                     )
                 )
 

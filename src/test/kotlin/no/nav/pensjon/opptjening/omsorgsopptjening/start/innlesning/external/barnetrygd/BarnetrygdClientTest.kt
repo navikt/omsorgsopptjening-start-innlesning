@@ -1,4 +1,4 @@
-package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external
+package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Month
 import java.time.YearMonth
@@ -104,13 +105,46 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                             )
                         )
 
+                        assertThat(it.rådataFraKilde["fnr"]).isEqualTo("123")
+                        assertThat(it.rådataFraKilde["fom"]).isEqualTo("2020-01-01")
+                        JSONAssert.assertEquals(
+                            it.rådataFraKilde["barnetrygd"],
+                            """{
+                                    "fagsaker": [
+                                        {
+                                            "fagsakEiersIdent":"12345678910",
+                                            "barnetrygdPerioder":[
+                                                {
+                                                    "personIdent":"09876543210",
+                                                    "delingsprosentYtelse":"FULL",
+                                                    "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
+                                                    "utbetaltPerMnd":2000,
+                                                    "stønadFom": "2020-01",
+                                                    "stønadTom": "2025-12",
+                                                    "sakstypeEkstern":"NASJONAL",
+                                                    "kildesystem":"BA",
+                                                    "pensjonstrygdet":null,
+                                                    "norgeErSekundærlandMedNullUtbetaling":false
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }""".trimIndent(),
+                            false,
+                        )
+                        /*
+                        println("XXXX")
                         assertThat(
                             serialize(it.rådataFraKilde)
                         ).isEqualTo(
                             """
-                                {"fnr":"123","fom":"2020-01-01","barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"}
+                                {"fnr":"123",
+                                "fom":"2020-01-01",
+                                "barnetrygd":
+                                "{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"}
                             """.trimIndent()
                         )
+                         */
                     }
                 }
             }

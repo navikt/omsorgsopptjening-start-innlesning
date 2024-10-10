@@ -1,0 +1,21 @@
+{
+  "fagsaker": [
+    {
+      "fagsakEiersIdent": "12345678910",
+      "barnetrygdPerioder": [
+        {
+          "personIdent": "09876543210",
+          "delingsprosentYtelse": "FULL",
+          "ytelseTypeEkstern": "ORDINÆR BARNETRYGD",
+          "utbetaltPerMnd": 2000,
+          "stønadFom": "2020-01",
+          "stønadTom": "2025-12",
+          "sakstypeEkstern": "NASJONAL",
+          "kildesystem": "BA",
+          "pensjonstrygdet": null,
+          "norgeErSekundærlandMedNullUtbetaling": false
+        }
+      ]
+    }
+  ]
+}

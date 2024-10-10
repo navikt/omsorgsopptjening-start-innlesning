@@ -1,5 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
@@ -11,12 +13,12 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.OmsorgsopptjeningTopicListener
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`bestill-personer-med-barnetrygd accepted`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent hjelpestønad ok - har hjelpestønad`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.`hent-barnetrygd ok`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`bestill-personer-med-barnetrygd accepted`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent hjelpestønad ok - har hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.BarnetrygdWebApi
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.person.external.pdl.`pdl fnr ett i bruk`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr ett i bruk`
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -123,16 +125,66 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                         )
                     ),
                 )
-                val expectedRådata = """[{
+                val expectedRådata = """[
+                    {
                         "fnr":"12345678910",
                         "fom":"2020-01-01",
-                        "barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"},{"fnr":"09876543210","fom":"2020-01-01","tom":"2021-12-31","hjelpestønad":"[\n    {\n        \"id\":\"123\",\n        \"ident\":\"09876543210\",\n        \"fom\":\"2020-01\",\n        \"tom\":\"2025-12\",\n        \"omsorgstype\":\"FORHØYET_SATS_3\"\n    }\n]"
-                        }]""".trimIndent()
+                        "barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"
+                    },
+                    {
+                        "fnr":"09876543210",
+                        "fom":"2020-01-01",
+                        "tom":"2021-12-31",
+                        "hjelpestønad":"[\n    {\n        \"id\":\"123\",\n        \"ident\":\"09876543210\",\n        \"fom\":\"2020-01\",\n        \"tom\":\"2025-12\",\n        \"omsorgstype\":\"FORHØYET_SATS_3\"\n    }\n]"
+                    }
+                ]""".trimIndent()
 
+                assertThat(it.rådata[0]["fnr"]).isEqualTo("12345678910")
+                assertThat(it.rådata[0]["fom"]).isEqualTo("2020-01-01")
                 JSONAssert.assertEquals(
-                    serialize(it.rådata),
-                    expectedRådata,
-                    false
+                    """
+                        {
+                            "fagsaker": [
+                                {
+                                    "fagsakEiersIdent":"12345678910",
+                                    "barnetrygdPerioder":[
+                                        {
+                                            "personIdent":"09876543210",
+                                            "delingsprosentYtelse":"FULL",
+                                            "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
+                                            "utbetaltPerMnd":2000,
+                                            "stønadFom": "2020-01",
+                                            "stønadTom": "2025-12",
+                                            "sakstypeEkstern":"NASJONAL",
+                                            "kildesystem":"BA",
+                                            "pensjonstrygdet":null,
+                                            "norgeErSekundærlandMedNullUtbetaling":false
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    """.trimIndent(),
+                    it.rådata[0]["barnetrygd"] as String,
+                    false,
+                )
+                assertThat(it.rådata[1]["fnr"]).isEqualTo("09876543210")
+                assertThat(it.rådata[1]["fom"]).isEqualTo("2020-01-01")
+                assertThat(it.rådata[1]["tom"]).isEqualTo("2021-12-31")
+                JSONAssert.assertEquals(
+                    """
+                        [
+                            {
+                                "id":"123",
+                                "ident":"09876543210",
+                                "fom":"2020-01",
+                                "tom":"2025-12",
+                                "omsorgstype":"FORHØYET_SATS_3"
+                            }
+                        ]
+                    """.trimIndent(),
+                    it.rådata[1]["hjelpestønad"] as String,
+                    false,
                 )
                 assertThat(it.innlesingId.toString()).isEqualTo(innlesingId)
                 assertThat(it.correlationId).isNotNull() //opprettes internt
