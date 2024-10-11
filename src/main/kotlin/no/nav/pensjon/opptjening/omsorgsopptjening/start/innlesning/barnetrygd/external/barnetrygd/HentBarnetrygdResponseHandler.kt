@@ -27,6 +27,7 @@ object HentBarnetrygdResponseHandler {
                     }
 
                     else -> {
+                        println("DESERIALIZE: ${response.body}")
                         deserialize<FagsakListeWrapper>(response.body!!).let { wrapper ->
                             when {
                                 wrapper.fagsaker == null -> {

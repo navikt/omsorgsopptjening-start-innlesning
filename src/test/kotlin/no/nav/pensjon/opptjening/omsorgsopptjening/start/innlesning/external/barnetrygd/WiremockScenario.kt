@@ -95,8 +95,8 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
                     WiremockFagsak.BarnetrygdPeriode(
                         personIdent = "09876543210",
                         utbetaltPerMnd = 2000,
-                        stonadFom = "2020-01",
-                        stonadTom = "2025-12",
+                        stønadFom = "2020-01",
+                        stønadTom = "2025-12",
                     )
                 )
             )
@@ -106,16 +106,24 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
 
 
 fun WireMockExtension.`hent-barnetrygd-med-fagsaker`(fagsaker: List<WiremockFagsak>): StubMapping {
-    return this.stubFor(
-        WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
-            .withExpectedRequestHeadersHentBarnetryd()
-            .willReturn(
-                WireMock.ok()
-                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .withTransformerParameter("fagsaker", fagsaker)
-                    .withBodyFile("barnetrygd/fagsaker.json")
-            )
-    )
+    synchronized(this) {
+        println("Wiremock: fagsaker: $fagsaker")
+        val a = fagsaker.map { it.toMap() }
+        println("Wiremock: fagsaker: $fagsaker")
+        return this.stubFor(
+            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                .withExpectedRequestHeadersHentBarnetryd()
+                .willReturn(
+                    WireMock.ok()
+                        .withLogNormalRandomDelay(1000.0, 0.0)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withTransformers("response-template")
+                        .withTransformerParameter("foo", "bar")
+                        .withTransformerParameter("fagsaker", a)
+                        .withBodyFile("barnetrygd/fagsaker.json")
+                )
+        )
+    }
 }
 
 

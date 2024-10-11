@@ -1,21 +1,25 @@
 {
   "fagsaker": [
+    {{#each parameters.fagsaker}}
     {
-      "fagsakEiersIdent": "12345678910",
+      "fagsakEiersIdent": "{{eier}}",
       "barnetrygdPerioder": [
+        {{#each perioder}}
         {
-          "personIdent": "09876543210",
-          "delingsprosentYtelse": "FULL",
-          "ytelseTypeEkstern": "ORDINÆR_BARNETRYGD",
-          "utbetaltPerMnd": 2000,
-          "stønadFom": "2020-01",
-          "stønadTom": "2025-12",
+          "personIdent": "{{personIdent}}",
+          "delingsprosentYtelse": "{{delingsProsentYtelse}}",
+          "ytelseTypeEkstern": "{{ytelsestype}}",
+          "utbetaltPerMnd": {{utbetaltPerMnd}},
+          "stønadFom": "{{stønadFom}}",
+          "stønadTom": "{{stønadTom}}",
           "sakstypeEkstern": "NASJONAL",
           "kildesystem": "BA",
           "pensjonstrygdet": null,
           "norgeErSekundærlandMedNullUtbetaling": false
-        }
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
       ]
-    }
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
   ]
 }
