@@ -39,7 +39,7 @@ class PdlClient(
             PdlQuery(graphqlQuery.hentPersonQuery(), FnrVariables(ident = fnr)),
             HttpHeaders().apply {
                 add("Nav-Call-Id", Mdc.getCorrelationId().toString())
-                add("Nav-Consumer-Id", "omsorgsopptjening-bestem-pensjonsopptjening")
+                add("Nav-Consumer-Id", "omsorgsopptjening-start-innlesning")
                 add("Tema", "PEN")
                 add(CorrelationId.identifier, Mdc.getCorrelationId().toString())
                 add(InnlesingId.identifier, Mdc.getInnlesingId().toString())
@@ -50,7 +50,7 @@ class PdlClient(
             HttpMethod.POST,
             URI.create(pdlUrl)
         )
-
+//        restTemplate.interceptors = listOf(RestTemplateLoggingInterceptor())
         val response = restTemplate.exchange(
             entity,
             PdlResponse::class.java

@@ -100,7 +100,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                         .withHeader("Authorization", WireMock.equalTo("Bearer $MOCK_TOKEN"))
                         .withHeader("Accept", WireMock.equalTo("application/json"))
                         .withHeader("Content-Type", WireMock.equalTo("application/json"))
-                        .withHeader("Nav-Consumer-Id", WireMock.equalTo("omsorgsopptjening-bestem-pensjonsopptjening"))
+                        .withHeader("Nav-Consumer-Id", WireMock.equalTo("omsorgsopptjening-start-innlesning"))
                         .withHeader("Tema", WireMock.equalTo("PEN"))
                         .withHeader(
                             "x-correlation-id",

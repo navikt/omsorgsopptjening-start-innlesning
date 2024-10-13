@@ -18,7 +18,9 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.bar
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.pdl
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr ett i bruk`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
@@ -126,7 +128,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             )
         )
 
-        wiremock.`pdl fnr ett i bruk`()
+//        wiremock.pdl("12345678910", listOf("12345678910"))
+        wiremock.`pdl fnr fra query`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .inScenario("feilOgFerdig")
@@ -332,7 +335,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             CompletableFuture.completedFuture(it.arguments[0])
         }
 
-        wiremock.`pdl fnr ett i bruk`()
+//                wiremock.pdl("12345678911", listOf("12345678911"))
+        wiremock.`pdl fnr fra query`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .withRequestBody(equalToJson("""{"ident":"12345678911","fraDato":"2023-01-01"}"""))
