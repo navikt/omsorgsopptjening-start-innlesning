@@ -21,71 +21,86 @@ class KompletteringsService(
             pdlService.hentPerson(barnetrygdmottakerUtenPdlData.ident)
         )
 
-        val barnetrygdResponse = hentBarnetrygd(barnetrygdmottaker, filter)
+        val barnetrygdData: BarnetrygdData = hentBarnetrygd(barnetrygdmottaker, filter)
 
-        val persongrunnlag = barnetrygdResponse.map {
-            getPersongrunnlag(it)
-        }
+        val persongrunnlag = barnetrygdData.getPersongrunnlag()
 
-        val hjelpestønadGrunnlag = persongrunnlag.map {
-            hentHjelpestønadGrunnlag(it, filter)
-        }
-        val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.flatMap {
-            it.map { pair -> pair.first }
-        }
+        val hjelpestønadData = hentHjelpestønadGrunnlag(persongrunnlag, filter)
 
-        val barnetrygdRådata = barnetrygdResponse.map { it.rådataFraKilde }
-
-        val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap {
-            it.flatMap { pair -> pair.second }
-        }
-
-        val rådata = Rådata(barnetrygdRådata + hjelpestønadRådata)
+        val rådata = Rådata(barnetrygdData.rådataFraKilde + hjelpestønadData.rådataFraKilde)
 
         return Komplettert(
             barnetrygdmottaker = barnetrygdmottaker,
             rådata = rådata,
-            hjelpestønadPersongrunnlag = hjelpestønadPersongrunnlag,
+            hjelpestønadPersongrunnlag = hjelpestønadData.persongrunnlag,
         )
     }
 
     private fun hentHjelpestønadGrunnlag(
         persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
         filter: GyldigÅrsintervallFilter
-    ): List<Pair<PersongrunnlagMelding.Persongrunnlag, List<RådataFraKilde>>> {
-        return persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter) }
+    ): HjelpestønadData {
+        return persongrunnlag.map {
+            persongrunnlagMedHjelpestønader(it, filter)
+        }.let {
+            HjelpestønadData(it)
+        }
     }
 
     private fun hentBarnetrygd(
         barnetrygdMottaker: Barnetrygdmottaker.Mottatt,
         filter: GyldigÅrsintervallFilter
-    ): List<HentBarnetrygdResponse> {
+    ): BarnetrygdData {
         return barnetrygdMottaker.personId!!.historiske.map { fnr ->
             client.hentBarnetrygd(
                 ident = fnr,
                 filter = filter,
             )
+        }.let {
+            BarnetrygdData(it)
         }
     }
 
     private fun persongrunnlagMedHjelpestønader(
         persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
         filter: GyldigÅrsintervallFilter,
-    ): Pair<PersongrunnlagMelding.Persongrunnlag, List<RådataFraKilde>> {
+    ): HjelpestønadResponse {
         val hjelpestønad = hjelpestønadService.hentHjelpestønad(
             omsorgsmottakere = persongrunnlag.hentOmsorgsmottakere(),
             filter = filter
         )
         val hjelpestønadRådata = hjelpestønad.map { it.rådataFraKilde }
         val hjelpestønadsperioder = hjelpestønad.flatMap { it.perioder }
-        return Pair(persongrunnlag.medHjelpestønadPerioder(hjelpestønadsperioder), hjelpestønadRådata)
+        return HjelpestønadResponse(persongrunnlag.medHjelpestønadPerioder(hjelpestønadsperioder), hjelpestønadRådata)
     }
 
-    private fun getPersongrunnlag(barnetrygdResponse: HentBarnetrygdResponse) =
-        barnetrygdResponse.barnetrygdsaker
-            .groupBy { it.omsorgsyter }
-            .map { it.value.single() }
+    data class HjelpestønadResponse(
+        val persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
+        val rådataFraKilde: List<RådataFraKilde>,
+    )
 
+    data class HjelpestønadData(
+        private val responses: List<HjelpestønadResponse>
+    ) : List<HjelpestønadResponse> by responses {
+        val persongrunnlag = responses.map { it.persongrunnlag }
+        val rådataFraKilde = responses.flatMap { it.rådataFraKilde }
+    }
+
+    data class BarnetrygdData(
+        private val response: List<HentBarnetrygdResponse>
+    ) : List<HentBarnetrygdResponse> by response {
+        val persongrunnlag = response.map { it.barnetrygdsaker }
+        val rådataFraKilde = response.map { it.rådataFraKilde }
+
+        // TODO: rydd opp i dette
+        fun getPersongrunnlag() =
+            response.flatMap {
+                it.barnetrygdsaker
+                    .groupBy { it.omsorgsyter }
+                    .map { it.value.single() }
+            }
+
+    }
 
     data class Komplettert(
         val barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
