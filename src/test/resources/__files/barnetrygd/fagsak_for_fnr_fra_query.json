@@ -1,0 +1,23 @@
+{{regexExtract request.body '"ident"\:"([^"]+)"' 'queryident'}}
+{{regexExtract request.body '"fraDato"\:"([0-9]{4})-([0-9]{2})-([0-9]{2})"' 'querydato'}}
+{
+  "fagsaker": [
+    {
+      "fagsakEiersIdent":"{{queryident.0}}",
+      "barnetrygdPerioder":[
+        {
+          "personIdent":"09876543210",
+          "delingsprosentYtelse":"FULL",
+          "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
+          "utbetaltPerMnd":2000,
+          "stønadFom": "{{querydato.0}}-{{querydato.1}}",
+          "stønadTom": "2030-12",
+          "sakstypeEkstern":"NASJONAL",
+          "kildesystem":"BA",
+          "pensjonstrygdet":null,
+          "norgeErSekundærlandMedNullUtbetaling":false
+        }
+      ]
+    }
+  ]
+}

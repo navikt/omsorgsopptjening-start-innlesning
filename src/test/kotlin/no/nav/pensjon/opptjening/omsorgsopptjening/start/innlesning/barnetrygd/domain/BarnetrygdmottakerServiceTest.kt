@@ -12,12 +12,9 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent hjelpestønad ok - har hjelpestønad`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent hjelpestønad ok - ingen hjelpestønad`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.pdl
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr ett i bruk`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
@@ -67,6 +64,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `Gitt en ny status saa skal den kunne retryes 3 ganger for den feiler`() {
+        wiremock.`pdl fnr fra query`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .willReturn(WireMock.badRequest())
@@ -197,6 +195,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `oppdaterer status selv om det kastes exception under prosessering`() {
+        wiremock.`pdl fnr fra query`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .willReturn(
@@ -244,6 +243,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `oppdaterer status på flere meldinger der det kastes exception for alle`() {
+        wiremock.`pdl fnr fra query`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .willReturn(
@@ -335,7 +335,6 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             CompletableFuture.completedFuture(it.arguments[0])
         }
 
-//                wiremock.pdl("12345678911", listOf("12345678911"))
         wiremock.`pdl fnr fra query`()
         wiremock.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
@@ -357,34 +356,12 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                 .withRequestBody(not(equalToJson("""{"ident":"12345678911","fraDato":"2023-01-01"}""")))
                 .willReturn(
                     WireMock.ok()
+                        .withTransformers("response-template")
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(
-                            """
-                            {
-                                "fagsaker": [
-                                    {
-                                        "fagsakEiersIdent":"12345678910",
-                                        "barnetrygdPerioder":[
-                                            {
-                                                "personIdent":"09876543210",
-                                                "delingsprosentYtelse":"FULL",
-                                                "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
-                                                "utbetaltPerMnd":2000,
-                                                "stønadFom": "2020-01",
-                                                "stønadTom": "2025-12",
-                                                "sakstypeEkstern":"NASJONAL",
-                                                "kildesystem":"BA",
-                                                "pensjonstrygdet":null,
-                                                "norgeErSekundærlandMedNullUtbetaling":false
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        """.trimIndent()
-                        )
+                        .withBodyFile("barnetrygd/fagsak_for_fnr_fra_query.json")
                 )
         )
+
         wiremock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
                 .willReturn(
@@ -518,7 +495,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             )
         )
 
-        wiremock.`pdl fnr ett i bruk`()
+        wiremock.`pdl fnr fra query`()
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 

@@ -1,10 +1,10 @@
-{{#assign fnr}}{{regexExtract request.body '"(variables)"\:\{"ident"\:"([^"]+)"' 'parts'}}{{/assign}}
+{{regexExtract request.body '"variables"\:\{"ident"\:"([^"]+)"' 'parts'}}
 {
   "data": {
     "hentPerson": {
       "folkeregisteridentifikator": [
         {
-          "identifikasjonsnummer": "{{parts.1}}",
+          "identifikasjonsnummer": "{{parts.0}}",
           "status": "I_BRUK",
           "type": "FNR",
           "metadata": {

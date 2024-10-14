@@ -10,6 +10,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslag
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslagException
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -93,7 +94,10 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
                             .withBodyFile("pdl/fnr_0bruk_0opphort.json")
                     )
                 )
-                assertThrows<PersonOppslagException> { personOppslag.hentPerson(FNR) }
+                assertThatThrownBy {
+                    personOppslag.hentPerson(FNR)
+                }
+                    .isInstanceOf(PersonOppslagException::class.java)
             }
         }
     }

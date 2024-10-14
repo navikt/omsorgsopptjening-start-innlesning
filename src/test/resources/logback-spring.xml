@@ -3,6 +3,10 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n</pattern>
+            <!--
+            Bruk denne ved tuning av loglevels
+            <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger.%M - %msg%n</pattern>
+            -->
         </encoder>
     </appender>
 
@@ -11,7 +15,7 @@
     </root>
 
     <logger name="ch.qos.logback" level="WARN"/>
-    <logger name="com.testcontainers" level="INFO"/>
+    <logger name="org.testcontainers" level="INFO"/>
     <logger name="org.eclipse.jetty" level="WARN"/>
     <logger name="org.springframework" level="INFO"/>
     <logger name="io.netty" level="WARN"/>
@@ -21,6 +25,11 @@
     <logger name="org.apache.zookeeper" level="WARN"/>
     <logger name="kafka" level="WARN"/>
     <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="org.apache.hc" level="WARN"/>
+    <logger name="org.flywaydb" level="INFO"/>
+    <logger name="org.hibernate" level="INFO"/>
+    <logger name="tc.postgres" level="INFO"/>
+    <logger name="com.github.jknack" level="WARN"/>
 
     <appender name="secure" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

@@ -14,7 +14,6 @@ class PersonIdSerializationTest {
             historiske = setOf("12345678901"),
         )
         val json = personId.toJson()
-        println(json)
         val personToFromString = json.toPerson()
         assertThat(personToFromString).isEqualTo(personId)
     }

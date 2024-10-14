@@ -220,7 +220,7 @@ class BarnetrygdmottakerKafkaListenerTest {
         }
 
         @Test
-        fun `gitt at det kastes en ukjent feil ved proessering skal meldingen forsøkes på nytt x antall ganger med y tids mellomrom`() {
+        fun `gitt at det kastes en ukjent feil ved prosessering skal meldingen forsøkes på nytt x antall ganger med y tids mellomrom`() {
             given(handler.handle(any())).willThrow(IncorrectUpdateSemanticsDataAccessException("something weird with the db"))
             val captor = argumentCaptor<Exception> {
                 doNothing().whenever(
@@ -244,7 +244,7 @@ class BarnetrygdmottakerKafkaListenerTest {
         }
 
         @Test
-        fun `gitt at det kastes en ukjent feil ved proessering skal meldingen forsøkes på nytt x antall ganger med y tids mellomrom og invalideres hvis den eksisterer`() {
+        fun `gitt at det kastes en ukjent feil ved prosessering skal meldingen forsøkes på nytt x antall ganger med y tids mellomrom og invalideres hvis den eksisterer`() {
             given(handler.handle(any())).willThrow(IncorrectUpdateSemanticsDataAccessException("something weird with the db"))
             given(retryListener.recovered(any<ConsumerRecords<String, String>>(), any())).willCallRealMethod()
             given(innlesingRepository.finn(any())).willReturn(
