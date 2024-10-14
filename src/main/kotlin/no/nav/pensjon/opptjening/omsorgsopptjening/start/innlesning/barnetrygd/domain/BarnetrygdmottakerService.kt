@@ -28,9 +28,8 @@ class BarnetrygdmottakerService(
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository,
     private val kafkaProducer: KafkaTemplate<String, String>,
     private val transactionTemplate: TransactionTemplate,
-    private val hjelpestønadService: HjelpestønadService,
     private val barnetrygdInnlesingRepository: BarnetrygdInnlesingRepository,
-    private val pdlService: PdlService,
+    private val barnetrygdmottakerKompletteringsService: BarnetrygdmottakerKompletteringsService,
     @Value("\${OMSORGSOPPTJENING_TOPIC}") val omsorgsopptjeningTopic: String
 ) {
     companion object {
@@ -76,7 +75,7 @@ class BarnetrygdmottakerService(
         }
     }
 
-    private fun prosesserMottattBarnetrygmottaker(
+    protected fun prosesserMottattBarnetrygmottaker(
         barnetrygdmottaker: Barnetrygdmottaker.Mottatt
     ): Barnetrygdmottaker.Mottatt? {
         return try {
@@ -84,45 +83,18 @@ class BarnetrygdmottakerService(
             transactionTemplate.execute {
                 barnetrygdmottaker.ferdig().also { barnetrygdmottakerUtenPdlData ->
 
-                    val filter = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
-
-                    val personId = pdlService.hentPerson(barnetrygdmottaker.ident)
-                    // temporary
-//                    val personId = PersonId(barnetrygdmottakerUtenPdlData.ident, setOf(barnetrygdmottakerUtenPdlData.ident))
-                    println("%%% PERSON: $personId")
-
-                    val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(personId)
-
-                    val barnetrygdResponse = hentBarnetrygd(personId, filter)
-
-                    val barnetrygdRådata = barnetrygdResponse.map { it.rådataFraKilde }
-
-                    val persongrunnlag = barnetrygdResponse.map {
-                        getPersongrunnlag(it)
-                    }
-
-                    val hjelpestønadGrunnlag = persongrunnlag.map {
-                        hentHjelpestønadGrunnlag(it, filter)
-                    }
-                    val hjelpestønadPersongrunnlag = hjelpestønadGrunnlag.flatMap {
-                        it.map { it.first }
-                    }
-                    val hjelpestønadRådata = hjelpestønadGrunnlag.flatMap {
-                        it.flatMap { it.second }
-                    }
-
-                    val rådata = Rådata(barnetrygdRådata + hjelpestønadRådata)
+                    val komplettert = barnetrygdmottakerKompletteringsService.kompletter(barnetrygdmottakerUtenPdlData)
 
                     kafkaProducer.send(
                         createKafkaMessage(
-                            barnetrygdmottaker = barnetrygdmottaker,
-                            persongrunnlag = hjelpestønadPersongrunnlag,
-                            rådata = rådata,
+                            barnetrygdmottaker = komplettert.barnetrygdmottaker,
+                            persongrunnlag = komplettert.hjelpestønadPersongrunnlag,
+                            rådata = komplettert.rådata,
                         )
                     ).get()
 
-                    barnetrygdmottakerRepository.updatePersonIdent(barnetrygdmottaker)
-                    barnetrygdmottakerRepository.updateStatus(barnetrygdmottaker)
+                    barnetrygdmottakerRepository.updatePersonIdent(komplettert.barnetrygdmottaker)
+                    barnetrygdmottakerRepository.updateStatus(komplettert.barnetrygdmottaker)
 
                     log.info("Melding prosessert")
                 }
@@ -153,44 +125,6 @@ class BarnetrygdmottakerService(
         }
     }
 
-    private fun hentHjelpestønadGrunnlag(
-        persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
-        filter: GyldigÅrsintervallFilter
-    ): List<Pair<PersongrunnlagMelding.Persongrunnlag, List<RådataFraKilde>>> {
-        return persongrunnlag.map { persongrunnlagMedHjelpestønader(it, filter) }
-    }
-
-    private fun hentBarnetrygd(
-//        barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
-        personId: PersonId,
-        filter: GyldigÅrsintervallFilter
-    ): List<HentBarnetrygdResponse> {
-        return personId.historiske.map { fnr ->
-            client.hentBarnetrygd(
-                ident = fnr,
-                filter = filter,
-            )
-        }
-    }
-
-    private fun persongrunnlagMedHjelpestønader(
-        persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
-        filter: GyldigÅrsintervallFilter,
-    ): Pair<PersongrunnlagMelding.Persongrunnlag, List<RådataFraKilde>> {
-        val hjelpestønad = hjelpestønadService.hentHjelpestønad(
-            // persongrunnlag = persongrunnlag,
-            omsorgsmottakere = persongrunnlag.hentOmsorgsmottakere(),
-            filter = filter
-        )
-        val hjelpestønadRådata = hjelpestønad.map { it.second }
-        val hjelpestønadsperioder = hjelpestønad.flatMap { it.first }
-        return Pair(persongrunnlag.medHjelpestønadPerioder(hjelpestønadsperioder), hjelpestønadRådata)
-    }
-
-    private fun getPersongrunnlag(barnetrygdResponse: HentBarnetrygdResponse) =
-        barnetrygdResponse.barnetrygdsaker
-            .groupBy { it.omsorgsyter }
-            .map { it.value.single() }
 
     private fun createKafkaMessage(
         barnetrygdmottaker: Barnetrygdmottaker,

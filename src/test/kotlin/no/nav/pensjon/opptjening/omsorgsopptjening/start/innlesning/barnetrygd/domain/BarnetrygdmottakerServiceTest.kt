@@ -170,7 +170,6 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                         )
                 )
         )
-
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
         assertInstanceOf(
@@ -239,7 +238,6 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             }
         }
     }
-
 
     @Test
     fun `oppdaterer status på flere meldinger der det kastes exception for alle`() {
