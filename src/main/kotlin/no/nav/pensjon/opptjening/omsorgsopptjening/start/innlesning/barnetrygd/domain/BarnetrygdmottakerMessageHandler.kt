@@ -1,14 +1,14 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class BarnetrygdmottakerMessageHandler(
-    private val innlesingRepository: BarnetrygdInnlesingRepository,
+    private val innlesingRepository: InnlesingRepository,
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository
 ) {
     companion object {

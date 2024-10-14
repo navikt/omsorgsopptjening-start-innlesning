@@ -2,16 +2,13 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.HentBarnetrygdResponse
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlService
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -28,8 +25,8 @@ class BarnetrygdmottakerService(
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository,
     private val kafkaProducer: KafkaTemplate<String, String>,
     private val transactionTemplate: TransactionTemplate,
-    private val barnetrygdInnlesingRepository: BarnetrygdInnlesingRepository,
-    private val barnetrygdmottakerKompletteringsService: BarnetrygdmottakerKompletteringsService,
+    private val innlesingRepository: InnlesingRepository,
+    private val kompletteringsService: KompletteringsService,
     @Value("\${OMSORGSOPPTJENING_TOPIC}") val omsorgsopptjeningTopic: String
 ) {
     companion object {
@@ -43,13 +40,13 @@ class BarnetrygdmottakerService(
                 år = response.år,
                 forespurtTidspunkt = Instant.now()
             ).also {
-                barnetrygdInnlesingRepository.bestilt(it)
+                innlesingRepository.bestilt(it)
             }
         }
     }
 
     fun process(): List<Barnetrygdmottaker>? {
-        return barnetrygdInnlesingRepository.finnAlleFullførte().stream()
+        return innlesingRepository.finnAlleFullførte().stream()
             .map { processForInnlesingId(it) }
             .filter { it != null }
             .findFirst()
@@ -83,7 +80,7 @@ class BarnetrygdmottakerService(
             transactionTemplate.execute {
                 barnetrygdmottaker.ferdig().also { barnetrygdmottakerUtenPdlData ->
 
-                    val komplettert = barnetrygdmottakerKompletteringsService.kompletter(barnetrygdmottakerUtenPdlData)
+                    val komplettert = kompletteringsService.kompletter(barnetrygdmottakerUtenPdlData)
 
                     kafkaProducer.send(
                         createKafkaMessage(

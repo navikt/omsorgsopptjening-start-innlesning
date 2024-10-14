@@ -2,7 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -16,7 +16,7 @@ import java.time.Instant
 
 class BarnetrygdmottakerMessageHandlerTest {
 
-    private val innlesingRepository: BarnetrygdInnlesingRepository = mock()
+    private val innlesingRepository: InnlesingRepository = mock()
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository = mock()
     private val handler: BarnetrygdmottakerMessageHandler = BarnetrygdmottakerMessageHandler(
         innlesingRepository,

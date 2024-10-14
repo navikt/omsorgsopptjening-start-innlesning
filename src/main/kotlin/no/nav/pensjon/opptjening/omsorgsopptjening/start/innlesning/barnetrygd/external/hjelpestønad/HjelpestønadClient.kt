@@ -34,7 +34,7 @@ class HjelpestønadClient(
         fnr: String,
         fom: LocalDate,
         tom: LocalDate
-    ): HentHjelpestønadResponse {
+    ): HentHjelpestønadDBResponse {
         return metrikker.målHentHjelpestønad { hentHjelpestønadInternal(fnr, fom, tom) }!!
     }
 
@@ -42,7 +42,7 @@ class HjelpestønadClient(
         fnr: String,
         fom: LocalDate,
         tom: LocalDate
-    ): HentHjelpestønadResponse {
+    ): HentHjelpestønadDBResponse {
         return webClient
             .get()
             .uri("/api/hjelpestonad?fom=$fom&tom=$tom")
@@ -56,7 +56,7 @@ class HjelpestønadClient(
             .toEntity<String>()
             .block()?.let { response ->
                 response.body?.deserializeList<HjelpestønadVedtak>()?.let {
-                    HentHjelpestønadResponse(
+                    HentHjelpestønadDBResponse(
                         vedtak = it,
                         rådataFraKilde = RådataFraKilde(
                             mapOf(
@@ -67,7 +67,7 @@ class HjelpestønadClient(
                             )
                         )
                     )
-                } ?: HentHjelpestønadResponse(
+                } ?: HentHjelpestønadDBResponse(
                     vedtak = emptyList(),
                     rådataFraKilde = RådataFraKilde(
                         mapOf(
@@ -88,7 +88,7 @@ class HjelpestønadClient(
 
 data class HentHjelpestønadException(val msg: String) : RuntimeException(msg)
 
-data class HentHjelpestønadResponse(
+data class HentHjelpestønadDBResponse(
     val vedtak: List<HjelpestønadVedtak>,
     val rådataFraKilde: RådataFraKilde
 )

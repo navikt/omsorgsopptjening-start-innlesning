@@ -5,7 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
 import org.assertj.core.api.Assertions.assertThat
@@ -20,7 +20,7 @@ import java.util.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 object StatusServiceTest : SpringContextTest.NoKafka() {
 
-    private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
+    private lateinit var innlesingRepository: InnlesingRepository
     private lateinit var mottakerRepository: BarnetrygdmottakerRepository
     private lateinit var statusService: StatusService
 
@@ -34,7 +34,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
                 .load()
         flyway.migrate()
         innlesingRepository =
-            BarnetrygdInnlesingRepository(NamedParameterJdbcTemplate(dataSource))
+            InnlesingRepository(NamedParameterJdbcTemplate(dataSource))
         mottakerRepository =
             BarnetrygdmottakerRepository(NamedParameterJdbcTemplate(dataSource))
         statusService = StatusService(innlesingRepository, mottakerRepository)

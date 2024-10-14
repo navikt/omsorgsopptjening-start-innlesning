@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
 
-class BarnetrygdInnlesingRepositoryTest : SpringContextTest.NoKafka() {
+class InnlesingRepositoryTest : SpringContextTest.NoKafka() {
 
     @Autowired
-    private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
+    private lateinit var innlesingRepository: InnlesingRepository
 
     @Autowired
     private lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository

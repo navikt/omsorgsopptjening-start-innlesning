@@ -6,7 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.*
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -145,7 +145,7 @@ class BarnetrygdmottakerKafkaListenerTest {
         private lateinit var retryListener: InnlesingInvalidatingRetryListener
 
         @MockBean
-        private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
+        private lateinit var innlesingRepository: InnlesingRepository
 
         @Test
         fun `gitt at meldingsformatet er ukjent, skal det ikke gjøres noe forsøk på retry`() {
@@ -304,7 +304,7 @@ class BarnetrygdmottakerKafkaListenerTest {
     @Nested
     inner class KafkaIntegrationTest : SpringContextTest.WithKafka() {
         @Autowired
-        private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
+        private lateinit var innlesingRepository: InnlesingRepository
 
         @Test
         fun `happy path`() {

@@ -2,7 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -14,7 +14,7 @@ import kotlin.time.toJavaDuration
 
 @Service
 class StatusService(
-    private val repo: BarnetrygdInnlesingRepository,
+    private val repo: InnlesingRepository,
     private val mottakerRepo: BarnetrygdmottakerRepository,
 ) {
     companion object {

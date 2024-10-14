@@ -1,11 +1,10 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.periode.Periode
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HentHjelpestønadResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HentHjelpestønadDBResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HjelpestønadClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HjelpestønadType
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.nedreGrense
@@ -21,14 +20,14 @@ class HjelpestønadService(
 //        persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
         omsorgsmottakere: Set<String>,
         filter: GyldigÅrsintervallFilter,
-    ): List<Pair<List<PersongrunnlagMelding.Hjelpestønadperiode>, RådataFraKilde>> {
+    ): List<HentHjelpestønadResponse> {
         return omsorgsmottakere.map { omsorgsmottaker ->
             hentHjelpestønad(
                 fnr = omsorgsmottaker,
                 fom = filter.min(),
                 tom = filter.max()
             ).let { response ->
-                response.vedtak.mapNotNull { vedtak ->
+                val hjelpestønadperioder = response.vedtak.mapNotNull { vedtak ->
                     val fom = nedreGrense(
                         måned = vedtak.fom,
                         grense = filter.min()
@@ -64,12 +63,13 @@ class HjelpestønadService(
                             )
                         }
                     }
-                } to response.rådataFraKilde
+                }
+                HentHjelpestønadResponse(hjelpestønadperioder, response.rådataFraKilde)
             }
         }
     }
 
-    private fun hentHjelpestønad(fnr: String, fom: YearMonth, tom: YearMonth): HentHjelpestønadResponse {
+    private fun hentHjelpestønad(fnr: String, fom: YearMonth, tom: YearMonth): HentHjelpestønadDBResponse {
         return hjelpestønadClient.hentHjelpestønad(fnr = fnr, fom = fom.atDay(1), tom = tom.atEndOfMonth())
     }
 }

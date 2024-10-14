@@ -12,10 +12,9 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.*
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.pdl
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr ett i bruk`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -52,7 +51,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     private lateinit var clock: Clock
 
     @Autowired
-    private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
+    private lateinit var innlesingRepository: InnlesingRepository
 
     companion object {
         @JvmField

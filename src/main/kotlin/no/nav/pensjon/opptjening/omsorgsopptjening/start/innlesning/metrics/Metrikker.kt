@@ -3,8 +3,8 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.HentBarnetrygdResponse
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HentHjelpestønadResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.HentBarnetrygdResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HentHjelpestønadDBResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import org.springframework.stereotype.Component
 import java.util.*
@@ -62,11 +62,11 @@ class Metrikker(private val registry: MeterRegistry) {
         return hentBarnetrygdTimer.recordCallable(lambda)!!
     }
 
-    fun målHentHjelpestønad(lambda: () -> HentHjelpestønadResponse?): HentHjelpestønadResponse? {
+    fun målHentHjelpestønad(lambda: () -> HentHjelpestønadDBResponse?): HentHjelpestønadDBResponse? {
         return hentHjelpestonadTimer.recordCallable(lambda)!!
     }
 
-    fun målHentPdl(lambda: () -> HentHjelpestønadResponse?): HentHjelpestønadResponse? {
+    fun målHentPdl(lambda: () -> HentHjelpestønadDBResponse?): HentHjelpestønadDBResponse? {
         return hentPdlTimer.recordCallable(lambda)!!
     }
 

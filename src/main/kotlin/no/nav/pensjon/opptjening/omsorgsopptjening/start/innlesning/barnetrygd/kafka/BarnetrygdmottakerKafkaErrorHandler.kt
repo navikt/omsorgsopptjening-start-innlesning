@@ -2,7 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdInnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.slf4j.Logger
@@ -27,7 +27,7 @@ class BarnetrygdmottakerKafkaErrorHandler(
 
 @Component
 class InnlesingInvalidatingRetryListener(
-    private val innlesingRepository: BarnetrygdInnlesingRepository
+    private val innlesingRepository: InnlesingRepository
 ) : RetryListener {
 
     private val invalidated: MutableList<String> = mutableListOf()

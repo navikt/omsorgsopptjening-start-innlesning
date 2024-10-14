@@ -25,7 +25,7 @@ import kotlin.test.assertTrue
 class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @Autowired
-    private lateinit var innlesingRepository: BarnetrygdInnlesingRepository
+    private lateinit var innlesingRepository: InnlesingRepository
 
     @Autowired
     private lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository

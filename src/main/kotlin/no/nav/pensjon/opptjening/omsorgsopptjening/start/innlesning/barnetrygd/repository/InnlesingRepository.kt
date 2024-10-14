@@ -11,7 +11,7 @@ import java.sql.ResultSet
 import java.util.*
 
 @Component
-class BarnetrygdInnlesingRepository(
+class InnlesingRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     fun bestilt(innlesing: BarnetrygdInnlesing.Bestilt): BarnetrygdInnlesing {
