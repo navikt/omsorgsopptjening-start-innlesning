@@ -60,7 +60,7 @@ class BarnetrygdClient(
 
     /**
      * Hent detaljer om barnetrygdsaken identifisert av [ident], samt det tidligste året vi ønsker å hente data for,
-     * angitt av [filter].
+     * angitt av [gyldigÅrsintervall].
      *
      * @return En liste med barnetrygdsaker som inneholder detaljer om saken tilhørende [ident], i tillegg til detaljer
      * om eventuelle relaterte saker. En relatert sak er en annen person enn [ident] som har/har hatt barnetrygd for en/flere
@@ -69,9 +69,9 @@ class BarnetrygdClient(
 
     fun hentBarnetrygd(
         ident: String,
-        filter: GyldigÅrsintervallFilter
+        gyldigÅrsintervall: GyldigÅrsintervallFilter
     ): HentBarnetrygdResponse {
-        return metrikker.målHentBarnetrygd { hentBarnetrygdInternal(ident, filter) }!!
+        return metrikker.målHentBarnetrygd { hentBarnetrygdInternal(ident, gyldigÅrsintervall) }!!
     }
 
     fun hentBarnetrygdInternal(

@@ -14,18 +14,21 @@ class KompletteringsService(
 ) {
 
     fun kompletter(barnetrygdmottakerUtenPdlData: Barnetrygdmottaker.Mottatt): Komplettert {
-        val filter = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
+        val gyldigÅrsIntervall = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
 
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
             // TODO: håndter manglende svar
             personIdService.personFromIdent(barnetrygdmottakerUtenPdlData.ident)!!
         )
 
-        val barnetrygdData: BarnetrygdData = hentBarnetrygd(barnetrygdmottaker, filter)
+        val barnetrygdData: BarnetrygdData =
+            oppdaterAlleFnr(
+                hentBarnetrygd(barnetrygdmottaker, gyldigÅrsIntervall)
+            )
 
         val persongrunnlag = barnetrygdData.getSanitizedBarnetrygdSaker()
 
-        val hjelpestønadData = hentHjelpestønadGrunnlag(persongrunnlag, filter)
+        val hjelpestønadData = hentHjelpestønadGrunnlag(persongrunnlag, gyldigÅrsIntervall)
 
         val rådata = Rådata(barnetrygdData.rådataFraKilde + hjelpestønadData.rådataFraKilde)
 
@@ -49,12 +52,12 @@ class KompletteringsService(
 
     private fun hentBarnetrygd(
         barnetrygdMottaker: Barnetrygdmottaker.Mottatt,
-        filter: GyldigÅrsintervallFilter
+        gyldigÅrsintervall: GyldigÅrsintervallFilter
     ): BarnetrygdData {
         return barnetrygdMottaker.personId!!.historiske.map { fnr ->
             client.hentBarnetrygd(
                 ident = fnr,
-                filter = filter,
+                gyldigÅrsintervall = gyldigÅrsintervall,
             )
         }.let {
             BarnetrygdData(it)
@@ -63,11 +66,12 @@ class KompletteringsService(
 
     private fun persongrunnlagMedHjelpestønader(
         persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
-        filter: GyldigÅrsintervallFilter,
+        gyldigÅrsintervall: GyldigÅrsintervallFilter,
     ): HjelpestønadResponse {
+        val omsorgsmottakere = ekspanderFnrTilAlleIHistorikken(persongrunnlag.hentOmsorgsmottakere())
         val hjelpestønad = hjelpestønadService.hentHjelpestønad(
-            omsorgsmottakere = persongrunnlag.hentOmsorgsmottakere(),
-            filter = filter
+            omsorgsmottakere = omsorgsmottakere,
+            filter = gyldigÅrsintervall
         )
         val hjelpestønadRådata = hjelpestønad.map { it.rådataFraKilde }
         val hjelpestønadsperioder = hjelpestønad.flatMap { it.perioder }
@@ -113,6 +117,10 @@ class KompletteringsService(
             resp.copy(barnetrygdsaker = saker)
         }
         return barnetrygdData.copy(responses = responses)
+    }
+
+    fun ekspanderFnrTilAlleIHistorikken(fnrs: Set<String>): Set<String> {
+        return fnrs.flatMap { personIdService.personFromIdent(it)!!.historiske }.toSet()
     }
 
     data class Komplettert(

@@ -8,7 +8,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
@@ -81,7 +80,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
                     client.hentBarnetrygd(
                         ident = "123",
-                        filter = GyldigÅrsintervallFilter(2020)
+                        gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                     ).also {
                         assertThat(
                             it.barnetrygdsaker
@@ -159,7 +158,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                     assertThrows<HentBarnetrygdException> {
                         client.hentBarnetrygd(
                             ident = "123",
-                            filter = GyldigÅrsintervallFilter(2020)
+                            gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
                         assertContains(it.msg, "FUNKSJONELL_FEIL")
@@ -178,7 +177,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                     assertThrows<HentBarnetrygdException> {
                         client.hentBarnetrygd(
                             ident = "123",
-                            filter = GyldigÅrsintervallFilter(2020)
+                            gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
                         assertContains(it.msg, "Liste med barnetrygdsaker er tom")
@@ -196,7 +195,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                     assertThrows<HentBarnetrygdException> {
                         client.hentBarnetrygd(
                             ident = "123",
-                            filter = GyldigÅrsintervallFilter(2020)
+                            gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
                         assertContains(it.msg, "Liste med barnetrygdsaker mangler")
@@ -216,7 +215,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                     assertThrows<HentBarnetrygdException> {
                         client.hentBarnetrygd(
                             ident = "123",
-                            filter = GyldigÅrsintervallFilter(2020)
+                            gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
                         assertContains(it.msg, "En eller flere av barnetrygdsakene mangler perioder")

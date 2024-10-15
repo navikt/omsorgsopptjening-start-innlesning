@@ -102,6 +102,8 @@ class BarnetrygdmottakerService(
                 else -> outerEx
             }
             log.warn("Fikk feil ved prosessering av melding: ${ex::class.qualifiedName}")
+            // todo: fjern igjen
+            log.warn("Fikk feil ved prosessering av melding", ex)
 
             try {
                 transactionTemplate.execute {
