@@ -23,7 +23,7 @@ class KompletteringsService(
 
         val barnetrygdData: BarnetrygdData = hentBarnetrygd(barnetrygdmottaker, filter)
 
-        val persongrunnlag = barnetrygdData.getPersongrunnlag()
+        val persongrunnlag = barnetrygdData.getSanitizedBarnetrygdSaker()
 
         val hjelpestønadData = hentHjelpestønadGrunnlag(persongrunnlag, filter)
 
@@ -89,17 +89,15 @@ class KompletteringsService(
     data class BarnetrygdData(
         private val response: List<HentBarnetrygdResponse>
     ) : List<HentBarnetrygdResponse> by response {
-        val persongrunnlag = response.map { it.barnetrygdsaker }
         val rådataFraKilde = response.map { it.rådataFraKilde }
 
-        // TODO: rydd opp i dette
-        fun getPersongrunnlag() =
-            response.flatMap {
-                it.barnetrygdsaker
-                    .groupBy { it.omsorgsyter }
-                    .map { it.value.single() }
-            }
-
+        fun getSanitizedBarnetrygdSaker(): List<PersongrunnlagMelding.Persongrunnlag> {
+            return response
+                .flatMap { it.barnetrygdsaker }
+                .distinct()
+                .groupBy { it.omsorgsyter }
+                .map { it.value.single() }
+        }
     }
 
     data class Komplettert(
