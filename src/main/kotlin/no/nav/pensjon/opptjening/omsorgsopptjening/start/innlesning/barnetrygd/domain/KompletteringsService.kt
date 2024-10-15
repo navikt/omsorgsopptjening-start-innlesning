@@ -28,7 +28,10 @@ class KompletteringsService(
 
         val persongrunnlag = barnetrygdData.getSanitizedBarnetrygdSaker()
 
-        val hjelpestønadData = hentHjelpestønadGrunnlag(persongrunnlag, gyldigÅrsIntervall)
+        val hjelpestønadData =
+            oppdaterAlleFnr(
+                hentHjelpestønadGrunnlag(persongrunnlag, gyldigÅrsIntervall)
+            )
 
         val rådata = Rådata(barnetrygdData.rådataFraKilde + hjelpestønadData.rådataFraKilde)
 
@@ -84,7 +87,7 @@ class KompletteringsService(
     )
 
     data class HjelpestønadData(
-        private val responses: List<HjelpestønadResponse>
+        val responses: List<HjelpestønadResponse>
     ) : List<HjelpestønadResponse> by responses {
         val persongrunnlag = responses.map { it.persongrunnlag }
         val rådataFraKilde = responses.flatMap { it.rådataFraKilde }
@@ -117,6 +120,36 @@ class KompletteringsService(
             resp.copy(barnetrygdsaker = saker)
         }
         return barnetrygdData.copy(responses = responses)
+    }
+
+    fun oppdaterAlleFnr(hjelpestønadResponse: HjelpestønadResponse): HjelpestønadResponse {
+        val persongrunnlag = hjelpestønadResponse.persongrunnlag.let { persongrunnlag ->
+            val omsorgsyter = personIdService.personFromIdent(persongrunnlag.omsorgsyter)!!.fnr
+            val omsorgsperioder = persongrunnlag.omsorgsperioder.map {
+                it.copy(omsorgsmottaker = personIdService.personFromIdent(it.omsorgsmottaker)!!.fnr)
+            }
+            val hjelpestønadperioder = persongrunnlag.hjelpestønadsperioder.map {
+                it.copy(omsorgsmottaker = personIdService.personFromIdent(it.omsorgsmottaker)!!.fnr)
+            }
+            PersongrunnlagMelding.Persongrunnlag(
+                omsorgsyter = omsorgsyter,
+                omsorgsperioder = omsorgsperioder,
+                hjelpestønadsperioder = hjelpestønadperioder,
+            )
+        }
+
+        return HjelpestønadResponse(
+            persongrunnlag = persongrunnlag,
+            rådataFraKilde = hjelpestønadResponse.rådataFraKilde
+        )
+    }
+
+    fun oppdaterAlleFnr(hjelpestønadData: HjelpestønadData): HjelpestønadData {
+        return hjelpestønadData.copy(
+            responses = hjelpestønadData.responses.map {
+                oppdaterAlleFnr(it)
+            }
+        )
     }
 
     fun ekspanderFnrTilAlleIHistorikken(fnrs: Set<String>): Set<String> {
