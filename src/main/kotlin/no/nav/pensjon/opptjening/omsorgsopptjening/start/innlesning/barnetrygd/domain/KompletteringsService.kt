@@ -87,17 +87,32 @@ class KompletteringsService(
     }
 
     data class BarnetrygdData(
-        private val response: List<HentBarnetrygdResponse>
-    ) : List<HentBarnetrygdResponse> by response {
-        val rådataFraKilde = response.map { it.rådataFraKilde }
+        val responses: List<HentBarnetrygdResponse>
+    ) : List<HentBarnetrygdResponse> by responses {
+        val rådataFraKilde = responses.map { it.rådataFraKilde }
 
         fun getSanitizedBarnetrygdSaker(): List<PersongrunnlagMelding.Persongrunnlag> {
-            return response
+            return responses
                 .flatMap { it.barnetrygdsaker }
                 .distinct()
                 .groupBy { it.omsorgsyter }
                 .map { it.value.single() }
         }
+    }
+
+    fun oppdaterAlleFnr(barnetrygdData: BarnetrygdData): BarnetrygdData {
+        val responses = barnetrygdData.responses.map { resp ->
+            val saker = resp.barnetrygdsaker.map { sak ->
+                val omsorgsyter = personIdService.personFromIdent(sak.omsorgsyter)!!.fnr
+                val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
+                    val omsorgsmottaker = personIdService.personFromIdent(omsorgsperiode.omsorgsmottaker)!!.fnr
+                    omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
+                }
+                sak.copy(omsorgsyter = omsorgsyter, omsorgsperioder = omsorgsperioder)
+            }
+            resp.copy(barnetrygdsaker = saker)
+        }
+        return barnetrygdData.copy(responses = responses)
     }
 
     data class Komplettert(
