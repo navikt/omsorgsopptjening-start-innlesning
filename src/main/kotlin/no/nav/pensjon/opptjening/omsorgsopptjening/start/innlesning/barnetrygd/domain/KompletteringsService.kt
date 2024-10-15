@@ -4,12 +4,11 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlService
 import org.springframework.stereotype.Service
 
 @Service
 class KompletteringsService(
-    val pdlService: PdlService,
+    val personIdService: PersonIdService,
     private val client: BarnetrygdClient,
     private val hjelpestønadService: HjelpestønadService,
 ) {
@@ -18,7 +17,8 @@ class KompletteringsService(
         val filter = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
 
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
-            pdlService.hentPerson(barnetrygdmottakerUtenPdlData.ident)
+            // TODO: håndter manglende svar
+            personIdService.personFromIdent(barnetrygdmottakerUtenPdlData.ident)!!
         )
 
         val barnetrygdData: BarnetrygdData = hentBarnetrygd(barnetrygdmottaker, filter)
