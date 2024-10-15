@@ -2,7 +2,6 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.HentBarnetrygdResponse
 import org.springframework.http.HttpStatus
@@ -92,7 +91,7 @@ internal data class BarnetrygdSak(
 internal data class BarnetrygdPeriode(
     val personIdent: String,
     val delingsprosentYtelse: DelingsprosentYtelse,
-    val ytelseTypeEkstern: String?,
+    val ytelseTypeEkstern: YtelseTypeEkstern,
     val utbetaltPerMnd: Int,
     val stønadFom: YearMonth,
     val stønadTom: YearMonth?,
@@ -118,4 +117,10 @@ internal enum class BarnetrygdKilde {
 internal enum class Sakstype {
     NASJONAL,
     EØS
+}
+
+internal enum class YtelseTypeEkstern {
+    ORDINÆR_BARNETRYGD,
+    UTVIDET_BARNETRYGD,
+    SMÅBARNSTILLEGG,
 }
