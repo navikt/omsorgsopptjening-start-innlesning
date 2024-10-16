@@ -16,6 +16,7 @@ class KompletteringsService(
     fun kompletter(barnetrygdmottakerUtenPdlData: Barnetrygdmottaker.Mottatt): Komplettert {
         val gyldigÅrsIntervall = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
 
+        println("ident: " + barnetrygdmottakerUtenPdlData.ident)
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
             // TODO: håndter manglende svar
             personIdService.personFromIdent(barnetrygdmottakerUtenPdlData.ident)!!
@@ -99,6 +100,16 @@ class KompletteringsService(
         val rådataFraKilde = responses.map { it.rådataFraKilde }
 
         fun getSanitizedBarnetrygdSaker(): List<PersongrunnlagMelding.Persongrunnlag> {
+            responses
+                .flatMap { it.barnetrygdsaker }
+                .distinct()
+                .groupBy { it.omsorgsyter }
+                .forEach {
+                    println("VALUE: ")
+                    it.value.forEach {
+                        println(">>> $it")
+                    }
+                }
             return responses
                 .flatMap { it.barnetrygdsaker }
                 .distinct()
@@ -114,7 +125,7 @@ class KompletteringsService(
                 val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
                     val omsorgsmottaker = personIdService.personFromIdent(omsorgsperiode.omsorgsmottaker)!!.fnr
                     omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
-                }
+                }.distinct()
                 sak.copy(omsorgsyter = omsorgsyter, omsorgsperioder = omsorgsperioder)
             }
             resp.copy(barnetrygdsaker = saker)

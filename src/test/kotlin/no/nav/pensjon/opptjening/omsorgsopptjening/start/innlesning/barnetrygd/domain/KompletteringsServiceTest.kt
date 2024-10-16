@@ -11,12 +11,22 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.WiremockFagsak
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok uten fagsaker`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd-med-fagsaker`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - har hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - ingen hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.pdl
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
+import java.lang.String.format
+import java.time.Instant
 import java.time.YearMonth
+import java.util.*
 
 
 class KompletteringsServiceTest : SpringContextTest.NoKafka() {
@@ -116,6 +126,105 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             }
         assertThat(oppdatertBarnetrygdData).isEqualTo(barnetrygdData)
     }
+
+    // @Disabled // TODO: midlertidig
+    @Test
+    fun `full flyt med fnr-historikk og oppdatering`() {
+        fun fnr(i: Int) = format("%011d", i)
+        wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2), fnr(1_3)))
+        wiremock.pdl(fnr(2), listOf(fnr(2_1), fnr(2_2), fnr(2_3)))
+        wiremock.pdl(fnr(3), listOf(fnr(3_1), fnr(3_2), fnr(3_3)))
+        wiremock.pdl(fnr(4), listOf(fnr(4_1), fnr(4_2), fnr(4_3)))
+        wiremock.pdl(fnr(5), listOf(fnr(5_1), fnr(5_2), fnr(5_3)))
+
+        val fnrUtenBarnetrygdSaker =
+            setOf(
+                fnr(1), fnr(1_1),
+                fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
+                fnr(3), fnr(3_1), fnr(3_2), fnr(3_3),
+                fnr(4), fnr(4_1), fnr(4_2), fnr(4_3),
+                fnr(5), fnr(5_1), fnr(5_2), fnr(5_3),
+            )
+        fnrUtenBarnetrygdSaker.forEach {
+            wiremock.`hent-barnetrygd ok uten fagsaker`(it)
+        }
+
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1_2),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1_1), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_1)),
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_2)),
+                    )
+                ),
+                WiremockFagsak(
+                    eier = fnr(1_2), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_3)),
+                    )
+                ),
+            )
+        )
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1_3),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1_3), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_1)),
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(3_2)),
+                    )
+                ),
+                WiremockFagsak(
+                    eier = fnr(1_2), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(3_3)),
+                    )
+                ),
+            )
+        )
+
+        val fnrUtenHjelpestønad = setOf(
+            fnr(1), fnr(1_1), fnr(1_2), fnr(1_3),
+            fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
+            fnr(3), fnr(3_2), fnr(3_3),
+            fnr(4), fnr(4_1), fnr(4_2), fnr(4_3),
+            fnr(5), fnr(5_1), fnr(5_2), fnr(5_3),
+
+            fnr(3_1) // TODO: midlertidig
+        )
+        fnrUtenHjelpestønad.forEach {
+            wiremock.`hent hjelpestønad ok - ingen hjelpestønad`(it)
+        }
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`(fnr(3_1))
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1_2),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+        val komplettert =
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    kompletteringsService.kompletter(
+                        mottatt
+                    )
+                }
+            }
+
+        println("HELLO")
+
+        println(komplettert)
+    }
+
 
     private fun persongrunnlag(
         omsorgsyter: String,
