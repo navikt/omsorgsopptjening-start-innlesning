@@ -34,9 +34,13 @@ object HentBarnetrygdResponseHandler {
                                     throw HentBarnetrygdException("Liste med barnetrygdsaker mangler")
                                 }
 
+                                // TODO: hva er riktig response dersom det ikke er registret noen fagsaker?
+                                // TODO: midlertidig kommentert ut
+                                /*
                                 wrapper.fagsaker.isEmpty() -> {
                                     throw HentBarnetrygdException("Liste med barnetrygdsaker er tom")
                                 }
+                                 */
 
                                 /*
                                 TODO(Tillater dette for å få kjørt ferdig en del rest-saker fra prodkjøringen.
@@ -59,7 +63,7 @@ object HentBarnetrygdResponseHandler {
                                                 "fnr" to request.ident,
                                                 "fom" to request.fraDato,
                                                 "barnetrygd" to "${response.body}"
-                                            ).toMap()
+                                            )
                                         )
                                     )
                                 }

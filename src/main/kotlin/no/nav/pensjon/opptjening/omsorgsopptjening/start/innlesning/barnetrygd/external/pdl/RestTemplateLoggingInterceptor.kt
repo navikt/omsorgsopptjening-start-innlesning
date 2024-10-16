@@ -1,4 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
+
 import org.springframework.http.HttpRequest
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
@@ -12,6 +13,7 @@ class RestTemplateLoggingInterceptor : ClientHttpRequestInterceptor {
         body: ByteArray,
         execution: ClientHttpRequestExecution
     ): ClientHttpResponse {
+        println("Request Body: ${String(body,StandardCharsets.UTF_8)}")
         val response = execution.execute(request, body)
         println("Response Body: " + StreamUtils.copyToString(response.body, StandardCharsets.UTF_8))
         return response

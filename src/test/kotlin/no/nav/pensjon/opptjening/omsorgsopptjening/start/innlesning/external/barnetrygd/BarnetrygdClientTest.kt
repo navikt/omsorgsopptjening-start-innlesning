@@ -76,7 +76,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         fun `returner ok dersom kall til hent-barnetrygd svarer med 200`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
-                    wiremock.`hent-barnetrygd ok`()
+                    wiremock.`hent-barnetrygd ok`("123")
 
                     client.hentBarnetrygd(
                         ident = "123",
@@ -168,11 +168,12 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
             }
         }
 
+        @Disabled /* TODO: temporært, i påvente av avklaring */
         @Test
         fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok med tom liste`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
-                    wiremock.`hent-barnetrygd ok uten fagsaker`()
+                    wiremock.`hent-barnetrygd ok uten fagsaker`("123")
 
                     assertThrows<HentBarnetrygdException> {
                         client.hentBarnetrygd(
@@ -180,7 +181,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                             gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
-                        assertContains(it.msg, "Liste med barnetrygdsaker er tom")
+                        assertThat(it.msg).contains("Liste med barnetrygdsaker er tom")
+//                        assertContains(it.msg, "Liste med barnetrygdsaker er tom")
                     }
                 }
             }

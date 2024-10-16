@@ -3,17 +3,17 @@
     "hentPerson": {
       "folkeregisteridentifikator": [
         {
-          "identifikasjonsnummer": "{{ fnr }}",
+          "identifikasjonsnummer": "{{ parameters.fnr }}",
           "status": "I_BRUK",
           "type": "FNR",
           "metadata": {
             "historisk": false,
             "master": "FREG"
           }
-        }{{#each historiske}}
+        }{{#each parameters.historiske}}
         ,
         {
-          "identifikasjonsnummer": "61018212345",
+          "identifikasjonsnummer": "{{this}}",
           "status": "OPPHOERT",
           "type": "FNR",
           "metadata": {

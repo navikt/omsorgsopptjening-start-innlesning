@@ -1,6 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 
@@ -36,10 +37,19 @@ fun WireMockExtension.`pdl med ett fnr`(fnr: String): StubMapping {
 }
 
 fun WireMockExtension.pdl(fnr: String, historiske: List<String>): StubMapping {
+    val fnrs = historiske.toSet().plus(fnr)
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+            .withRequestBody(
+                or(
+                    *fnrs.map { fnr ->
+                        containing(""""variables":{"ident":"$fnr"}""")
+                    }.toTypedArray()
+                )
+            )
             .willReturn(
-                WireMock.aResponse()
+                aResponse()
+                    .withTransformers("response-template")
                     .withHeader("Content-Type", "application/json")
                     .withStatus(202)
                     .withTransformerParameter("fnr", fnr)
