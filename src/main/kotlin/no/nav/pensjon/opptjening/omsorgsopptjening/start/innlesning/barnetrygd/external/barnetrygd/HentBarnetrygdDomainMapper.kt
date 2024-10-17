@@ -21,36 +21,31 @@ internal object HentBarnetrygdDomainMapper {
         external: BarnetrygdSak,
         filter: GyldigÅrsintervallFilter
     ): PersongrunnlagMelding.Persongrunnlag? {
-        val ingenBarnetrygd = external.barnetrygdPerioder.isNullOrEmpty()
-        return if (ingenBarnetrygd) {
-            null
-        } else {
-            PersongrunnlagMelding.Persongrunnlag.of(
-                omsorgsyter = external.fagsakEiersIdent,
-                omsorgsperioder = external.barnetrygdPerioder
-                    .perioderIØnsketTidsrom(filter)
-                    .utenUtvidetBarnetrygd(external.fagsakEiersIdent)
-                    .utenSmåbarnstillegg()
-                    .map { periode ->
-                        PersongrunnlagMelding.Omsorgsperiode(
-                            fom = nedreGrense(
-                                måned = periode.stønadFom,
-                                grense = filter.min()
-                            ),
-                            tom = øvreGrense(
-                                måned = periode.stønadTom,
-                                grense = filter.max()
-                            ),
-                            omsorgstype = toDomainDelingsprosent(periode),
-                            omsorgsmottaker = periode.personIdent,
-                            kilde = periode.kildesystem.map(),
-                            utbetalt = periode.utbetaltPerMnd,
-                            landstilknytning = toDomainLandstilknytning(periode)
-                        )
-                    },
-                hjelpestønadsperioder = emptyList()
-            )
-        }
+        PersongrunnlagMelding.Persongrunnlag.of(
+            omsorgsyter = external.fagsakEiersIdent,
+            omsorgsperioder = external.barnetrygdPerioder
+                .perioderIØnsketTidsrom(filter)
+                .utenUtvidetBarnetrygd(external.fagsakEiersIdent)
+                .utenSmåbarnstillegg()
+                .map { periode ->
+                    PersongrunnlagMelding.Omsorgsperiode(
+                        fom = nedreGrense(
+                            måned = periode.stønadFom,
+                            grense = filter.min()
+                        ),
+                        tom = øvreGrense(
+                            måned = periode.stønadTom,
+                            grense = filter.max()
+                        ),
+                        omsorgstype = toDomainDelingsprosent(periode),
+                        omsorgsmottaker = periode.personIdent,
+                        kilde = periode.kildesystem.map(),
+                        utbetalt = periode.utbetaltPerMnd,
+                        landstilknytning = toDomainLandstilknytning(periode)
+                    )
+                },
+            hjelpestønadsperioder = emptyList()
+        )
     }
 
     private fun List<BarnetrygdPeriode>.perioderIØnsketTidsrom(filter: GyldigÅrsintervallFilter): List<BarnetrygdPeriode> {
