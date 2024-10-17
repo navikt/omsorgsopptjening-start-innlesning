@@ -161,10 +161,19 @@ class KompletteringsService(
             val omsorgsyter = personIdService.personFromIdent(persongrunnlag.omsorgsyter)!!.fnr
             val omsorgsperioder = persongrunnlag.omsorgsperioder.map {
                 it.copy(omsorgsmottaker = personIdService.personFromIdent(it.omsorgsmottaker)!!.fnr)
-            }
+            }.distinct()
             val hjelpestønadperioder = persongrunnlag.hjelpestønadsperioder.map {
                 it.copy(omsorgsmottaker = personIdService.personFromIdent(it.omsorgsmottaker)!!.fnr)
+            }.distinct()
+            println("OPPDATER ALLE FNR:")
+            println(">>omsorgsyter:$omsorgsyter")
+            omsorgsperioder.forEach {
+                println(">>omsorgsperiode>>$it")
             }
+            hjelpestønadperioder.forEach {
+                println(">>hjelpestønad>>$it")
+            }
+
             PersongrunnlagMelding.Persongrunnlag(
                 omsorgsyter = omsorgsyter,
                 omsorgsperioder = omsorgsperioder,

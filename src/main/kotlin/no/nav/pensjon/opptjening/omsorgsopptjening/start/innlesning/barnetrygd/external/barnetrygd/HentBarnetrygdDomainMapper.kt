@@ -20,8 +20,8 @@ internal object HentBarnetrygdDomainMapper {
     private fun map(
         external: BarnetrygdSak,
         filter: GyldigÅrsintervallFilter
-    ): PersongrunnlagMelding.Persongrunnlag? {
-        PersongrunnlagMelding.Persongrunnlag.of(
+    ): PersongrunnlagMelding.Persongrunnlag {
+        return PersongrunnlagMelding.Persongrunnlag.of(
             omsorgsyter = external.fagsakEiersIdent,
             omsorgsperioder = external.barnetrygdPerioder
                 .perioderIØnsketTidsrom(filter)
