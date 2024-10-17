@@ -66,6 +66,10 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(forFnr: String
 
 private val sequence = AtomicInteger(100)
 
+fun resetHjelpestønadSequence() {
+    sequence.set(100)
+}
+
 fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(): StubMapping {
     return this.stubFor(
         WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))

@@ -7,6 +7,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.k
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaTopic
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaIntegrationTestConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.resetHjelpestønadSequence
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.BeforeEach
@@ -32,6 +33,7 @@ sealed class SpringContextTest {
     @BeforeEach
     fun setup() {
         PostgresqlTestContainer.instance.removeDataFromDB()
+        resetHjelpestønadSequence()
     }
 
     @SpringBootTest(classes = [Application::class])

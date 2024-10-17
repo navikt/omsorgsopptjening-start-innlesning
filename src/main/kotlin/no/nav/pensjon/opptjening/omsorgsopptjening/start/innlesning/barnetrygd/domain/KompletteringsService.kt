@@ -25,7 +25,7 @@ class KompletteringsService(
         val barnetrygdData: BarnetrygdData =
             oppdaterAlleFnr(
                 hentBarnetrygd(barnetrygdmottaker, gyldigÅrsIntervall)
-            )
+            ).komprimer()
 
         val persongrunnlag = barnetrygdData.getSanitizedBarnetrygdSaker()
 
@@ -63,8 +63,11 @@ class KompletteringsService(
                 ident = fnr,
                 gyldigÅrsintervall = gyldigÅrsintervall,
             )
-        }.let {
-            BarnetrygdData(it)
+        }.let { responses ->
+            BarnetrygdData(
+                persongrunnlag = responses.flatMap { response -> response.barnetrygdsaker },
+                rådataFraKilde = responses.map { response -> response.rådataFraKilde }
+            )
         }
     }
 
@@ -95,23 +98,46 @@ class KompletteringsService(
     }
 
     data class BarnetrygdData(
-        val responses: List<HentBarnetrygdResponse>
-    ) : List<HentBarnetrygdResponse> by responses {
-        val rådataFraKilde = responses.map { it.rådataFraKilde }
+        val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
+        val rådataFraKilde: List<RådataFraKilde>,
+    ) {
+
+        init {
+            println("BarnetrygdData.PERSONGRUNNLAG: ")
+            persongrunnlag.forEach {
+                println("### $it")
+            }
+        }
+
+        fun komprimer(): BarnetrygdData {
+            val persongrunnlag = persongrunnlag.groupBy { it.omsorgsyter }.map { persongrunnlagPerOmsorgsyter ->
+                PersongrunnlagMelding.Persongrunnlag(
+                    omsorgsyter = persongrunnlagPerOmsorgsyter.key,
+                    omsorgsperioder = persongrunnlagPerOmsorgsyter.value
+                        .flatMap { it.omsorgsperioder }
+                        .distinct(),
+                    hjelpestønadsperioder = persongrunnlagPerOmsorgsyter.value
+                        .flatMap { it.hjelpestønadsperioder }
+                        .distinct()
+                )
+            }
+            return BarnetrygdData(
+                persongrunnlag = persongrunnlag,
+                rådataFraKilde = this.rådataFraKilde
+            )
+        }
 
         fun getSanitizedBarnetrygdSaker(): List<PersongrunnlagMelding.Persongrunnlag> {
-            responses
-                .flatMap { it.barnetrygdsaker }
+            persongrunnlag
                 .distinct()
                 .groupBy { it.omsorgsyter }
-                .forEach {
+                .forEach { it ->
                     println("VALUE: ")
                     it.value.forEach {
                         println(">>> $it")
                     }
                 }
-            return responses
-                .flatMap { it.barnetrygdsaker }
+            return persongrunnlag
                 .distinct()
                 .groupBy { it.omsorgsyter }
                 .map { it.value.single() }
@@ -119,18 +145,15 @@ class KompletteringsService(
     }
 
     fun oppdaterAlleFnr(barnetrygdData: BarnetrygdData): BarnetrygdData {
-        val responses = barnetrygdData.responses.map { resp ->
-            val saker = resp.barnetrygdsaker.map { sak ->
-                val omsorgsyter = personIdService.personFromIdent(sak.omsorgsyter)!!.fnr
-                val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
-                    val omsorgsmottaker = personIdService.personFromIdent(omsorgsperiode.omsorgsmottaker)!!.fnr
-                    omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
-                }.distinct()
-                sak.copy(omsorgsyter = omsorgsyter, omsorgsperioder = omsorgsperioder)
-            }
-            resp.copy(barnetrygdsaker = saker)
+        val saker = barnetrygdData.persongrunnlag.map { sak ->
+            val omsorgsyter = personIdService.personFromIdent(sak.omsorgsyter)!!.fnr
+            val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
+                val omsorgsmottaker = personIdService.personFromIdent(omsorgsperiode.omsorgsmottaker)!!.fnr
+                omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
+            }.distinct()
+            sak.copy(omsorgsyter = omsorgsyter, omsorgsperioder = omsorgsperioder)
         }
-        return barnetrygdData.copy(responses = responses)
+        return barnetrygdData.copy(persongrunnlag = saker)
     }
 
     fun oppdaterAlleFnr(hjelpestønadResponse: HjelpestønadResponse): HjelpestønadResponse {

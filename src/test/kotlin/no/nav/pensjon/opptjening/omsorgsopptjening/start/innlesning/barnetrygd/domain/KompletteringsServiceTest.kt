@@ -53,7 +53,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         )
 
         val barnetrygdData = KompletteringsService.BarnetrygdData(
-            responses = listOf(response)
+            persongrunnlag = response.barnetrygdsaker,
+            rådataFraKilde = listOf(response.rådataFraKilde),
         )
         val saker = barnetrygdData.getSanitizedBarnetrygdSaker()
         assertThat(saker).containsOnly(sak)
@@ -71,7 +72,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         )
 
         val barnetrygdData = KompletteringsService.BarnetrygdData(
-            responses = listOf(response)
+            persongrunnlag = response.barnetrygdsaker,
+            rådataFraKilde = listOf(response.rådataFraKilde),
         )
         val saker = barnetrygdData.getSanitizedBarnetrygdSaker()
         assertThat(saker).containsExactly(sak1, sak2)
@@ -88,7 +90,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         )
 
         val barnetrygdData = KompletteringsService.BarnetrygdData(
-            responses = listOf(response)
+            persongrunnlag = response.barnetrygdsaker,
+            rådataFraKilde = listOf(response.rådataFraKilde),
         )
         val saker = barnetrygdData.getSanitizedBarnetrygdSaker()
         assertThat(saker).containsExactly(sak)
@@ -115,7 +118,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         )
 
         val barnetrygdData = KompletteringsService.BarnetrygdData(
-            responses = listOf(response1, response2)
+            persongrunnlag = listOf(response1, response2).flatMap { it.barnetrygdsaker },
+            rådataFraKilde = listOf(response1, response2).map { it.rådataFraKilde }
         )
 
         val oppdatertBarnetrygdData =
