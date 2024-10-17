@@ -52,25 +52,25 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 
-        val innlesingId = webApi.startInnlesning(2020).body!!
+        val innlesingId = UUID.fromString(webApi.startInnlesning(2020).body!!)
 
         sendMeldinger(
             listOf(
                 BarnetrygdmottakerKafkaMelding(
                     meldingstype = BarnetrygdmottakerKafkaMelding.Type.START,
-                    requestId = UUID.fromString(innlesingId),
+                    requestId = innlesingId,
                     personident = null,
                     antallIdenterTotalt = 1
                 ),
                 BarnetrygdmottakerKafkaMelding(
                     meldingstype = BarnetrygdmottakerKafkaMelding.Type.DATA,
-                    requestId = UUID.fromString(innlesingId),
+                    requestId = innlesingId,
                     personident = "12345678910",
                     antallIdenterTotalt = 1,
                 ),
                 BarnetrygdmottakerKafkaMelding(
                     meldingstype = BarnetrygdmottakerKafkaMelding.Type.SLUTT,
-                    requestId = UUID.fromString(innlesingId),
+                    requestId = innlesingId,
                     personident = null,
                     antallIdenterTotalt = 1
                 )
@@ -122,19 +122,6 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                         )
                     ),
                 )
-                val expectedRådata = """[
-                    {
-                        "fnr":"12345678910",
-                        "fom":"2020-01-01",
-                        "barnetrygd":"{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"
-                    },
-                    {
-                        "fnr":"09876543210",
-                        "fom":"2020-01-01",
-                        "tom":"2021-12-31",
-                        "hjelpestønad":"[\n    {\n        \"id\":\"123\",\n        \"ident\":\"09876543210\",\n        \"fom\":\"2020-01\",\n        \"tom\":\"2025-12\",\n        \"omsorgstype\":\"FORHØYET_SATS_3\"\n    }\n]"
-                    }
-                ]""".trimIndent()
 
                 assertThat(it.rådata[0]["fnr"]).isEqualTo("12345678910")
                 assertThat(it.rådata[0]["fom"]).isEqualTo("2020-01-01")
@@ -183,7 +170,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                     it.rådata[1]["hjelpestønad"] as String,
                     false,
                 )
-                assertThat(it.innlesingId.toString()).isEqualTo(innlesingId)
+                assertThat(it.innlesingId.toString()).isEqualTo(innlesingId.toString())
                 assertThat(it.correlationId).isNotNull() //opprettes internt
             }
         }
