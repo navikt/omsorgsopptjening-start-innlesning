@@ -193,16 +193,15 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val fnrUtenHjelpestønad = setOf(
             fnr(1), fnr(1_1), fnr(1_2), fnr(1_3),
             fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
-            fnr(3), fnr(3_2), fnr(3_3),
+            fnr(3), fnr(3_2),
             fnr(4), fnr(4_1), fnr(4_2), fnr(4_3),
             fnr(5), fnr(5_1), fnr(5_2), fnr(5_3),
-
-            fnr(3_1) // TODO: midlertidig
         )
         fnrUtenHjelpestønad.forEach {
             wiremock.`hent hjelpestønad ok - ingen hjelpestønad`(it)
         }
         wiremock.`hent hjelpestønad ok - har hjelpestønad`(fnr(3_1))
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`(fnr(3_3))
 
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
