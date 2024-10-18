@@ -1,7 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.or
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 
@@ -10,7 +11,7 @@ private fun WireMockExtension.pdlResponse(fileName: String): StubMapping {
         return this.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/graphql"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(202)
                         .withBodyFile("pdl/$fileName")
@@ -24,7 +25,7 @@ fun WireMockExtension.`pdl med ett fnr`(fnr: String): StubMapping {
         return this.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/graphql"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(202)
                         .withTransformerParameter("fnr", fnr)
@@ -43,7 +44,7 @@ fun WireMockExtension.pdl(fnr: String, historiske: List<String>): StubMapping {
             .withRequestBody(
                 or(
                     *fnrs.map { fnr ->
-                        containing(""""variables":{"ident":"$fnr"}""")
+                        WireMock.containing(""""variables":{"ident":"$fnr"}""")
                     }.toTypedArray()
                 )
             )
@@ -65,7 +66,7 @@ fun WireMockExtension.`pdl fnr fra query`(): StubMapping {
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/graphql"))
             .willReturn(
-                WireMock.aResponse()
+                aResponse()
                     .withTransformers("response-template")
                     .withHeader("Content-Type", "application/json")
                     .withStatus(202)

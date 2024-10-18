@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 
 class FrigiLaserTask(
-    val barnetrygdmottakerRepo: BarnetrygdmottakerRepository,
+    private val barnetrygdmottakerRepo: BarnetrygdmottakerRepository,
 ) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(FrigiLaserTask::class.java)

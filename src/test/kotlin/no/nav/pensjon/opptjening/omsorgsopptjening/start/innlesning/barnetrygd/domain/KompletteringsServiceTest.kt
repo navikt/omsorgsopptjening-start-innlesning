@@ -19,7 +19,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hje
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.pdl
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
