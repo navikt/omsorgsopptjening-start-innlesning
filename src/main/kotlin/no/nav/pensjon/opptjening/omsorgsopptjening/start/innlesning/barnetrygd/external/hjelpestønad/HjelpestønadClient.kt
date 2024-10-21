@@ -55,9 +55,6 @@ class HjelpestønadClient(
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
             .block()?.let { response ->
-                if (response.body?.isNotEmpty() == true) {
-                    println("XXXBODY: ${response.body} END")
-                }
                 response.body?.deserializeList<HjelpestønadVedtak>()?.let {
                     HentHjelpestønadDBResponse(
                         vedtak = it,

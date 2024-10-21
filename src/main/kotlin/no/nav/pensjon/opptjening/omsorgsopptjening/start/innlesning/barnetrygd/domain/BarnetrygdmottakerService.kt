@@ -85,7 +85,7 @@ class BarnetrygdmottakerService(
                     kafkaProducer.send(
                         createKafkaMessage(
                             barnetrygdmottaker = komplettert.barnetrygdmottaker,
-                            persongrunnlag = komplettert.hjelpestønadPersongrunnlag,
+                            persongrunnlag = komplettert.persongrunnlag,
                             rådata = komplettert.rådata,
                         )
                     ).get()

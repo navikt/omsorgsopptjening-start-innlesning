@@ -42,7 +42,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    fun `BarnetrygdData med én barnetrygdsak`() {
+    fun `Komprimerer barnetrygdData med én barnetrygdsak`() {
         val sak = persongrunnlag("12345678901", "12345678920", 2018)
         val response = HentBarnetrygdResponse(
             barnetrygdsaker = listOf(
@@ -55,12 +55,12 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             persongrunnlag = response.barnetrygdsaker,
             rådataFraKilde = listOf(response.rådataFraKilde),
         )
-        val saker = barnetrygdData.getSanitizedBarnetrygdSaker()
-        assertThat(saker).containsOnly(sak)
+        val saker = barnetrygdData.komprimer()
+        assertThat(saker.persongrunnlag).containsOnly(sak)
     }
 
     @Test
-    fun `BarnetrygdData med flere barnetrygdsaker for ulike omsorgsytere med ulike perioder`() {
+    fun `Komprimerer barnetrygdData med flere barnetrygdsaker for ulike omsorgsytere med ulike perioder`() {
         val sak1 = persongrunnlag("12345678901", "12345678920", 2018)
         val sak2 = persongrunnlag("12345678902", "12345678920", 2019)
         val response = HentBarnetrygdResponse(
@@ -74,12 +74,12 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             persongrunnlag = response.barnetrygdsaker,
             rådataFraKilde = listOf(response.rådataFraKilde),
         )
-        val saker = barnetrygdData.getSanitizedBarnetrygdSaker()
-        assertThat(saker).containsExactly(sak1, sak2)
+        val saker = barnetrygdData.komprimer()
+        assertThat(saker.persongrunnlag).containsExactly(sak1, sak2)
     }
 
     @Test
-    fun `BarnetrygdData med flere forekomster av samme barnetrygdsak`() {
+    fun `Komprimerer barnetrygdData med flere forekomster av samme barnetrygdsak`() {
         val sak = persongrunnlag("12345678901", "12345678920", 2018)
         val response = HentBarnetrygdResponse(
             barnetrygdsaker = listOf(
@@ -92,8 +92,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             persongrunnlag = response.barnetrygdsaker,
             rådataFraKilde = listOf(response.rådataFraKilde),
         )
-        val saker = barnetrygdData.getSanitizedBarnetrygdSaker()
-        assertThat(saker).containsExactly(sak)
+        val saker = barnetrygdData.komprimer()
+        assertThat(saker.persongrunnlag).containsExactly(sak)
     }
 
     @Test

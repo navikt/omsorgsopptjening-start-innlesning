@@ -16,7 +16,6 @@ class KompletteringsService(
     fun kompletter(barnetrygdmottakerUtenPdlData: Barnetrygdmottaker.Mottatt): Komplettert {
         val gyldigÅrsIntervall = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
 
-        println("ident: " + barnetrygdmottakerUtenPdlData.ident)
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
             // TODO: håndter manglende svar
             personIdService.personFromIdent(barnetrygdmottakerUtenPdlData.ident)!!
@@ -27,24 +26,18 @@ class KompletteringsService(
                 hentBarnetrygd(barnetrygdmottaker, gyldigÅrsIntervall)
             ).komprimer()
 
-        val persongrunnlag = barnetrygdData.getSanitizedBarnetrygdSaker()
-        println("<sanitize>")
-        barnetrygdData.persongrunnlag.forEach { println("BEFORE: $it") }
-        barnetrygdData.getSanitizedBarnetrygdSaker().forEach { println("AFTER: $it") }
-        println("</sanitize>")
-
 
         val hjelpestønadData =
             oppdaterAlleFnr(
-                hentHjelpestønadGrunnlag(persongrunnlag, gyldigÅrsIntervall)
+                hentHjelpestønadGrunnlag(barnetrygdData.persongrunnlag, gyldigÅrsIntervall)
             )
 
         val rådata = Rådata(barnetrygdData.rådataFraKilde + hjelpestønadData.rådataFraKilde)
 
         return Komplettert(
             barnetrygdmottaker = barnetrygdmottaker,
+            persongrunnlag = hjelpestønadData.persongrunnlag,
             rådata = rådata,
-            hjelpestønadPersongrunnlag = hjelpestønadData.persongrunnlag,
         )
     }
 
@@ -102,14 +95,6 @@ class KompletteringsService(
         val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
         val rådataFraKilde: List<RådataFraKilde>,
     ) {
-
-        init {
-            println("BarnetrygdData.PERSONGRUNNLAG: ")
-            persongrunnlag.forEach {
-                println("### $it")
-            }
-        }
-
         fun komprimer(): PersongrunnlagOgRådata {
             val persongrunnlag = persongrunnlag.groupBy { it.omsorgsyter }.map { persongrunnlagPerOmsorgsyter ->
                 PersongrunnlagMelding.Persongrunnlag(
@@ -126,22 +111,6 @@ class KompletteringsService(
                 persongrunnlag = persongrunnlag,
                 rådataFraKilde = this.rådataFraKilde
             )
-        }
-
-        fun getSanitizedBarnetrygdSaker(): List<PersongrunnlagMelding.Persongrunnlag> {
-            persongrunnlag
-                .distinct()
-                .groupBy { it.omsorgsyter }
-                .forEach { it ->
-                    println("VALUE: ")
-                    it.value.forEach {
-                        println(">>> $it")
-                    }
-                }
-            return persongrunnlag
-                .distinct()
-                .groupBy { it.omsorgsyter }
-                .map { it.value.single() }
         }
     }
 
@@ -170,7 +139,7 @@ class KompletteringsService(
 
     data class Komplettert(
         val barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
+        val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
         val rådata: Rådata,
-        val hjelpestønadPersongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
     )
 }
