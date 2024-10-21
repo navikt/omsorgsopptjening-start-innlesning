@@ -152,40 +152,16 @@ class KompletteringsService(
                 val omsorgsmottaker = personIdService.personFromIdent(omsorgsperiode.omsorgsmottaker)!!.fnr
                 omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
             }.distinct()
-            sak.copy(omsorgsyter = omsorgsyter, omsorgsperioder = omsorgsperioder)
-        }
-        return barnetrygdData.copy(persongrunnlag = saker)
-    }
-
-    fun oppdaterAlleFnr(hjelpestønadResponse: HjelpestønadResponse): HjelpestønadResponse {
-        val persongrunnlag = hjelpestønadResponse.persongrunnlag.let { persongrunnlag ->
-            val omsorgsyter = personIdService.personFromIdent(persongrunnlag.omsorgsyter)!!.fnr
-            val omsorgsperioder = persongrunnlag.omsorgsperioder.map {
+            val hjelpestønadperioder = sak.hjelpestønadsperioder.map {
                 it.copy(omsorgsmottaker = personIdService.personFromIdent(it.omsorgsmottaker)!!.fnr)
             }.distinct()
-            val hjelpestønadperioder = persongrunnlag.hjelpestønadsperioder.map {
-                it.copy(omsorgsmottaker = personIdService.personFromIdent(it.omsorgsmottaker)!!.fnr)
-            }.distinct()
-            println("OPPDATER ALLE FNR:")
-            println(">>omsorgsyter:$omsorgsyter")
-            omsorgsperioder.forEach {
-                println(">>omsorgsperiode>>$it")
-            }
-            hjelpestønadperioder.forEach {
-                println(">>hjelpestønad>>$it")
-            }
-
-            PersongrunnlagMelding.Persongrunnlag(
+            sak.copy(
                 omsorgsyter = omsorgsyter,
                 omsorgsperioder = omsorgsperioder,
-                hjelpestønadsperioder = hjelpestønadperioder,
+                hjelpestønadsperioder = hjelpestønadperioder
             )
         }
-
-        return HjelpestønadResponse(
-            persongrunnlag = persongrunnlag,
-            rådataFraKilde = hjelpestønadResponse.rådataFraKilde
-        )
+        return barnetrygdData.copy(persongrunnlag = saker)
     }
 
     fun ekspanderFnrTilAlleIHistorikken(fnrs: Set<String>): Set<String> {
