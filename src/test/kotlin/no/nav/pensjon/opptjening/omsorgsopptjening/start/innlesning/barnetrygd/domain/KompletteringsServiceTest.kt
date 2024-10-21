@@ -51,7 +51,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             rådataFraKilde = RådataFraKilde(emptyMap())
         )
 
-        val barnetrygdData = KompletteringsService.BarnetrygdData(
+        val barnetrygdData = KompletteringsService.PersongrunnlagOgRådata(
             persongrunnlag = response.barnetrygdsaker,
             rådataFraKilde = listOf(response.rådataFraKilde),
         )
@@ -70,7 +70,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             rådataFraKilde = RådataFraKilde(emptyMap())
         )
 
-        val barnetrygdData = KompletteringsService.BarnetrygdData(
+        val barnetrygdData = KompletteringsService.PersongrunnlagOgRådata(
             persongrunnlag = response.barnetrygdsaker,
             rådataFraKilde = listOf(response.rådataFraKilde),
         )
@@ -88,7 +88,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             rådataFraKilde = RådataFraKilde(emptyMap())
         )
 
-        val barnetrygdData = KompletteringsService.BarnetrygdData(
+        val barnetrygdData = KompletteringsService.PersongrunnlagOgRådata(
             persongrunnlag = response.barnetrygdsaker,
             rådataFraKilde = listOf(response.rådataFraKilde),
         )
@@ -116,7 +116,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             rådataFraKilde = RådataFraKilde(emptyMap())
         )
 
-        val barnetrygdData = KompletteringsService.BarnetrygdData(
+        val barnetrygdData = KompletteringsService.PersongrunnlagOgRådata(
             persongrunnlag = listOf(response1, response2).flatMap { it.barnetrygdsaker },
             rådataFraKilde = listOf(response1, response2).map { it.rådataFraKilde }
         )
@@ -137,16 +137,12 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2), fnr(1_3)))
         wiremock.pdl(fnr(2), listOf(fnr(2_1), fnr(2_2), fnr(2_3)))
         wiremock.pdl(fnr(3), listOf(fnr(3_1), fnr(3_2), fnr(3_3)))
-        wiremock.pdl(fnr(4), listOf(fnr(4_1), fnr(4_2), fnr(4_3)))
-        wiremock.pdl(fnr(5), listOf(fnr(5_1), fnr(5_2), fnr(5_3)))
 
         val fnrUtenBarnetrygdSaker =
             setOf(
                 fnr(1), fnr(1_1),
                 fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
                 fnr(3), fnr(3_1), fnr(3_2), fnr(3_3),
-                fnr(4), fnr(4_1), fnr(4_2), fnr(4_3),
-                fnr(5), fnr(5_1), fnr(5_2), fnr(5_3),
             )
         fnrUtenBarnetrygdSaker.forEach {
             wiremock.`hent-barnetrygd ok uten fagsaker`(it)
@@ -193,8 +189,6 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             fnr(1), fnr(1_1), fnr(1_2), fnr(1_3),
             fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
             fnr(3), fnr(3_2),
-            fnr(4), fnr(4_1), fnr(4_2), fnr(4_3),
-            fnr(5), fnr(5_1), fnr(5_2), fnr(5_3),
         )
         fnrUtenHjelpestønad.forEach {
             wiremock.`hent hjelpestønad ok - ingen hjelpestønad`(it)

@@ -22,12 +22,17 @@ class KompletteringsService(
             personIdService.personFromIdent(barnetrygdmottakerUtenPdlData.ident)!!
         )
 
-        val barnetrygdData: BarnetrygdData =
+        val barnetrygdData: PersongrunnlagOgRådata =
             oppdaterAlleFnr(
                 hentBarnetrygd(barnetrygdmottaker, gyldigÅrsIntervall)
             ).komprimer()
 
         val persongrunnlag = barnetrygdData.getSanitizedBarnetrygdSaker()
+        println("<sanitize>")
+        barnetrygdData.persongrunnlag.forEach { println("BEFORE: $it") }
+        barnetrygdData.getSanitizedBarnetrygdSaker().forEach { println("AFTER: $it") }
+        println("</sanitize>")
+
 
         val hjelpestønadData =
             oppdaterAlleFnr(
@@ -46,25 +51,28 @@ class KompletteringsService(
     private fun hentHjelpestønadGrunnlag(
         persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
         filter: GyldigÅrsintervallFilter
-    ): HjelpestønadData {
+    ): PersongrunnlagOgRådata {
         return persongrunnlag.map {
             persongrunnlagMedHjelpestønader(it, filter)
-        }.let {
-            HjelpestønadData(it)
+        }.let { responses ->
+            PersongrunnlagOgRådata(
+                persongrunnlag = responses.map { resp -> resp.persongrunnlag },
+                rådataFraKilde = responses.flatMap { resp -> resp.rådataFraKilde }
+            )
         }
     }
 
     private fun hentBarnetrygd(
         barnetrygdMottaker: Barnetrygdmottaker.Mottatt,
         gyldigÅrsintervall: GyldigÅrsintervallFilter
-    ): BarnetrygdData {
+    ): PersongrunnlagOgRådata {
         return barnetrygdMottaker.personId!!.historiske.map { fnr ->
             client.hentBarnetrygd(
                 ident = fnr,
                 gyldigÅrsintervall = gyldigÅrsintervall,
             )
         }.let { responses ->
-            BarnetrygdData(
+            PersongrunnlagOgRådata(
                 persongrunnlag = responses.flatMap { response -> response.barnetrygdsaker },
                 rådataFraKilde = responses.map { response -> response.rådataFraKilde }
             )
@@ -90,14 +98,7 @@ class KompletteringsService(
         val rådataFraKilde: List<RådataFraKilde>,
     )
 
-    data class HjelpestønadData(
-        val responses: List<HjelpestønadResponse>
-    ) : List<HjelpestønadResponse> by responses {
-        val persongrunnlag = responses.map { it.persongrunnlag }
-        val rådataFraKilde = responses.flatMap { it.rådataFraKilde }
-    }
-
-    data class BarnetrygdData(
+    data class PersongrunnlagOgRådata(
         val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
         val rådataFraKilde: List<RådataFraKilde>,
     ) {
@@ -109,7 +110,7 @@ class KompletteringsService(
             }
         }
 
-        fun komprimer(): BarnetrygdData {
+        fun komprimer(): PersongrunnlagOgRådata {
             val persongrunnlag = persongrunnlag.groupBy { it.omsorgsyter }.map { persongrunnlagPerOmsorgsyter ->
                 PersongrunnlagMelding.Persongrunnlag(
                     omsorgsyter = persongrunnlagPerOmsorgsyter.key,
@@ -121,7 +122,7 @@ class KompletteringsService(
                         .distinct()
                 )
             }
-            return BarnetrygdData(
+            return PersongrunnlagOgRådata(
                 persongrunnlag = persongrunnlag,
                 rådataFraKilde = this.rådataFraKilde
             )
@@ -144,7 +145,7 @@ class KompletteringsService(
         }
     }
 
-    fun oppdaterAlleFnr(barnetrygdData: BarnetrygdData): BarnetrygdData {
+    fun oppdaterAlleFnr(barnetrygdData: PersongrunnlagOgRådata): PersongrunnlagOgRådata {
         val saker = barnetrygdData.persongrunnlag.map { sak ->
             val omsorgsyter = personIdService.personFromIdent(sak.omsorgsyter)!!.fnr
             val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
@@ -184,14 +185,6 @@ class KompletteringsService(
         return HjelpestønadResponse(
             persongrunnlag = persongrunnlag,
             rådataFraKilde = hjelpestønadResponse.rådataFraKilde
-        )
-    }
-
-    fun oppdaterAlleFnr(hjelpestønadData: HjelpestønadData): HjelpestønadData {
-        return hjelpestønadData.copy(
-            responses = hjelpestønadData.responses.map {
-                oppdaterAlleFnr(it)
-            }
         )
     }
 
