@@ -4,13 +4,10 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toJson
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toPerson
-import org.jetbrains.annotations.TestOnly
 import org.springframework.jdbc.core.RowMapper
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 import java.sql.ResultSet
@@ -22,101 +19,51 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.toJavaDuration
 
 @Component
-class BarnetrygdmottakerRepository(
+class BarnetrygdinformasjonRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    @TestOnly
-    //TODO ikke bruk denne
-    fun insert(barnetrygdmottaker: Barnetrygdmottaker.Transient): Barnetrygdmottaker.Mottatt {
-        return insertBatch(listOf(barnetrygdmottaker))
-            .let { finnAlle(barnetrygdmottaker.innlesingId).single { it.ident == barnetrygdmottaker.ident } }
-    }
-
-    fun insertBatch(barnetrygdmottaker: List<Barnetrygdmottaker.Transient>) {
-        jdbcTemplate.batchUpdate(
-            """insert into barnetrygdmottaker (ident, correlation_id, innlesing_id, status_type, karantene_til, statushistorikk)
-             | values (:ident, :correlation_id, :innlesing_id, :status_type, :karantene_til::timestamptz, to_jsonb(:statushistorikk::jsonb))""".trimMargin(),
-            barnetrygdmottaker
-                .map {
-                    mapOf(
-                        "ident" to it.ident,
-                        "correlation_id" to it.correlationId.toString(),
-                        "innlesing_id" to it.innlesingId.toString(),
-                        "status_type" to when (it.status) {
-                            is Barnetrygdmottaker.Status.Feilet -> "Feilet"
-                            is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
-                            is Barnetrygdmottaker.Status.Klar -> "Klar"
-                            is Barnetrygdmottaker.Status.Retry -> "Retry"
-                            is Barnetrygdmottaker.Status.Avsluttet -> "Avsluttet"
-                            is Barnetrygdmottaker.Status.Stoppet -> "Stoppet"
-                        },
-                        "karantene_til" to when (val s = it.status) {
-                            is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
-                            else -> null
-                        },
-                        "statushistorikk" to it.statushistorikk.serializeList(),
-                    )
-                }.toTypedArray()
-        )
-    }
-
-    fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
+    fun insert(barnetrygdgrunnlag: Barnetrygdinformasjon) {
         jdbcTemplate.update(
-            """update barnetrygdmottaker 
-                |set statushistorikk = to_jsonb(:statushistorikk::jsonb) ,
-                | status_type = :status_type,
-                | karantene_til = :karantene_til::timestamptz
-                | where id = :id""".trimMargin(),
-            MapSqlParameterSource(
-                mapOf<String, Any?>(
-                    "id" to barnetrygdmottaker.id,
-                    "status_type" to when (barnetrygdmottaker.status) {
-                        is Barnetrygdmottaker.Status.Feilet -> "Feilet"
-                        is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
-                        is Barnetrygdmottaker.Status.Klar -> "Klar"
-                        is Barnetrygdmottaker.Status.Retry -> "Retry"
-                        is Barnetrygdmottaker.Status.Avsluttet -> "Avsluttet"
-                        is Barnetrygdmottaker.Status.Stoppet -> "Stoppet"
-                    },
-                    "karantene_til" to when (val s = barnetrygdmottaker.status) {
-                        is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
-                        else -> null
-                    },
-                    "statushistorikk" to barnetrygdmottaker.statushistorikk.serializeList(),
-                ),
-            ),
-        )
-    }
-
-    fun updatePersonIdent(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
-        jdbcTemplate.update(
-            """update barnetrygdmottaker set 
-            | personid_gjeldende = :personid_gjeldende,
-            | personid_historikk = :personid_historikk::jsonb
-            | where id = :id""".trimMargin(),
-            MapSqlParameterSource(
-                mapOf<String, Any?>(
-                    "id" to barnetrygdmottaker.id,
-                    "personid_gjeldende" to barnetrygdmottaker.personId?.fnr,
-                    "personid_historikk" to barnetrygdmottaker.personId?.toJson(),
-                )
-            )
-        )
-    }
-
-    fun updatePersongrunnlagOgRådata(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
-        jdbcTemplate.update(
-            """update barnetrygdmottaker set 
-            | personid_gjeldende = :personid_gjeldende,
-            | personid_historikk = :personid_historikk::jsonb
-            | where id = :id""".trimMargin(),
-            MapSqlParameterSource(
-                mapOf<String, Any?>(
-                    "id" to barnetrygdmottaker.id,
-                    "persongrunnlag" to serialize("hello"),
-                    "rådata" to serialize("hello"),
-                )
+            """insert into barnetrygdinformasjon(
+                |id,
+                |barnetrygdmottaker_id,
+                |created,
+                |ident,
+                |persongrunnlag,
+                |rådata,
+                |correlationId,
+                |innlesingId,
+                |status,
+                |lockId,
+                |lockTime
+            |) values (
+                |:id,
+                |:barnetrygdmottaker_id,
+                |:created,
+                |:ident,
+                |to_jsonb(:persongrunnlag::jsonb),
+                |to_jsonb(:rådata::jsonb),
+                |:correlationId,
+                |:innlesingId,
+                |:status,
+                |:lockId,
+                |:lockTime""".trimMargin(),
+            mapOf<String, Any?>(
+                "id" to "id",
+                "barnetrygdmottaker_id" to "barnetrygdmottaker_id",
+                "created" to Instant.now(),
+                "ident" to barnetrygdgrunnlag.ident,
+                "persongrunnlag" to serialize(barnetrygdgrunnlag.persongrunnlag),
+                "rådata" to serialize(barnetrygdgrunnlag.rådata),
+                "correlation_id" to barnetrygdgrunnlag.correlationId.toString(),
+                "innlesing_id" to barnetrygdgrunnlag.innlesingId.toString(),
+                "status_type" to when (barnetrygdgrunnlag.status) {
+                    Barnetrygdinformasjon.Status.KLAR -> "Klar"
+                    Barnetrygdinformasjon.Status.SENDT -> "Sendt"
+                },
+                "lockId" to null,
+                "lockTime" to null
             )
         )
     }
