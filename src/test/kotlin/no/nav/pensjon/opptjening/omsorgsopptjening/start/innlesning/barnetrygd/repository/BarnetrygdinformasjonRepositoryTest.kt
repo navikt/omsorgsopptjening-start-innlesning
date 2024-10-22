@@ -13,6 +13,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers.hasSize
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
@@ -41,6 +43,28 @@ class BarnetrygdinformasjonRepositoryTest(
         val hentet = barnetrygdinformasjonRepository.hent(barnetrygdinformasjon.id)
         assertThat(hentet).isEqualTo(barnetrygdinformasjon)
     }
+
+    @Disabled
+    @Test
+    fun `kan låse og frigi rader`() {
+        val innlesing = lagreFullførtInnlesing()
+        val barnetrygdmottaker = lagreBarnetrygdmottaker(innlesing)
+        val barnetrygdinformasjon1 = lagBarnetrygdInformasjon(barnetrygdmottaker, innlesing)
+        val barnetrygdinformasjon2 = lagBarnetrygdInformasjon(barnetrygdmottaker, innlesing)
+        val barnetrygdinformasjon3 = lagBarnetrygdInformasjon(barnetrygdmottaker, innlesing)
+        val barnetrygdinformasjon4 = lagBarnetrygdInformasjon(barnetrygdmottaker, innlesing)
+        barnetrygdinformasjonRepository.insert(barnetrygdinformasjon1)
+        barnetrygdinformasjonRepository.insert(barnetrygdinformasjon2)
+        barnetrygdinformasjonRepository.insert(barnetrygdinformasjon3)
+        barnetrygdinformasjonRepository.insert(barnetrygdinformasjon4)
+
+        val locked1 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
+        assertThat(locked1.data).hasSize(3)
+        val locked2 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
+        assertThat(locked2.data).hasSize(3)
+        assertThat(locked1.lockId).isNotEqualTo(locked2.lockId)
+    }
+
 
     private fun lagBarnetrygdInformasjon(
         barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
@@ -91,7 +115,6 @@ class BarnetrygdinformasjonRepositoryTest(
             )
         )
     }
-
 
     private fun lagreFullførtInnlesing(): BarnetrygdInnlesing {
         val bestilt = innlesingRepository.bestilt(
