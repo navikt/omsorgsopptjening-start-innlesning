@@ -299,7 +299,8 @@ class BarnetrygdmottakerRepository(
         )
     }
 
-    internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {
+    internal class BarnetrygdmottakerRowMapper :
+        RowMapper<Barnetrygdmottaker.Mottatt> {
         override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker.Mottatt {
             return Barnetrygdmottaker.Mottatt(
                 id = UUID.fromString(rs.getString("id")),
