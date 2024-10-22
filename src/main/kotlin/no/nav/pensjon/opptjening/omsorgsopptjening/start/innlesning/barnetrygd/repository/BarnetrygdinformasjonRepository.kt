@@ -92,7 +92,7 @@ class BarnetrygdinformasjonRepository(
 
     fun frigi(locked: Locked) {
         jdbcTemplate.update(
-            """update barnetrygdmottaker set lockId = null, lockTime = null where lockId = :lockId""",
+            """update barnetryginformasjon set lockId = null, lockTime = null where lockId = :lockId""",
             mapOf<String, Any>(
                 "lockId" to locked.lockId,
             )
@@ -119,19 +119,19 @@ class BarnetrygdinformasjonRepository(
     fun finnNesteKlarTilBehandling(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
         jdbcTemplate.update(
-            """update barnetrygdmottaker set lockId = :lockId, lockTime = :now::timestamptz
+            """update barnetrygdinformasjon set lockId = :lockId, lockTime = :now::timestamptz
                 | where id in (
                 | select id 
-                | from barnetrygdmottaker
-                | where status_type = 'Klar'
-                | and innlesing_id = :innlesingId
+                | from barnetrygdinformasjon
+                | where status = 'Klar'
+                | and innlesingId = :innlesingId
                 | and lockId is null
                 | order by id asc
                 | fetch first :antall rows only for update skip locked)
            """.trimMargin(),
             mapOf(
                 "now" to now,
-                "innlesingId" to innlesingId.toUUID().toString(),
+                "innlesingId" to innlesingId.toUUID(),
                 "antall" to antall,
                 "lockId" to lockId,
             ),
