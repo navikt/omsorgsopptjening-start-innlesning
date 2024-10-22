@@ -9,6 +9,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.WiremockFagsak
@@ -219,6 +220,13 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         println("HELLO")
 
         println(komplettert)
+
+        println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+        println("+++ SERIALIZED:persongrunnlag:")
+        println(serialize(komplettert.persongrunnlag))
+        println("+++ SERIALIZED:rådata:")
+        println(serialize(komplettert.rådata))
     }
 
 

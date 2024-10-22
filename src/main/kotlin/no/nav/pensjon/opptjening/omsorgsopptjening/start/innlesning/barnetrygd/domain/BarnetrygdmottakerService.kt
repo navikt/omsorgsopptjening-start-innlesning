@@ -7,6 +7,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -23,6 +24,7 @@ import java.util.*
 class BarnetrygdmottakerService(
     private val client: BarnetrygdClient,
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository,
+    private val barnetrygdinformasjonRepository: BarnetrygdinformasjonRepository,
     private val kafkaProducer: KafkaTemplate<String, String>,
     private val transactionTemplate: TransactionTemplate,
     private val innlesingRepository: InnlesingRepository,
@@ -82,6 +84,11 @@ class BarnetrygdmottakerService(
 
                     val komplettert = kompletteringsService.kompletter(barnetrygdmottakerUtenPdlData)
 
+                    println("+++ SERIALIZED:persongrunnlag:")
+                    println(serialize(komplettert.persongrunnlag))
+                    println("+++ SERIALIZED:rådata:")
+                    println(serialize(komplettert.rådata))
+
                     kafkaProducer.send(
                         createKafkaMessage(
                             barnetrygdmottaker = komplettert.barnetrygdmottaker,
@@ -90,6 +97,9 @@ class BarnetrygdmottakerService(
                         )
                     ).get()
 
+                    barnetrygdinformasjonRepository.insert(
+                        toBarnetrygdinformasjon(komplettert)
+                    )
                     barnetrygdmottakerRepository.updatePersonIdent(komplettert.barnetrygdmottaker)
                     barnetrygdmottakerRepository.updateStatus(komplettert.barnetrygdmottaker)
 
@@ -122,6 +132,21 @@ class BarnetrygdmottakerService(
         } finally {
             log.info("Slutt prosessering")
         }
+    }
+
+    private fun toBarnetrygdinformasjon(
+        komplettert: KompletteringsService.Komplettert
+    ): Barnetrygdinformasjon {
+        return Barnetrygdinformasjon(
+            id = komplettert.barnetrygdmottaker.id,
+            barnetrygdmottakerId = komplettert.barnetrygdmottaker.id,
+            ident = komplettert.barnetrygdmottaker.personId!!.fnr,
+            persongrunnlag = komplettert.persongrunnlag,
+            rådata = komplettert.rådata,
+            correlationId = komplettert.barnetrygdmottaker.correlationId.toUUID(),
+            innlesingId = komplettert.barnetrygdmottaker.innlesingId.toUUID(),
+            status = Barnetrygdinformasjon.Status.KLAR,
+        )
     }
 
 
