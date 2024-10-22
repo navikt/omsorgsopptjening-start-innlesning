@@ -15,11 +15,32 @@ data class Barnetrygdinformasjon(
     val correlationId: UUID,
     val innlesingId: UUID,
     val status: Status,
-    val lockId: UUID? = null,
-    val lockTime: Instant? = null,
 ) {
     enum class Status {
         KLAR,
         SENDT,
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return when (val o = other) {
+            is Barnetrygdinformasjon -> {
+                Objects.equals(id, o.id)
+                        && Objects.equals(barnetrygdmottakerId, o.barnetrygdmottakerId)
+                        && Objects.equals(ident, o.ident)
+                        && Objects.equals(persongrunnlag, o.persongrunnlag)
+                        && Objects.equals(rådata, o.rådata)
+                        && Objects.equals(correlationId, o.correlationId)
+                        && Objects.equals(innlesingId, o.innlesingId)
+                        && Objects.equals(status, o.status)
+            }
+
+            else -> false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(
+            id, barnetrygdmottakerId, ident, persongrunnlag, rådata, correlationId, innlesingId, status
+        )
     }
 }

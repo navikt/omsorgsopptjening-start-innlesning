@@ -1,6 +1,6 @@
 create table barnetrygdinformasjon
 (
-    id varchar primary key,
+    id uuid primary key,
     barnetrygdmottaker_id uuid references barnetrygdmottaker(id),
     created timestamptz,
     ident varchar(11),

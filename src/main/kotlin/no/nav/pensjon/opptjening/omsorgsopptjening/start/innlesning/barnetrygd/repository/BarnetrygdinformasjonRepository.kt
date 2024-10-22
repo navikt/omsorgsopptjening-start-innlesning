@@ -1,11 +1,10 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.*
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toPerson
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Component
 import java.sql.ResultSet
 import java.time.Clock
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.toJavaDuration
@@ -23,7 +22,7 @@ class BarnetrygdinformasjonRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    fun insert(barnetrygdgrunnlag: Barnetrygdinformasjon) {
+    fun insert(barnetrygdinformasjon: Barnetrygdinformasjon) {
         jdbcTemplate.update(
             """insert into barnetrygdinformasjon(
                 |id,
@@ -40,7 +39,7 @@ class BarnetrygdinformasjonRepository(
             |) values (
                 |:id,
                 |:barnetrygdmottaker_id,
-                |:created,
+                |:created::timestamptz,
                 |:ident,
                 |to_jsonb(:persongrunnlag::jsonb),
                 |to_jsonb(:rådata::jsonb),
@@ -48,23 +47,33 @@ class BarnetrygdinformasjonRepository(
                 |:innlesingId,
                 |:status,
                 |:lockId,
-                |:lockTime""".trimMargin(),
+                |:lockTime)""".trimMargin(),
             mapOf<String, Any?>(
-                "id" to "id",
-                "barnetrygdmottaker_id" to "barnetrygdmottaker_id",
-                "created" to Instant.now(),
-                "ident" to barnetrygdgrunnlag.ident,
-                "persongrunnlag" to serialize(barnetrygdgrunnlag.persongrunnlag),
-                "rådata" to serialize(barnetrygdgrunnlag.rådata),
-                "correlation_id" to barnetrygdgrunnlag.correlationId.toString(),
-                "innlesing_id" to barnetrygdgrunnlag.innlesingId.toString(),
-                "status_type" to when (barnetrygdgrunnlag.status) {
+                "id" to barnetrygdinformasjon.id,
+                "barnetrygdmottaker_id" to barnetrygdinformasjon.barnetrygdmottakerId,
+                "created" to Instant.now().toString(),
+                "ident" to barnetrygdinformasjon.ident,
+                "persongrunnlag" to serialize(barnetrygdinformasjon.persongrunnlag),
+                "rådata" to serialize(barnetrygdinformasjon.rådata),
+                "correlationId" to barnetrygdinformasjon.correlationId,
+                "innlesingId" to barnetrygdinformasjon.innlesingId,
+                "status" to when (barnetrygdinformasjon.status) {
                     Barnetrygdinformasjon.Status.KLAR -> "Klar"
                     Barnetrygdinformasjon.Status.SENDT -> "Sendt"
                 },
                 "lockId" to null,
                 "lockTime" to null
             )
+        )
+    }
+
+    fun hent(id: UUID): Barnetrygdinformasjon? {
+        return jdbcTemplate.queryForObject(
+            "select * from barnetrygdinformasjon where id = :id",
+            mapOf<String, Any>(
+                "id" to id
+            ),
+            BarnetrygdinformasjonRowMapper()
         )
     }
 
@@ -78,7 +87,7 @@ class BarnetrygdinformasjonRepository(
                     antall
                 )
             }
-        return Locked(lockId, id.map { find(it)!! })
+        return Locked(lockId, id.map { hent(it)!! })
     }
 
     fun frigi(locked: Locked) {
@@ -90,29 +99,15 @@ class BarnetrygdinformasjonRepository(
         )
     }
 
-    fun find(id: UUID): Barnetrygdmottaker.Mottatt? {
+    fun finnAlle(id: InnlesingId): List<Barnetrygdinformasjon> {
         return jdbcTemplate.query(
-            """select b.*, i.id as innlesing_id, i.år
-                | from barnetrygdmottaker b
-                | join innlesing i on i.id = b.innlesing_id
-                | where b.id = :id""".trimMargin(),
+            """select *
+                | from barnetrygdinformasjon
+                | where innlesingId = :id""".trimMargin(),
             mapOf<String, Any>(
                 "id" to id
             ),
-            BarnetrygdmottakerRowMapper()
-        ).singleOrNull()
-    }
-
-    fun finnAlle(id: InnlesingId): List<Barnetrygdmottaker.Mottatt> {
-        return jdbcTemplate.query(
-            """select b.*, i.id as innlesing_id, i.år
-                | from barnetrygdmottaker b
-                | join innlesing i on i.id = b.innlesing_id
-                | where i.id = :id""".trimMargin(),
-            mapOf<String, Any>(
-                "id" to id.toString()
-            ),
-            BarnetrygdmottakerRowMapper()
+            BarnetrygdinformasjonRowMapper()
         )
     }
 
@@ -246,20 +241,27 @@ class BarnetrygdinformasjonRepository(
         )
     }
 
-    internal class BarnetrygdmottakerRowMapper : RowMapper<Barnetrygdmottaker.Mottatt> {
-        override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker.Mottatt {
-            return Barnetrygdmottaker.Mottatt(
+    internal class BarnetrygdinformasjonRowMapper : RowMapper<Barnetrygdinformasjon> {
+        override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdinformasjon {
+            return Barnetrygdinformasjon(
                 id = UUID.fromString(rs.getString("id")),
-                opprettet = rs.getTimestamp("opprettet").toInstant(),
+                barnetrygdmottakerId = UUID.fromString(rs.getString("barnetrygdmottaker_id")),
+                created = rs.getTimestamp("created").toInstant(),
                 ident = rs.getString("ident"),
-                år = rs.getInt("år"),
-                correlationId = CorrelationId.fromString(rs.getString("correlation_id")),
-                statushistorikk = rs.getString("statushistorikk").deserializeList(),
-                innlesingId = InnlesingId.fromString(rs.getString("innlesing_id")),
-                personId = rs.getString("personid_historikk")?.toPerson(),
+                persongrunnlag = deserialize<List<PersongrunnlagMelding.Persongrunnlag>>(rs.getString("persongrunnlag")),
+                rådata = deserialize<Rådata>(rs.getString("rådata")),
+                correlationId = UUID.fromString(rs.getString("correlationId")),
+                innlesingId = UUID.fromString(rs.getString("innlesingId")),
+                status = when (val value = rs.getString("status")) {
+                    "Klar" -> Barnetrygdinformasjon.Status.KLAR
+                    "Sendt" -> Barnetrygdinformasjon.Status.SENDT
+                    else -> throw UgyldigBarnetrygdinformasjonException("Ukjent status: $value")
+                }
             )
         }
     }
 
-    data class Locked(val lockId: UUID, val data: List<Barnetrygdmottaker.Mottatt>)
+    data class Locked(val lockId: UUID, val data: List<Barnetrygdinformasjon>)
+
+    class UgyldigBarnetrygdinformasjonException(msg: String) : RuntimeException(msg)
 }
