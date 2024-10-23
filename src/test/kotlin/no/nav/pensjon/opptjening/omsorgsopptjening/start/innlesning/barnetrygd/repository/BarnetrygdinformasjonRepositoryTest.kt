@@ -13,7 +13,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,7 +43,6 @@ class BarnetrygdinformasjonRepositoryTest(
         assertThat(hentet).isEqualTo(barnetrygdinformasjon)
     }
 
-    @Disabled
     @Test
     fun `kan låse og frigi rader`() {
         val innlesing = lagreFullførtInnlesing()
@@ -58,11 +56,21 @@ class BarnetrygdinformasjonRepositoryTest(
         barnetrygdinformasjonRepository.insert(barnetrygdinformasjon3)
         barnetrygdinformasjonRepository.insert(barnetrygdinformasjon4)
 
+        val alle = barnetrygdinformasjonRepository.finnAlle(innlesing.id)
+        assertThat(alle).hasSize(4)
+        alle.forEach {
+            println("::: $it")
+        }
+
         val locked1 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
         assertThat(locked1.data).hasSize(3)
         val locked2 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
-        assertThat(locked2.data).hasSize(3)
+        assertThat(locked2.data).hasSize(1)
         assertThat(locked1.lockId).isNotEqualTo(locked2.lockId)
+        barnetrygdinformasjonRepository.frigi(locked1)
+        val locked3 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
+        assertThat(locked3.data).hasSize(3)
+        assertThat(locked3.data).containsExactlyElementsOf(locked1.data)
     }
 
 
