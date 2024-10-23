@@ -22,6 +22,7 @@ class BarnetrygdinformasjonRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
     private val clock: Clock = Clock.systemUTC()
 ) {
+    // TODO: vurdere å bruke "on conflict update" eller en annen mekanisme for å kunne reprossesere uten manuell sletting
     fun insert(barnetrygdinformasjon: Barnetrygdinformasjon) {
         jdbcTemplate.update(
             """insert into barnetrygdinformasjon(
@@ -79,20 +80,14 @@ class BarnetrygdinformasjonRepository(
 
     fun finnNesteTilBehandling(innlesingId: InnlesingId, antall: Int): Locked {
         val lockId = UUID.randomUUID()
-        val id: List<UUID> =
-            finnNesteKlarTilBehandling(lockId, innlesingId, antall).ifEmpty {
-                finnNesteForRetry(
-                    lockId,
-                    innlesingId,
-                    antall
-                )
-            }
+        val id: List<UUID> = finnNesteKlarTilBehandling(lockId, innlesingId, antall)
+        println("finnNesteTilBehandling: id.size=${id.size}")
         return Locked(lockId, id.map { hent(it)!! })
     }
 
     fun frigi(locked: Locked) {
         jdbcTemplate.update(
-            """update barnetryginformasjon set lockId = null, lockTime = null where lockId = :lockId""",
+            """update barnetrygdinformasjon set lockId = null, lockTime = null where lockId = :lockId""",
             mapOf<String, Any>(
                 "lockId" to locked.lockId,
             )
@@ -105,7 +100,7 @@ class BarnetrygdinformasjonRepository(
                 | from barnetrygdinformasjon
                 | where innlesingId = :id""".trimMargin(),
             mapOf<String, Any>(
-                "id" to id
+                "id" to id.toUUID()
             ),
             BarnetrygdinformasjonRowMapper()
         )
@@ -118,13 +113,12 @@ class BarnetrygdinformasjonRepository(
      */
     fun finnNesteKlarTilBehandling(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
-        jdbcTemplate.update(
+        val updateCount = jdbcTemplate.update(
             """update barnetrygdinformasjon set lockId = :lockId, lockTime = :now::timestamptz
                 | where id in (
                 | select id 
                 | from barnetrygdinformasjon
                 | where status = 'Klar'
-                | and innlesingId = :innlesingId
                 | and lockId is null
                 | order by id asc
                 | fetch first :antall rows only for update skip locked)
@@ -136,9 +130,10 @@ class BarnetrygdinformasjonRepository(
                 "lockId" to lockId,
             ),
         )
+        println("finnNesteKlarTilBehandling.update count: $updateCount")
 
         return jdbcTemplate.queryForList(
-            """select id from barnetrygdmottaker where lockId = :lockId""".trimMargin(),
+            """select id from barnetrygdinformasjon where lockId = :lockId""".trimMargin(),
             mapOf(
                 "lockId" to lockId
             ),
@@ -146,94 +141,25 @@ class BarnetrygdinformasjonRepository(
         )
     }
 
-    fun finnNesteForRetry(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
-        val now = Instant.now(clock).toString()
-        jdbcTemplate.update(
-            """update barnetrygdmottaker
-               |set lockId = :lockId, lockTime = :now::timestamptz
-               |where id in (
-               |select id
-               | from barnetrygdmottaker
-               | where status_type = 'Retry' 
-               |and karantene_til < (:now)::timestamptz
-               | and karantene_til is not null 
-               | and innlesing_id = :innlesingId
-               | and lockId is null
-               | order by karantene_til asc 
-               | fetch first :antall rows only for update skip locked)
-           """.trimMargin(),
-            mapOf(
-                "now" to now,
-                "innlesingId" to innlesingId.toUUID().toString(),
-                "antall" to antall,
-                "lockId" to lockId,
-            ),
-        )
-        return jdbcTemplate.queryForList(
-            """select id from barnetrygdmottaker where lockId = :lockId""",
-            mapOf(
-                "lockId" to lockId,
-            ),
-            UUID::class.java
-        )
-    }
-
-    fun finnAntallMottakereMedStatusForInnlesing(
-        kclass: KClass<*>,
-        innlesingId: InnlesingId
-    ): Long {
-        val name = kclass.simpleName!!
+    fun finnAntallMedStatus(status: Barnetrygdinformasjon.Status): Long {
         return jdbcTemplate.queryForObject(
             """select count(*) 
-             | from barnetrygdmottaker b
-             | join innlesing i on i.id = b.innlesing_id
-             | where i.id = :innlesingId 
-             | and b.status_type = :status""".trimMargin(),
+                |from barnetrygdinnlesing
+                |and status = :status""".trimMargin(),
             mapOf(
-                "now" to Instant.now(clock).toString(),
-                "innlesingId" to innlesingId.toString(),
-                "status" to name,
+                "status" to when (status) {
+                    Barnetrygdinformasjon.Status.KLAR -> "Klar"
+                    Barnetrygdinformasjon.Status.SENDT -> "Sendt"
+                }
             ),
             Long::class.java,
         )!!
-    }
-
-    fun finnAntallMottakereMedStatus(kclass: KClass<*>): Long {
-        val name = kclass.simpleName!!
-        return jdbcTemplate.queryForObject(
-            """select count(*) 
-                |from barnetrygdmottaker b, innlesing i
-                |where b.innlesing_id = i.id 
-                |and b.status_type = :status""".trimMargin(),
-            mapOf(
-                "now" to Instant.now(clock).toString(),
-                "status" to name
-            ),
-            Long::class.java,
-        )!!
-    }
-
-    fun oppdaterFeiledeRaderTilKlar(innlesingId: UUID): Int {
-        val nyStatus = serialize(Barnetrygdmottaker.Status.Klar())
-        return jdbcTemplate.update(
-            //language=postgres-psql
-            """
-            update barnetrygdmottaker 
-             set statushistorikk = statushistorikk || (:nyStatus::jsonb),
-             status_type = 'Klar'
-             where innlesing_id = :innlesingId and status_type = 'Feilet'
-        """.trimIndent(),
-            mapOf<String, Any>(
-                "nyStatus" to nyStatus,
-                "innlesingId" to innlesingId.toString(),
-            )
-        )
     }
 
     fun frigiGamleLåser(): Int {
         val oneHourAgo = Instant.now(clock).minus(1.hours.toJavaDuration()).toString()
         return jdbcTemplate.update(
-            """update barnetrygdmottaker set lockId = null, lockTime = null 
+            """update barnetrygdinformasjon set lockId = null, lockTime = null 
             |where lockId is not null and lockTime < :oneHourAgo::timestamptz""".trimMargin(),
             mapOf<String, Any>(
                 "oneHourAgo" to oneHourAgo
