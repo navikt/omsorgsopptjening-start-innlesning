@@ -38,6 +38,10 @@ data class Barnetrygdinformasjon(
         }
     }
 
+    fun sendt(): Barnetrygdinformasjon {
+        return copy(status = Status.SENDT)
+    }
+
     override fun hashCode(): Int {
         return Objects.hash(
             id, barnetrygdmottakerId, ident, persongrunnlag, rådata, correlationId, innlesingId, status

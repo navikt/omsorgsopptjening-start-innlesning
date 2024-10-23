@@ -78,9 +78,9 @@ class BarnetrygdinformasjonRepository(
         )
     }
 
-    fun finnNesteTilBehandling(innlesingId: InnlesingId, antall: Int): Locked {
+    fun finnNesteTilBehandling(antall: Int): Locked {
         val lockId = UUID.randomUUID()
-        val id: List<UUID> = finnNesteKlarTilBehandling(lockId, innlesingId, antall)
+        val id: List<UUID> = finnNesteKlarTilBehandling(lockId, antall)
         println("finnNesteTilBehandling: id.size=${id.size}")
         return Locked(lockId, id.map { hent(it)!! })
     }
@@ -93,6 +93,20 @@ class BarnetrygdinformasjonRepository(
             )
         )
     }
+
+    fun oppdaterStatus(barnetrygdinformasjon: Barnetrygdinformasjon) {
+        jdbcTemplate.update(
+            """update barnetrygdinformasjon set status = :status where id = :id""",
+            mapOf<String, Any>(
+                "status" to when (barnetrygdinformasjon.status) {
+                    Barnetrygdinformasjon.Status.KLAR -> "Klar"
+                    Barnetrygdinformasjon.Status.SENDT -> "Sendt"
+                },
+                "id" to barnetrygdinformasjon.id
+            )
+        )
+    }
+
 
     fun finnAlle(id: InnlesingId): List<Barnetrygdinformasjon> {
         return jdbcTemplate.query(
@@ -111,7 +125,7 @@ class BarnetrygdinformasjonRepository(
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en
      * annen connection (pod) så lenge transaksjonen lever.
      */
-    fun finnNesteKlarTilBehandling(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
+    fun finnNesteKlarTilBehandling(lockId: UUID, antall: Int): List<UUID> {
         val now = Instant.now(clock).toString()
         val updateCount = jdbcTemplate.update(
             """update barnetrygdinformasjon set lockId = :lockId, lockTime = :now::timestamptz
@@ -125,7 +139,6 @@ class BarnetrygdinformasjonRepository(
            """.trimMargin(),
             mapOf(
                 "now" to now,
-                "innlesingId" to innlesingId.toUUID(),
                 "antall" to antall,
                 "lockId" to lockId,
             ),
