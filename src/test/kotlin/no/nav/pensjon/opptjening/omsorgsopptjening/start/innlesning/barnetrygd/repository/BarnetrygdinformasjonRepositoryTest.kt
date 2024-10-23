@@ -62,13 +62,13 @@ class BarnetrygdinformasjonRepositoryTest(
             println("::: $it")
         }
 
-        val locked1 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
+        val locked1 = barnetrygdinformasjonRepository.finnNesteTilBehandling(3)
         assertThat(locked1.data).hasSize(3)
-        val locked2 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
+        val locked2 = barnetrygdinformasjonRepository.finnNesteTilBehandling(3)
         assertThat(locked2.data).hasSize(1)
         assertThat(locked1.lockId).isNotEqualTo(locked2.lockId)
         barnetrygdinformasjonRepository.frigi(locked1)
-        val locked3 = barnetrygdinformasjonRepository.finnNesteTilBehandling(innlesing.id, 3)
+        val locked3 = barnetrygdinformasjonRepository.finnNesteTilBehandling(3)
         assertThat(locked3.data).hasSize(3)
         assertThat(locked3.data).containsExactlyElementsOf(locked1.data)
     }
