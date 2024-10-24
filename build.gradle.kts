@@ -9,18 +9,19 @@ val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"
 val postgresqlVersion = "42.7.4"
 val flywayCoreVersion = "10.20.0"
-val testcontainersVersion = "1.20.2"
+val testcontainersVersion = "1.20.3"
 val jacksonVersion = "2.17.1"
 val springKafkaTestVersion = "3.2.4"
 val azureAdClient = "0.0.7"
 val assertjVersion = "3.26.3"
 val awaitilityVersion = "4.2.2"
-val wiremockVersion = "3.9.1"
+val wiremockVersion = "3.9.2"
 val micrometerRegistryPrometheusVersion = "1.13.6"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.4"
 val jsonAssertVersion = "1.5.2"
 val jsunUnitVersion = "3.4.1"
+val guavaVersion = "33.3.1-jre"
 
 val snappyJavaVersion = "1.1.10.7"
 val snakeYamlVersion = "2.3"
@@ -70,6 +71,7 @@ dependencies {
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
     implementation("io.getunleash:unleash-client-java:$unleashVersion")
+    implementation("com.google.guava:guava:$guavaVersion")
 
     // DB
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
