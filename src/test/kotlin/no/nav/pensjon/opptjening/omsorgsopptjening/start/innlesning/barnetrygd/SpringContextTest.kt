@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Application
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonIdService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaTopic
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaIntegrationTestConfig
@@ -30,9 +31,13 @@ sealed class SpringContextTest {
         const val READINESS_TOPIC = "readiness-topic"
     }
 
+    @Autowired
+    private lateinit var personIdService: PersonIdService
+
     @BeforeEach
     fun setup() {
         PostgresqlTestContainer.instance.removeDataFromDB()
+        personIdService.clearCache()
         resetHjelpestønadSequence()
     }
 
@@ -55,41 +60,6 @@ sealed class SpringContextTest {
 
         @Autowired
         lateinit var kafkaProducer: KafkaTemplate<String, String>
-
-        @Autowired
-        lateinit var kafkaBroker: EmbeddedKafkaBroker
-
-        fun ensureKafkaIsReady() {
-            Thread.sleep(1000)
-            val future = kafkaProducer.send(READINESS_TOPIC, "key", "msg")
-            kafkaProducer.flush()
-            future.get(10, TimeUnit.SECONDS)
-            println("READINESS_TOPIC.length = ${READINESS_TOPIC.length}")
-            println("KAFKA BROKER: $kafkaBroker")
-        }
-
-        fun awaitKafkaBroker(timeoutSeconds: Int = 60) {
-            var attempts = 0
-            val maxAttempts = timeoutSeconds * 10
-            val brokerAddress = kafkaBroker.brokersAsString
-            println("BrokerAddress: $brokerAddress")
-            val host = brokerAddress.split(":").first()
-            val port = brokerAddress.substringAfter(":").toInt()
-
-            while (attempts < maxAttempts) {
-                try {
-                    Socket("localhost", port).use {
-                        println("awaitKafkaBroker: Kafka is ready (attempts=$attempts)")
-                        return
-                    }
-                } catch (e: Exception) {
-                    Thread.sleep(100)
-                }
-                attempts++
-            }
-            throw RuntimeException("awaitKafkaBroker: Kafka broker did not start without $timeoutSeconds seconds")
-        }
-
 
         fun sendStartInnlesingKafka(
             requestId: String
