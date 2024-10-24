@@ -1,23 +1,35 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
+import com.google.common.cache.CacheBuilder
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlService
 import org.springframework.stereotype.Service
+import java.time.Duration
 
 @Service
 class PersonIdService(
     val pdlService: PdlService,
 ) {
-    val personIdMap: MutableMap<String, PersonId> = mutableMapOf()
+    val cache =
+        CacheBuilder.newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(5))
+            .maximumSize(30)
+            .build<String, PersonId>()
 
-    // TODO: håndter personer som ikke finnes i PDL
     fun personFromIdent(fnr: String): PersonId? {
-        if (!personIdMap.containsKey(fnr)) {
-            val personId = pdlService.hentPerson(fnr)
-            personId.historiske.forEach {
-                personIdMap[it] = personId
+        return when (val personId: PersonId? = cache.getIfPresent(fnr)) {
+            is PersonId -> personId
+            null -> {
+                val personId = pdlService.hentPerson(fnr)
+                personId.historiske.forEach {
+                    cache.put(it, personId)
+                }
+                personId
+            }
+
+            else -> { // noop, but added to make this compile
+                throw RuntimeException("cache contains unrecognized value $personId")
             }
         }
-        return personIdMap[fnr]
     }
 
 }
