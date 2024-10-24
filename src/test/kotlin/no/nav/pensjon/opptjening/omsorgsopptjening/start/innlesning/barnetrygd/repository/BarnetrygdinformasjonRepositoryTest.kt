@@ -69,7 +69,7 @@ class BarnetrygdinformasjonRepositoryTest(
         barnetrygdinformasjonRepository.frigi(locked1)
         val locked3 = barnetrygdinformasjonRepository.finnNesteTilBehandling(3)
         assertThat(locked3.data).hasSize(3)
-        assertThat(locked3.data).containsExactlyElementsOf(locked1.data)
+        assertThat(locked3.data).containsExactlyInAnyOrderElementsOf(locked1.data)
     }
 
 

@@ -20,6 +20,22 @@ private fun WireMockExtension.pdlResponse(fileName: String): StubMapping {
     }
 }
 
+private fun WireMockExtension.pdlResponse(fnr: String, fileName: String): StubMapping {
+    synchronized(this) {
+        return this.stubFor(
+            WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+                .withRequestBody(WireMock.containing(""""variables":{"ident":"$fnr"}"""))
+                .willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withStatus(202)
+                        .withBodyFile("pdl/$fileName")
+                )
+        )
+    }
+}
+
+
 fun WireMockExtension.`pdl med ett fnr`(fnr: String): StubMapping {
     synchronized(this) {
         return this.stubFor(
@@ -83,6 +99,10 @@ fun WireMockExtension.`pdl bad request`(): StubMapping {
 
 fun WireMockExtension.`pdl error not_found`(): StubMapping {
     return this.pdlResponse("error_not_found.json")
+}
+
+fun WireMockExtension.`pdl error not_found`(fnr: String): StubMapping {
+    return this.pdlResponse(fnr, "error_not_found.json")
 }
 
 fun WireMockExtension.`pdl server error`(): StubMapping {
