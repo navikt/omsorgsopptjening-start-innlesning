@@ -26,10 +26,14 @@ class PersonIdService(
                 personId
             }
 
-            else -> { // noop, but added to make this compile
-                throw RuntimeException("cache contains unrecognized value $personId")
+            else -> { // har ingen funksjon, men la til for at det skal kompilere
+                throw RuntimeException("cache inneholder ukjent verdi $personId")
             }
         }
+    }
+
+    fun clearCache() {
+        cache.invalidateAll()
     }
 
 }
