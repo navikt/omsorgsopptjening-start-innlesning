@@ -46,6 +46,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     @Autowired
     private lateinit var barnetrygdService: BarnetrygdmottakerService
 
+    @Autowired
+    private lateinit var sendTilBestemService: SendTilBestemService
+
     @MockBean
     private lateinit var kafkaTemplate: KafkaTemplate<String, String>
 
@@ -463,9 +466,10 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 
         barnetrygdService.process()
+        sendTilBestemService.process()
 
-        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
-            PersongrunnlagMelding.persongrunnlag.single().also { sak ->
+        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
+            persongrunnlagMelding.persongrunnlag.single().also { sak ->
                 assertThat(sak.omsorgsperioder.count { it.omsorgstype == Omsorgstype.FULL_BARNETRYGD }).isEqualTo(1)
                 assertThat(
                     sak.hjelpestønadsperioder.count {
@@ -499,6 +503,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
         barnetrygdService.process()
+        sendTilBestemService.process()
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
             persongrunnlagMelding.persongrunnlag.single().also { sak ->
@@ -532,9 +537,10 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
         barnetrygdService.process()
+        sendTilBestemService.process()
 
-        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { PersongrunnlagMelding ->
-            PersongrunnlagMelding.persongrunnlag.single().also { sak ->
+        deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
+            persongrunnlagMelding.persongrunnlag.single().also { sak ->
                 assertThat(sak.omsorgsperioder).isEmpty()
                 assertThat(sak.hjelpestønadsperioder).isEmpty()
             }
