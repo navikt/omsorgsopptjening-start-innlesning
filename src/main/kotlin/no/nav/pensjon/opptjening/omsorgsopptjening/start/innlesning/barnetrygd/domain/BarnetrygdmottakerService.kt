@@ -8,12 +8,11 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.lang.reflect.UndeclaredThrowableException
@@ -25,7 +24,6 @@ class BarnetrygdmottakerService(
     private val client: BarnetrygdClient,
     private val barnetrygdmottakerRepository: BarnetrygdmottakerRepository,
     private val barnetrygdinformasjonRepository: BarnetrygdinformasjonRepository,
-    private val kafkaProducer: KafkaTemplate<String, String>,
     private val transactionTemplate: TransactionTemplate,
     private val innlesingRepository: InnlesingRepository,
     private val kompletteringsService: KompletteringsService,
@@ -84,19 +82,6 @@ class BarnetrygdmottakerService(
 
                     val komplettert = kompletteringsService.kompletter(barnetrygdmottakerUtenPdlData)
 
-                    println("+++ SERIALIZED:persongrunnlag:")
-                    println(serialize(komplettert.persongrunnlag))
-                    println("+++ SERIALIZED:rådata:")
-                    println(serialize(komplettert.rådata))
-
-                    kafkaProducer.send(
-                        createKafkaMessage(
-                            barnetrygdmottaker = komplettert.barnetrygdmottaker,
-                            persongrunnlag = komplettert.persongrunnlag,
-                            rådata = komplettert.rådata,
-                        )
-                    ).get()
-
                     barnetrygdinformasjonRepository.insert(
                         toBarnetrygdinformasjon(komplettert)
                     )
@@ -113,7 +98,7 @@ class BarnetrygdmottakerService(
             }
             log.warn("Fikk feil ved prosessering av melding: ${ex::class.qualifiedName}")
             // todo: fjern igjen
-            log.warn("Fikk feil ved prosessering av melding", ex)
+            // log.warn("Fikk feil ved prosessering av melding", ex)
 
             try {
                 transactionTemplate.execute {

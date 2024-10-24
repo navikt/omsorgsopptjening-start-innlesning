@@ -10,6 +10,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.OmsorgsopptjeningTopicListener
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.BarnetrygdWebApi
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`bestill-personer-med-barnetrygd accepted`
@@ -36,6 +37,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
     @Autowired
     private lateinit var barnetrygdmottakerService: BarnetrygdmottakerService
 
+    @Autowired
+    private lateinit var sendTilBestemService: SendTilBestemService
+
     companion object {
         @JvmField
         @RegisterExtension
@@ -45,7 +49,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
     }
 
     @Test
-    fun `leser melding fra barnetryd topic, prosesserer meldingen og sender ny melding til intern topic`() {
+    fun `leser melding fra barnetrygd topic, prosesserer meldingen og sender ny melding til intern topic`() {
 
         wiremock.`pdl fnr fra query`()
         wiremock.`bestill-personer-med-barnetrygd accepted`()
@@ -79,6 +83,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
 
         Thread.sleep(2000)
         barnetrygdmottakerService.process()
+        sendTilBestemService.process()
 
         listener.removeFirstRecord(3).let { consumerRecord ->
             val expectedKey =
