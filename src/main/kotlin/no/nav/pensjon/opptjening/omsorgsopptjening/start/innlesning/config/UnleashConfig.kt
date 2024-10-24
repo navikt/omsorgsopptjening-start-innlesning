@@ -32,6 +32,7 @@ class UnleashConfig(
 
     enum class Feature(val toggleName: String) {
         PROSESSER_BARNETRYGDMOTTAKER("omsorgsopptjening-start-innlesning-prosesser-barnetrygdmottaker"),
+        SEND_TIL_BESTEM("omsorgsopptjening-start-innlesning-send-til-bestem"),
     }
 }
 

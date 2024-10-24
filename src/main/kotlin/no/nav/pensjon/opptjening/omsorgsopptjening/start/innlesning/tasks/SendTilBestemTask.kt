@@ -1,23 +1,24 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
 import io.getunleash.Unleash
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.UnleashConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 
-class SendToBestemTask(
-    private val service: BarnetrygdmottakerService,
+class SendTilBestemTask(
+    private val service: SendTilBestemService,
     private val metrikker: Metrikker,
     private val unleash: Unleash,
 ) : Runnable {
 
     companion object {
-        val log = LoggerFactory.getLogger(SendToBestemTask::class.java)!!
+        val log = LoggerFactory.getLogger(SendTilBestemTask::class.java)!!
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 5000)
     override fun run() {
         try {
             if (isEnabled()) {
@@ -34,17 +35,18 @@ class SendToBestemTask(
         log.info("Sender all tilgjengelig barnetrygdinformasjon til bestem (via kafka)")
         var harGjortNoe = true
         while (harGjortNoe) {
-            val barnetrygdmottakere = metrikker.tellBarnetrygdmottakerStatus {
-                service.process()
+            val prosessert: List<Barnetrygdinformasjon>? = service.process()
+            if (prosessert?.isNotEmpty() == true) {
+                metrikker.tellSendtTilBestem(prosessert.size)
             }
-            harGjortNoe = !barnetrygdmottakere.isNullOrEmpty()
+            val harGjortNoe = prosessert.isNullOrEmpty()
             if (harGjortNoe) {
-                log.info("Prosessert ${barnetrygdmottakere?.size} barnetrygdmottakere")
+                log.info("Prosessert ${prosessert?.size} barnetrygdmottakere")
             }
         }
     }
 
     private fun isEnabled(): Boolean {
-        return unleash.isEnabled(UnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
+        return unleash.isEnabled(UnleashConfig.Feature.SEND_TIL_BESTEM.toggleName)
     }
 }

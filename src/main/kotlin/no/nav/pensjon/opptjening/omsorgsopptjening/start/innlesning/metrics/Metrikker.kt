@@ -17,6 +17,7 @@ class Metrikker(private val registry: MeterRegistry) {
     private val hentPdlTimer = registry.timer("hentpdl", "tidsbruk", "hentet")
 
     private val antallFeiledeMeldinger = registry.counter("meldinger", "antall", "feilet")
+    private val antallSendtTilBestem = registry.counter("barnetrygdinformasjon", "antall", "sendt")
 
     private val antallKlar = registry.counter("barnetrygdmottaker", "status", "klar")
     private val antallFerdig = registry.counter("barnetrygdmottaker", "status", "ferdig")
@@ -72,5 +73,9 @@ class Metrikker(private val registry: MeterRegistry) {
 
     fun målFeiletMelding(lambda: () -> Unit) {
         antallFeiledeMeldinger.increment()
+    }
+
+    fun tellSendtTilBestem(antall: Int) {
+        antallSendtTilBestem.increment(antall.toDouble())
     }
 }
