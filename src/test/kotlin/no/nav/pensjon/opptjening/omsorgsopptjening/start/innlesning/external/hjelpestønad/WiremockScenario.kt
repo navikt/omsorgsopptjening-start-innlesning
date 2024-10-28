@@ -40,7 +40,11 @@ fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(): StubMappi
 }
 
 
-fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(forFnr: String): StubMapping {
+fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
+    forFnr: String,
+    fom: String = "2020-01",
+    tom: String = "2025-12",
+): StubMapping {
     return this.stubFor(
         WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
             .withHeader("fnr", WireMock.equalTo(forFnr))
@@ -53,8 +57,8 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(forFnr: String
                                     {
                                         "id":"123",
                                         "ident":"$forFnr",
-                                        "fom":"2020-01",
-                                        "tom":"2025-12",
+                                        "fom":"$fom",
+                                        "tom":"$tom",
                                         "omsorgstype":"FORHØYET_SATS_3"
                                     }
                                 ]

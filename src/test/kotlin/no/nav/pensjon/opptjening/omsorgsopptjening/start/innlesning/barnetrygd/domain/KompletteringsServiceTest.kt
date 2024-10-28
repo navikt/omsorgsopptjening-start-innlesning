@@ -9,17 +9,19 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.WiremockFagsak
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok uten fagsaker`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd-med-fagsaker`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - ingen hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.pdl
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl error not_found`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -131,7 +133,6 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         assertThat(oppdatertBarnetrygdData).isEqualTo(barnetrygdData)
     }
 
-    // @Disabled // TODO: midlertidig
     @Test
     fun `full flyt med fnr-historikk og oppdatering`() {
         fun fnr(i: Int) = format("%011d", i)
@@ -216,17 +217,249 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     )
                 }
             }
-
-        println("HELLO")
-
         println(komplettert)
+        assertThat(komplettert.barnetrygdmottaker.personId?.fnr).isEqualTo(fnr(1))
+        assertThat(komplettert.persongrunnlag).hasSize(1)
+        assertThat(komplettert.persongrunnlag[0].omsorgsyter).isEqualTo(fnr(1))
+        assertThat(komplettert.persongrunnlag[0].omsorgsperioder).hasSize(2)
+        assertThat(komplettert.persongrunnlag[0].hjelpestønadsperioder).hasSize(1)
+    }
 
-        println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
-        println("+++ SERIALIZED:persongrunnlag:")
-        println(serialize(komplettert.persongrunnlag))
-        println("+++ SERIALIZED:rådata:")
-        println(serialize(komplettert.rådata))
+    @Test
+    fun `barnetrygdmottaker finnes ikke i PDL`() {
+        fun fnr(i: Int) = format("%011d", i)
+        wiremock.`pdl error not_found`()
+
+        wiremock.`hent-barnetrygd ok - ingen perioder`()
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1_1),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+        assertThatThrownBy {
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    kompletteringsService.kompletter(
+                        mottatt
+                    )
+                }
+            }
+        }.isInstanceOf(BarnetrygdException.FeilVedHentingAvPersonId::class.java)
+            .hasMessageContaining("barnetrygdmottaker")
+            .hasFieldOrPropertyWithValue("fnr", fnr(1_1))
+    }
+
+    @Test
+    fun `omsorgsmottaker finnes ikke i PDL`() {
+        fun fnr(i: Int) = format("%011d", i)
+        wiremock.`pdl error not_found`(fnr(1))
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+        assertThatThrownBy {
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    kompletteringsService.kompletter(
+                        mottatt
+                    )
+                }
+            }
+        }.isInstanceOf(BarnetrygdException.FeilVedHentingAvPersonId::class.java)
+            .hasMessageContaining("barnetrygdmottaker")
+            .hasFieldOrPropertyWithValue("fnr", fnr(1))
+    }
+
+    @Test
+    fun `omsorgsmottaker har overlappende perioder`() {
+        fun fnr(i: Int) = format("%011d", i)
+        wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2)))
+        wiremock.pdl(fnr(2), listOf(fnr(2_1), fnr(2_2)))
+
+        val fnrUtenBarnetrygdSaker =
+            setOf(
+                fnr(1),
+            )
+        fnrUtenBarnetrygdSaker.forEach {
+            wiremock.`hent-barnetrygd ok uten fagsaker`(it)
+        }
+
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1_1),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1_1), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_1)),
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_2)),
+                    )
+                ),
+                WiremockFagsak(
+                    eier = fnr(1_2), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_1)),
+                    )
+                ),
+            )
+        )
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1_2),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1_2), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2_1),
+                            stønadFom = "2022-03",
+                            stønadTom = "2023-10"
+                        ),
+                    )
+                ),
+            )
+        )
+
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1_2),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+        assertThatThrownBy {
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    kompletteringsService.kompletter(
+                        mottatt
+                    )
+                }
+            }
+        }
+            .isInstanceOf(BarnetrygdException.OverlappendePerioder::class.java)
+            .hasMessage("Overlappende perioder for samme omsorgsmottaker")
+    }
+
+    @Test
+    fun `hjelpestønad har overlappende perioder`() {
+        fun fnr(i: Int) = format("%011d", i)
+        wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2), fnr(1_3)))
+        wiremock.pdl(fnr(2), listOf(fnr(2_1), fnr(2_2), fnr(2_3)))
+        wiremock.pdl(fnr(3), listOf(fnr(3_1), fnr(3_2), fnr(3_3)))
+
+        val fnrUtenBarnetrygdSaker =
+            setOf(
+                fnr(1), fnr(1_1),
+                fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
+                fnr(3), fnr(3_1), fnr(3_2), fnr(3_3),
+            )
+        fnrUtenBarnetrygdSaker.forEach {
+            wiremock.`hent-barnetrygd ok uten fagsaker`(it)
+        }
+
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1_2),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1_1), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2_1),
+                            stønadFom = "2020-01",
+                            stønadTom = "2021-12"
+                        ),
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_2)),
+                    )
+                ),
+                WiremockFagsak(
+                    eier = fnr(1_2), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2_3),
+                            stønadFom = "2020-02",
+                            stønadTom = "2020-03"
+                        ),
+                    )
+                ),
+            )
+        )
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1_3),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1_3), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_1)),
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(3_2)),
+                    )
+                ),
+                WiremockFagsak(
+                    eier = fnr(1_2), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(3_3)),
+                    )
+                ),
+            )
+        )
+
+        val fnrUtenHjelpestønad = setOf(
+            fnr(1), fnr(1_1), fnr(1_2), fnr(1_3),
+            fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
+            fnr(3), fnr(3_2),
+        )
+        fnrUtenHjelpestønad.forEach {
+            wiremock.`hent hjelpestønad ok - ingen hjelpestønad`(it)
+        }
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`(fnr(3_1), fom = "2022-02", tom = "2023-09")
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`(fnr(3_3), fom = "2022-04", tom = "2023-10")
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1_2),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+        assertThatThrownBy {
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    val komplettert = kompletteringsService.kompletter(
+                        mottatt
+                    )
+                    assertThat(komplettert.persongrunnlag).hasSize(1)
+                    println("---")
+                    komplettert.persongrunnlag[0].hjelpestønadsperioder.forEach {
+                        println("HS: $it")
+                    }
+                    println("---")
+                }
+            }
+        }.isInstanceOf(BarnetrygdException.OverlappendePerioder::class.java)
+            .hasMessage("Overlappende hjelpestønadsperioder")
     }
 
 

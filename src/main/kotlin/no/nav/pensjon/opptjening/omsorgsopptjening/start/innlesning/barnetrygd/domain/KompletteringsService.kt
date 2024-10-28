@@ -17,8 +17,15 @@ class KompletteringsService(
         val gyldigÅrsIntervall = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
 
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
-            // TODO: håndter manglende svar
-            personIdService.personFromIdent(barnetrygdmottakerUtenPdlData.ident)!!
+            try {
+                hentPersonId(barnetrygdmottakerUtenPdlData.ident, "barnetrygdmottaker")
+            } catch (e: PersonOppslagException) {
+                throw BarnetrygdException.FeilVedHentingAvPersonId(
+                    fnr = barnetrygdmottakerUtenPdlData.ident,
+                    msg = "Feil ved henting av barnetrygdmottaker fra PDL",
+                    cause = e,
+                )
+            }
         )
 
         val barnetrygdData: PersongrunnlagOgRådata =
@@ -98,41 +105,62 @@ class KompletteringsService(
         val rådataFraKilde: List<RådataFraKilde>,
     ) {
         fun komprimer(): PersongrunnlagOgRådata {
-            val persongrunnlag = persongrunnlag.groupBy { it.omsorgsyter }.map { persongrunnlagPerOmsorgsyter ->
-                PersongrunnlagMelding.Persongrunnlag(
-                    omsorgsyter = persongrunnlagPerOmsorgsyter.key,
-                    omsorgsperioder = persongrunnlagPerOmsorgsyter.value
-                        .flatMap { it.omsorgsperioder }
-                        .distinct(),
-                    hjelpestønadsperioder = persongrunnlagPerOmsorgsyter.value
-                        .flatMap { it.hjelpestønadsperioder }
-                        .distinct()
+            try {
+                val persongrunnlag = persongrunnlag.groupBy { it.omsorgsyter }.map { persongrunnlagPerOmsorgsyter ->
+                    PersongrunnlagMelding.Persongrunnlag(
+                        omsorgsyter = persongrunnlagPerOmsorgsyter.key,
+                        omsorgsperioder = persongrunnlagPerOmsorgsyter.value
+                            .flatMap { it.omsorgsperioder }
+                            .distinct(),
+                        hjelpestønadsperioder = persongrunnlagPerOmsorgsyter.value
+                            .flatMap { it.hjelpestønadsperioder }
+                            .distinct()
+                    )
+                }
+                return PersongrunnlagOgRådata(
+                    persongrunnlag = persongrunnlag,
+                    rådataFraKilde = this.rådataFraKilde
                 )
+            } catch (e: IllegalArgumentException) {
+                throw BarnetrygdException.OverlappendePerioder("Overlappende perioder for samme omsorgsmottaker", e)
             }
-            return PersongrunnlagOgRådata(
-                persongrunnlag = persongrunnlag,
-                rådataFraKilde = this.rådataFraKilde
-            )
         }
     }
 
     fun oppdaterAlleFnr(barnetrygdData: PersongrunnlagOgRådata): PersongrunnlagOgRådata {
-        val saker = barnetrygdData.persongrunnlag.map { sak ->
-            val omsorgsyter = personIdService.personFromIdent(sak.omsorgsyter)!!.fnr
-            val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
-                val omsorgsmottaker = personIdService.personFromIdent(omsorgsperiode.omsorgsmottaker)!!.fnr
-                omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
-            }.distinct()
-            val hjelpestønadperioder = sak.hjelpestønadsperioder.map {
-                it.copy(omsorgsmottaker = personIdService.personFromIdent(it.omsorgsmottaker)!!.fnr)
-            }.distinct()
-            sak.copy(
-                omsorgsyter = omsorgsyter,
-                omsorgsperioder = omsorgsperioder,
-                hjelpestønadsperioder = hjelpestønadperioder
-            )
+        try {
+            val saker = barnetrygdData.persongrunnlag.map { sak ->
+                val omsorgsyter = hentPersonId(sak.omsorgsyter, "omsorgsyter").fnr
+                val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
+                    val omsorgsmottaker =
+                        hentPersonId(omsorgsperiode.omsorgsmottaker, "omsorgsmottaker, barnetrygd").fnr
+                    omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
+                }.distinct()
+                val hjelpestønadperioder = sak.hjelpestønadsperioder.map {
+                    it.copy(omsorgsmottaker = hentPersonId(it.omsorgsmottaker, "omsorgsmottaker, hjelpestønad").fnr)
+                }.distinct()
+                sak.copy(
+                    omsorgsyter = omsorgsyter,
+                    omsorgsperioder = omsorgsperioder,
+                    hjelpestønadsperioder = hjelpestønadperioder
+                )
+            }
+            return barnetrygdData.copy(persongrunnlag = saker)
+        } catch (e: IllegalArgumentException) {
+            if ("Overlappende perioder for samme omsorgsmottaker" == e.message) {
+                throw BarnetrygdException.OverlappendePerioder("Overlappende hjelpestønadsperioder", e)
+            } else {
+                throw e
+            }
         }
-        return barnetrygdData.copy(persongrunnlag = saker)
+    }
+
+    private fun hentPersonId(fnr: String, beskrivelse: String): PersonId {
+        try {
+            return personIdService.personFromIdent(fnr)!!
+        } catch (e: PersonOppslagException) {
+            throw BarnetrygdException.FeilVedHentingAvPersonId(fnr, "Feil ved oppslag i PDL for '$beskrivelse'", e)
+        }
     }
 
     fun ekspanderFnrTilAlleIHistorikken(fnrs: Set<String>): Set<String> {
@@ -145,7 +173,7 @@ class KompletteringsService(
         val rådata: Rådata,
     ) {
         init {
-           // valider()
+            // valider()
         }
 
         fun valider() {

@@ -17,10 +17,12 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.r
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - ingen hjelpestønad`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl error not_found`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr ett i bruk`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -195,6 +197,93 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
     }
+
+
+    @Test
+    fun `Dersom barnetrygdmottaker ikke finnes i PDL havner barnetrygdmottaker i retry`() {
+        given(kafkaTemplate.send(any<ProducerRecord<String, String>>())).willAnswer {
+            CompletableFuture.completedFuture(it.arguments[0])
+        }
+        /**
+         * Stiller klokka litt fram i tid for å unngå at [Barnetrygdmottaker.Status.Retry.karanteneTil] fører til at vi hopper over raden.
+         */
+        given(clock.instant()).willReturn(Instant.now().plus(10, ChronoUnit.DAYS))
+
+        val innlesing = lagreFullførtInnlesing()
+
+        val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
+            Barnetrygdmottaker.Transient(
+                ident = "12345678910",
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            )
+        )
+        wiremock.`pdl error not_found`()
+
+        wiremock.stubFor(
+            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                .inScenario("feilOgFerdig")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(WireMock.forbidden())
+                .willSetStateTo("ok")
+        )
+
+        wiremock.stubFor(
+            WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
+                .inScenario("feilOgFerdig")
+                .whenScenarioStateIs("ok")
+                .willReturn(
+                    WireMock.ok()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            """
+                            {
+                                "fagsaker": [
+                                    {
+                                        "fagsakEiersIdent":"12345678910",
+                                        "barnetrygdPerioder":[
+                                            {
+                                                "personIdent":"09876543210",
+                                                "delingsprosentYtelse":"FULL",
+                                                "ytelseTypeEkstern":"ORDINÆR_BARNETRYGD",
+                                                "utbetaltPerMnd":2000,
+                                                "stønadFom": "2020-01",
+                                                "stønadTom": "2025-12",
+                                                "sakstypeEkstern":"NASJONAL",
+                                                "kildesystem":"BA",
+                                                "pensjonstrygdet":null,
+                                                "norgeErSekundærlandMedNullUtbetaling":false
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                            """.trimIndent()
+                        )
+                )
+        )
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        assertInstanceOf(
+            Barnetrygdmottaker.Status.Klar::class.java,
+            barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
+        )
+
+        barnetrygdService.process()
+        barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
+            assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
+                assertThat(retry.antallForsøk).isEqualTo(1)
+                assertThat(retry.maxAntallForsøk).isEqualTo(3)
+            }
+        }
+
+        barnetrygdService.process()
+        barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.let { barnetrygdmottaker ->
+            assertThat(barnetrygdmottaker.status)
+                .isInstanceOf(Barnetrygdmottaker.Status.Retry::class.java)
+        }
+    }
+
 
     @Test
     fun `oppdaterer status selv om det kastes exception under prosessering`() {
