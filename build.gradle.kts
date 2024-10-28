@@ -8,7 +8,7 @@ val navTokenSupportVersion = "5.0.5"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"
 val postgresqlVersion = "42.7.4"
-val flywayCoreVersion = "10.20.0"
+val flywayCoreVersion = "10.20.1"
 val testcontainersVersion = "1.20.3"
 val jacksonVersion = "2.17.1"
 val springKafkaTestVersion = "3.2.4"
@@ -30,7 +30,7 @@ plugins {
     val kotlinVersion = "2.0.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.3.4"
+    id("org.springframework.boot") version "3.3.5"
     id("com.github.ben-manes.versions") version "0.51.0"
 }
 
