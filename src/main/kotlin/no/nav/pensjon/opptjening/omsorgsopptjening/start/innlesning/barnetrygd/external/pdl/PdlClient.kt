@@ -41,6 +41,7 @@ class PdlClient(
                 add("Nav-Call-Id", Mdc.getCorrelationId().toString())
                 add("Nav-Consumer-Id", "omsorgsopptjening-start-innlesning")
                 add("Tema", "PEN")
+                add("behandlingsnummer", "B300")
                 add(CorrelationId.identifier, Mdc.getCorrelationId().toString())
                 add(InnlesingId.identifier, Mdc.getInnlesingId().toString())
                 accept = listOf(MediaType.APPLICATION_JSON)
