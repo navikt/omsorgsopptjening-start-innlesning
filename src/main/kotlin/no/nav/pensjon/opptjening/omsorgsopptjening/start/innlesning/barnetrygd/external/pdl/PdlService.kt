@@ -23,6 +23,3 @@ class PdlService(
     }
 }
 
-internal class PdlException(pdlError: PdlError?) : RuntimeException(pdlError?.message ?: "Unknown error from PDL") {
-    val code: PdlErrorCode? = pdlError?.extensions?.code
-}

@@ -28,11 +28,11 @@ data class HentPersonQueryResponse(
             map {
                 when (it.status) {
                     Folkeregisteridentifikator.Status.I_BRUK -> {
-                        Ident.FolkeregisterIdent.Gjeldende(it.identifikasjonsnummer)
+                        PdlIdent.FolkeregisterPdlIdent.Gjeldende(it.identifikasjonsnummer)
                     }
 
                     Folkeregisteridentifikator.Status.OPPHOERT -> {
-                        Ident.FolkeregisterIdent.Historisk(it.identifikasjonsnummer)
+                        PdlIdent.FolkeregisterPdlIdent.Historisk(it.identifikasjonsnummer)
                     }
                 }
             }.toSet()

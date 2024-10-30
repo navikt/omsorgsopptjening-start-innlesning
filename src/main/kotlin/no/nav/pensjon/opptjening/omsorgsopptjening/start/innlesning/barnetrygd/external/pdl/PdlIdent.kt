@@ -1,16 +1,16 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
-sealed class Ident {
+sealed class PdlIdent {
     abstract val ident: String
 
-    sealed class FolkeregisterIdent : Ident() {
+    sealed class FolkeregisterPdlIdent : PdlIdent() {
 
         data class Gjeldende(
             override val ident: String
-        ) : FolkeregisterIdent()
+        ) : FolkeregisterPdlIdent()
 
         data class Historisk(
             override val ident: String
-        ) : FolkeregisterIdent()
+        ) : FolkeregisterPdlIdent()
     }
 }
