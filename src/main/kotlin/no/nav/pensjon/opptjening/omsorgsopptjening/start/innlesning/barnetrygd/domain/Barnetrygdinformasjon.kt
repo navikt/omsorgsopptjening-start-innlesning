@@ -1,5 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import java.time.Instant
@@ -12,8 +14,8 @@ data class Barnetrygdinformasjon(
     val ident: String,
     val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
     val rådata: Rådata,
-    val correlationId: UUID,
-    val innlesingId: UUID,
+    val correlationId: CorrelationId,
+    val innlesingId: InnlesingId,
     val status: Status,
 ) {
     enum class Status {

@@ -56,8 +56,8 @@ class BarnetrygdinformasjonRepository(
                 "ident" to barnetrygdinformasjon.ident,
                 "persongrunnlag" to serialize(barnetrygdinformasjon.persongrunnlag),
                 "rådata" to serialize(barnetrygdinformasjon.rådata),
-                "correlationId" to barnetrygdinformasjon.correlationId,
-                "innlesingId" to barnetrygdinformasjon.innlesingId,
+                "correlationId" to barnetrygdinformasjon.correlationId.toUUID(),
+                "innlesingId" to barnetrygdinformasjon.innlesingId.toUUID(),
                 "status" to when (barnetrygdinformasjon.status) {
                     Barnetrygdinformasjon.Status.KLAR -> "Klar"
                     Barnetrygdinformasjon.Status.SENDT -> "Sendt"
@@ -189,8 +189,8 @@ class BarnetrygdinformasjonRepository(
                 ident = rs.getString("ident"),
                 persongrunnlag = deserialize<List<PersongrunnlagMelding.Persongrunnlag>>(rs.getString("persongrunnlag")),
                 rådata = deserialize<Rådata>(rs.getString("rådata")),
-                correlationId = UUID.fromString(rs.getString("correlationId")),
-                innlesingId = UUID.fromString(rs.getString("innlesingId")),
+                correlationId = CorrelationId.fromString(rs.getString("correlationId")),
+                innlesingId = InnlesingId.fromString(rs.getString("innlesingId")),
                 status = when (val value = rs.getString("status")) {
                     "Klar" -> Barnetrygdinformasjon.Status.KLAR
                     "Sendt" -> Barnetrygdinformasjon.Status.SENDT

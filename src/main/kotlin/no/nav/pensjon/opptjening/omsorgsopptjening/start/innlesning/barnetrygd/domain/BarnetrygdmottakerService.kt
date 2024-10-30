@@ -128,8 +128,8 @@ class BarnetrygdmottakerService(
             ident = komplettert.barnetrygdmottaker.personId!!.fnr,
             persongrunnlag = komplettert.persongrunnlag,
             rådata = komplettert.rådata,
-            correlationId = komplettert.barnetrygdmottaker.correlationId.toUUID(),
-            innlesingId = komplettert.barnetrygdmottaker.innlesingId.toUUID(),
+            correlationId = komplettert.barnetrygdmottaker.correlationId,
+            innlesingId = komplettert.barnetrygdmottaker.innlesingId,
             status = Barnetrygdinformasjon.Status.KLAR,
         )
     }

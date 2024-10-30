@@ -35,8 +35,8 @@ class SendTilBestemService(
         try {
             val barnetrygdinformasjonsListe: List<Barnetrygdinformasjon?>? =
                 låsteTilSending?.data?.map { barnetrygdinformasjon ->
-                    Mdc.scopedMdc(CorrelationId(barnetrygdinformasjon.correlationId)) {
-                        Mdc.scopedMdc(InnlesingId(barnetrygdinformasjon.innlesingId)) {
+                    Mdc.scopedMdc(barnetrygdinformasjon.correlationId) {
+                        Mdc.scopedMdc(barnetrygdinformasjon.innlesingId) {
                             send(barnetrygdinformasjon)
                         }
                     }
@@ -95,8 +95,8 @@ class SendTilBestemService(
                     omsorgsyter = barnetrygdinformasjon.ident,
                     persongrunnlag = barnetrygdinformasjon.persongrunnlag,
                     rådata = barnetrygdinformasjon.rådata,
-                    innlesingId = InnlesingId(barnetrygdinformasjon.innlesingId),
-                    correlationId = CorrelationId(barnetrygdinformasjon.correlationId),
+                    innlesingId = barnetrygdinformasjon.innlesingId,
+                    correlationId = barnetrygdinformasjon.correlationId,
                 )
             )
         )

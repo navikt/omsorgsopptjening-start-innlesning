@@ -20,6 +20,7 @@ class SendTilBestemTask(
 
     @Scheduled(fixedDelay = 5000)
     override fun run() {
+        log.info("sendTilBestemTask().run()") // TODO: fjern ekstra logging
         try {
             if (isEnabled()) {
                 sendAltSomErKlartTilBestem()
