@@ -8,6 +8,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlErrorCode
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlService
@@ -29,7 +30,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
     lateinit var pdlService: PdlService
 
     companion object {
-        const val FNR = "11111111111"
+        val FNR = Ident("11111111111")
 
         @JvmField
         @RegisterExtension
@@ -74,7 +75,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                 pdlService.hentPerson(FNR)
 
                 wiremock.verify(
-                    WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)).withRequestBody(containing(FNR))
+                    WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)).withRequestBody(containing(FNR.value))
                 )
             }
         }

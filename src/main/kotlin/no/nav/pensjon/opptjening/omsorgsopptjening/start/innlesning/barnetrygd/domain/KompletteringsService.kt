@@ -18,10 +18,11 @@ class KompletteringsService(
 
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
             try {
-                hentPersonId(barnetrygdmottakerUtenPdlData.ident, "barnetrygdmottaker")
+                println("kompletter(BarnetrygdmottakerUtenPdlData.ident=${barnetrygdmottakerUtenPdlData.ident}")
+                hentPersonId(Ident(barnetrygdmottakerUtenPdlData.ident), "barnetrygdmottaker")
             } catch (e: PersonOppslagException) {
                 throw BarnetrygdException.FeilVedHentingAvPersonId(
-                    fnr = barnetrygdmottakerUtenPdlData.ident,
+                    fnr = Ident(barnetrygdmottakerUtenPdlData.ident),
                     msg = "Feil ved henting av barnetrygdmottaker fra PDL",
                     cause = e,
                 )
@@ -130,17 +131,22 @@ class KompletteringsService(
     fun oppdaterAlleFnr(barnetrygdData: PersongrunnlagOgRådata): PersongrunnlagOgRådata {
         try {
             val saker = barnetrygdData.persongrunnlag.map { sak ->
-                val omsorgsyter = hentPersonId(sak.omsorgsyter, "omsorgsyter").fnr
+                val omsorgsyter = hentPersonId(Ident(sak.omsorgsyter), "omsorgsyter").fnr
                 val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
                     val omsorgsmottaker =
-                        hentPersonId(omsorgsperiode.omsorgsmottaker, "omsorgsmottaker, barnetrygd").fnr
-                    omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker)
+                        hentPersonId(Ident(omsorgsperiode.omsorgsmottaker), "omsorgsmottaker, barnetrygd").fnr
+                    omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker.value)
                 }.distinct()
                 val hjelpestønadperioder = sak.hjelpestønadsperioder.map {
-                    it.copy(omsorgsmottaker = hentPersonId(it.omsorgsmottaker, "omsorgsmottaker, hjelpestønad").fnr)
+                    it.copy(
+                        omsorgsmottaker = hentPersonId(
+                            Ident(it.omsorgsmottaker),
+                            "omsorgsmottaker, hjelpestønad"
+                        ).fnr.value
+                    )
                 }.distinct()
                 sak.copy(
-                    omsorgsyter = omsorgsyter,
+                    omsorgsyter = omsorgsyter.value,
                     omsorgsperioder = omsorgsperioder,
                     hjelpestønadsperioder = hjelpestønadperioder
                 )
@@ -155,16 +161,22 @@ class KompletteringsService(
         }
     }
 
-    private fun hentPersonId(fnr: String, beskrivelse: String): PersonId {
+    private fun hentPersonId(fnr: Ident, beskrivelse: String): PersonId {
         try {
             return personIdService.personFromIdent(fnr)!!
         } catch (e: PersonOppslagException) {
-            throw BarnetrygdException.FeilVedHentingAvPersonId(fnr, "Feil ved oppslag i PDL for '$beskrivelse'", e)
+            println("XXXX: feil")
+            e.printStackTrace()
+            throw BarnetrygdException.FeilVedHentingAvPersonId(
+                fnr,
+                "Feil ved oppslag i PDL for '$beskrivelse'",
+                e
+            )
         }
     }
 
     fun ekspanderFnrTilAlleIHistorikken(fnrs: Set<String>): Set<String> {
-        return fnrs.flatMap { personIdService.personFromIdent(it)!!.historiske }.toSet()
+        return fnrs.flatMap { personIdService.personFromIdent(Ident(it))!!.historiske }.toSet()
     }
 
     data class Komplettert(

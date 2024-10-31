@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -34,9 +35,9 @@ class PdlClient(
         value = [RestClientException::class, PdlException::class],
         backoff = Backoff(delay = 1500L, maxDelay = 30000L, multiplier = 2.5)
     )
-    fun hentPerson(fnr: String): PdlResponse? {
+    fun hentPerson(fnr: Ident): PdlResponse? {
         val entity = RequestEntity<PdlQuery>(
-            PdlQuery(graphqlQuery.hentPersonQuery(), FnrVariables(ident = fnr)),
+            PdlQuery(graphqlQuery.hentPersonQuery(), FnrVariables(ident = fnr.value)),
             HttpHeaders().apply {
                 add("Nav-Call-Id", Mdc.getCorrelationId().toString())
                 add("Nav-Consumer-Id", "omsorgsopptjening-start-innlesning")

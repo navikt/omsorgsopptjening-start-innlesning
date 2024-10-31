@@ -87,12 +87,12 @@ class SendTilBestemService(
             null,
             serialize(
                 Topics.Omsorgsopptjening.Key(
-                    ident = barnetrygdinformasjon.ident,
+                    ident = barnetrygdinformasjon.ident.value,
                 )
             ),
             serialize(
                 PersongrunnlagMelding(
-                    omsorgsyter = barnetrygdinformasjon.ident,
+                    omsorgsyter = barnetrygdinformasjon.ident.value,
                     persongrunnlag = barnetrygdinformasjon.persongrunnlag,
                     rådata = barnetrygdinformasjon.rådata,
                     innlesingId = barnetrygdinformasjon.innlesingId,

@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslag
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslagException
@@ -10,7 +11,8 @@ class PdlService(
     private val pdlClient: PdlClient
 ) : PersonOppslag {
 
-    override fun hentPerson(fnr: String): PersonId {
+    override fun hentPerson(fnr: Ident): PersonId {
+        println("hentPerson: fnr=$fnr")
         try {
             val pdlResponse = pdlClient.hentPerson(fnr = fnr)
 

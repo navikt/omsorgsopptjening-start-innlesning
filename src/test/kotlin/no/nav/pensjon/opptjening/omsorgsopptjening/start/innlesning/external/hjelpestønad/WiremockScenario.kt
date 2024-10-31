@@ -3,15 +3,16 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hj
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import java.lang.String.format
 import java.util.concurrent.atomic.AtomicInteger
 
-fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(forFnr: String): StubMapping {
+fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(forFnr: Ident): StubMapping {
     return this.stubFor(
         WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
-            .withHeader("fnr", WireMock.equalTo(forFnr))
+            .withHeader("fnr", WireMock.equalTo(forFnr.value))
             .willReturn(
                 WireMock.ok()
                     .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -41,13 +42,13 @@ fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(): StubMappi
 
 
 fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
-    forFnr: String,
+    forFnr: Ident,
     fom: String = "2020-01",
     tom: String = "2025-12",
 ): StubMapping {
     return this.stubFor(
         WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
-            .withHeader("fnr", WireMock.equalTo(forFnr))
+            .withHeader("fnr", WireMock.equalTo(forFnr.value))
             .willReturn(
                 WireMock.ok()
                     .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -56,7 +57,7 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
                                 [
                                     {
                                         "id":"123",
-                                        "ident":"$forFnr",
+                                        "ident":"${forFnr.value}",
                                         "fom":"$fom",
                                         "tom":"$tom",
                                         "omsorgstype":"FORHØYET_SATS_3"

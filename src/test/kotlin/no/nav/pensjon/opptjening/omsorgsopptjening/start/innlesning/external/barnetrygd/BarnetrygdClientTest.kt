@@ -11,6 +11,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BestillBarnetrygdMottakereException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BestillBarnetrygdmottakereResponse
@@ -76,7 +77,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         fun `returner ok dersom kall til hent-barnetrygd svarer med 200`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
-                    wiremock.`hent-barnetrygd ok`("123")
+                    wiremock.`hent-barnetrygd ok`(Ident("123"))
 
                     client.hentBarnetrygd(
                         ident = "123",
@@ -173,7 +174,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok med tom liste`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
                 Mdc.scopedMdc(InnlesingId.generate()) {
-                    wiremock.`hent-barnetrygd ok uten fagsaker`("123")
+                    wiremock.`hent-barnetrygd ok uten fagsaker`(Ident("123"))
 
                     assertThrows<HentBarnetrygdException> {
                         client.hentBarnetrygd(

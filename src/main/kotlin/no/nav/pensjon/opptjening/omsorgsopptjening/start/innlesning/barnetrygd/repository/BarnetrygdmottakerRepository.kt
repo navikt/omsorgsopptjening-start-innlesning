@@ -98,7 +98,7 @@ class BarnetrygdmottakerRepository(
             MapSqlParameterSource(
                 mapOf<String, Any?>(
                     "id" to barnetrygdmottaker.id,
-                    "personid_gjeldende" to barnetrygdmottaker.personId?.fnr,
+                    "personid_gjeldende" to barnetrygdmottaker.personId?.fnr?.value,
                     "personid_historikk" to barnetrygdmottaker.personId?.toJson(),
                 )
             )

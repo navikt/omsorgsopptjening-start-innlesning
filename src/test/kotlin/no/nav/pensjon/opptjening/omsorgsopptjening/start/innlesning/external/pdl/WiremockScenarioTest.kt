@@ -6,6 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -27,7 +28,7 @@ class WiremockScenarioTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `wiremock fnr fra query returnerer riktig fnr`() {
-        val fnr = "91929394959"
+        val fnr = Ident("91929394959")
         wiremock.`pdl fnr fra query`()
 
         val person =

@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toJson
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toPerson
@@ -10,7 +11,7 @@ class PersonIdSerializationTest {
     @Test
     fun `kan serialisere og deserialisere en person med kun gjeldende ident`() {
         val personId = PersonId(
-            fnr = "12345678901",
+            fnr = Ident("12345678901"),
             historiske = setOf("12345678901"),
         )
         val json = personId.toJson()

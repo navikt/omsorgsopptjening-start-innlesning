@@ -11,7 +11,7 @@ data class Barnetrygdinformasjon(
     val id: UUID,
     val barnetrygdmottakerId: UUID,
     val created: Instant = Instant.now(),
-    val ident: String,
+    val ident: Ident,
     val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
     val rådata: Rådata,
     val correlationId: CorrelationId,

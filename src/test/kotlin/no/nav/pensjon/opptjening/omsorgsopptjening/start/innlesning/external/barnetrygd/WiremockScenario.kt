@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 
@@ -53,10 +54,10 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
     return this.`hent-barnetrygd-med-fagsaker`(
         fagsaker = listOf(
             WiremockFagsak(
-                eier = "12345678910",
+                eier = Ident("12345678910"),
                 perioder = listOf(
                     WiremockFagsak.BarnetrygdPeriode(
-                        personIdent = "09876543210",
+                        personIdent = Ident("09876543210"),
                         utbetaltPerMnd = 2000,
                         stønadFom = "2020-01",
                         stønadTom = "2025-12",
@@ -67,15 +68,15 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
     )
 }
 
-fun WireMockExtension.`hent-barnetrygd ok`(forFnr: String): StubMapping {
+fun WireMockExtension.`hent-barnetrygd ok`(forFnr: Ident): StubMapping {
     return this.`hent-barnetrygd-med-fagsaker`(
         forFnr = forFnr,
         fagsaker = listOf(
             WiremockFagsak(
-                eier = "12345678910",
+                eier = Ident("12345678910"),
                 perioder = listOf(
                     WiremockFagsak.BarnetrygdPeriode(
-                        personIdent = "09876543210",
+                        personIdent = Ident("09876543210"),
                         utbetaltPerMnd = 2000,
                         stønadFom = "2020-01",
                         stønadTom = "2025-12",
@@ -87,20 +88,20 @@ fun WireMockExtension.`hent-barnetrygd ok`(forFnr: String): StubMapping {
 }
 
 
-fun WireMockExtension.`hent-barnetrygd-med-fagsaker`(forFnr: String, fagsaker: List<WiremockFagsak>): StubMapping {
+fun WireMockExtension.`hent-barnetrygd-med-fagsaker`(forFnr: Ident, fagsaker: List<WiremockFagsak>): StubMapping {
     synchronized(this) {
-        val a = fagsaker.map { it.toMap() }
+        val fagsakMap = fagsaker.map { it.toMap() }
         return this.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .withExpectedRequestHeadersHentBarnetryd()
-                .withRequestBody(matchingJsonPath("$.ident", WireMock.equalTo(forFnr)))
+                .withRequestBody(matchingJsonPath("$.ident", WireMock.equalTo(forFnr.value)))
                 .willReturn(
                     WireMock.ok()
                         .withLogNormalRandomDelay(1000.0, 0.0)
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withTransformers("response-template")
                         .withTransformerParameter("foo", "bar")
-                        .withTransformerParameter("fagsaker", a)
+                        .withTransformerParameter("fagsaker", fagsakMap)
                         .withBodyFile("barnetrygd/fagsaker.json")
                 )
         )
@@ -151,11 +152,11 @@ fun WireMockExtension.`hent-barnetrygd ok - ingen perioder`(): StubMapping {
     )
 }
 
-fun WireMockExtension.`hent-barnetrygd ok uten fagsaker`(forFnr: String): StubMapping {
+fun WireMockExtension.`hent-barnetrygd ok uten fagsaker`(forFnr: Ident): StubMapping {
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
             .withExpectedRequestHeadersHentBarnetryd()
-            .withRequestBody(matchingJsonPath("$.ident", WireMock.equalTo(forFnr)))
+            .withRequestBody(matchingJsonPath("$.ident", WireMock.equalTo(forFnr.value)))
             .willReturn(
                 WireMock.ok()
                     .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

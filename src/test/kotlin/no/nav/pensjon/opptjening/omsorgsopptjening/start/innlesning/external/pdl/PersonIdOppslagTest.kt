@@ -7,9 +7,11 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslag
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslagException
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -23,7 +25,7 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
     lateinit var personOppslag: PersonOppslag
 
     companion object {
-        const val FNR = "11111111111"
+        val FNR = Ident("11111111111")
 
         @JvmField
         @RegisterExtension
@@ -44,7 +46,7 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
                     )
                 )
                 val personId: PersonId = personOppslag.hentPerson(FNR)
-                assertEquals("12345678910", personId.fnr)
+                assertThat(personId.fnr).isEqualTo(Ident("12345678910"))
             }
         }
     }
@@ -61,7 +63,7 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
                     )
                 )
                 val personId: PersonId = personOppslag.hentPerson(FNR)
-                assertEquals("04010012797", personId.fnr)
+                assertThat(personId.fnr).isEqualTo(Ident("04010012797"))
             }
         }
     }

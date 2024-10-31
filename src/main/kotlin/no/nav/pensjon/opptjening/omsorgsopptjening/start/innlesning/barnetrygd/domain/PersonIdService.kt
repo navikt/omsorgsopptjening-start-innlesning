@@ -13,15 +13,15 @@ class PersonIdService(
         CacheBuilder.newBuilder()
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(30)
-            .build<String, PersonId>()
+            .build<Ident, PersonId>()
 
-    fun personFromIdent(fnr: String): PersonId? {
+    fun personFromIdent(fnr: Ident): PersonId? {
         return when (val personId: PersonId? = cache.getIfPresent(fnr)) {
             is PersonId -> personId
             null -> {
                 val personId = pdlService.hentPerson(fnr)
                 personId.historiske.forEach {
-                    cache.put(it, personId)
+                    cache.put(Ident(it), personId)
                 }
                 personId
             }

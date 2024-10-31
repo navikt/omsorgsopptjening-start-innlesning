@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.or
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 
 private fun WireMockExtension.pdlResponse(fileName: String): StubMapping {
     synchronized(this) {
@@ -53,13 +54,14 @@ fun WireMockExtension.`pdl med ett fnr`(fnr: String): StubMapping {
     }
 }
 
-fun WireMockExtension.pdl(fnr: String, historiske: List<String>): StubMapping {
-    val fnrs = historiske.toSet().plus(fnr)
+fun WireMockExtension.pdl(fnr: Ident, historiske: List<Ident>): StubMapping {
+    val fnrs = historiske.map { it.value }.toSet().plus(fnr.value)
+    println("PDL: fnrs=$fnrs")
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/graphql"))
             .withRequestBody(
                 or(
-                    *fnrs.map { fnr ->
+                    *fnrs.map { fnr:String ->
                         WireMock.containing(""""variables":{"ident":"$fnr"}""")
                     }.toTypedArray()
                 )
@@ -69,8 +71,8 @@ fun WireMockExtension.pdl(fnr: String, historiske: List<String>): StubMapping {
                     .withTransformers("response-template")
                     .withHeader("Content-Type", "application/json")
                     .withStatus(202)
-                    .withTransformerParameter("fnr", fnr)
-                    .withTransformerParameter("historiske", historiske)
+                    .withTransformerParameter("fnr", fnr.value)
+                    .withTransformerParameter("historiske", historiske.map { it.value })
                     .withBodyFile(
                         "pdl/fnr_template.json"
                     )

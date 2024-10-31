@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
@@ -107,7 +108,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             innlesingId = innlesing.id,
         )
         val mottatt = barnetrygdmottakerRepository.insert(barnetrygdmottaker).withPerson(
-            PersonId("12345123452", setOf("12345123451", "12345123452"))
+            PersonId(Ident("12345123452"), setOf("12345123451", "12345123452"))
         )
         barnetrygdmottakerRepository.updatePersonIdent(mottatt)
         val oppdatert = barnetrygdmottakerRepository.find(mottatt.id)!!

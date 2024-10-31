@@ -1,8 +1,11 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd
 
-data class WiremockFagsak(val eier: String, val perioder: List<BarnetrygdPeriode>) {
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+
+data class WiremockFagsak(val eier: Ident, val perioder: List<BarnetrygdPeriode>) {
+
     data class BarnetrygdPeriode(
-        val personIdent: String,
+        val personIdent: Ident,
         val delingsProsentYtelse: String = "FULL",
         val ytelsestype: String = "ORDINÆR_BARNETRYGD",
         val utbetaltPerMnd: Int = 2000,
@@ -11,7 +14,7 @@ data class WiremockFagsak(val eier: String, val perioder: List<BarnetrygdPeriode
     ) {
         fun toMap(): Map<String, Any?> {
             return mapOf(
-                Pair("personIdent", personIdent),
+                Pair("personIdent", personIdent.value),
                 Pair("delingsProsentYtelse", delingsProsentYtelse),
                 Pair("ytelsestype", ytelsestype),
                 Pair("utbetaltPerMnd", utbetaltPerMnd),
@@ -23,7 +26,7 @@ data class WiremockFagsak(val eier: String, val perioder: List<BarnetrygdPeriode
 
     fun toMap(): Map<String, Any> {
         return mapOf(
-            Pair("eier", eier),
+            Pair("eier", eier.value),
             Pair("perioder", perioder.map { it.toMap() }),
         )
     }

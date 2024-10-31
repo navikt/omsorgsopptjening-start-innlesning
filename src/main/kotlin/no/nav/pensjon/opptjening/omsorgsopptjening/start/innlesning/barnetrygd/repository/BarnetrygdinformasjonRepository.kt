@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toPerson
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -53,7 +54,7 @@ class BarnetrygdinformasjonRepository(
                 "id" to barnetrygdinformasjon.id,
                 "barnetrygdmottaker_id" to barnetrygdinformasjon.barnetrygdmottakerId,
                 "created" to Instant.now().toString(),
-                "ident" to barnetrygdinformasjon.ident,
+                "ident" to barnetrygdinformasjon.ident.value,
                 "persongrunnlag" to serialize(barnetrygdinformasjon.persongrunnlag),
                 "rådata" to serialize(barnetrygdinformasjon.rådata),
                 "correlationId" to barnetrygdinformasjon.correlationId.toUUID(),
@@ -186,7 +187,7 @@ class BarnetrygdinformasjonRepository(
                 id = UUID.fromString(rs.getString("id")),
                 barnetrygdmottakerId = UUID.fromString(rs.getString("barnetrygdmottaker_id")),
                 created = rs.getTimestamp("created").toInstant(),
-                ident = rs.getString("ident"),
+                ident = Ident(rs.getString("ident")),
                 persongrunnlag = deserialize<List<PersongrunnlagMelding.Persongrunnlag>>(rs.getString("persongrunnlag")),
                 rådata = deserialize<Rådata>(rs.getString("rådata")),
                 correlationId = CorrelationId.fromString(rs.getString("correlationId")),

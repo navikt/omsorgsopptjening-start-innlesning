@@ -12,6 +12,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -80,7 +81,7 @@ class BarnetrygdinformasjonRepositoryTest(
         return Barnetrygdinformasjon(
             id = UUID.randomUUID(),
             barnetrygdmottakerId = barnetrygdmottaker.id,
-            ident = "00000000002", // forskjellig fra barnetrygdmottaker, siden den kan være oppdatert
+            ident = Ident("00000000002"), // forskjellig fra barnetrygdmottaker, siden den kan være oppdatert
             persongrunnlag = listOf(
                 PersongrunnlagMelding.Persongrunnlag(
                     omsorgsyter = "00000000002",

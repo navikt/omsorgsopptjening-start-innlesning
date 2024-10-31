@@ -135,7 +135,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `full flyt med fnr-historikk og oppdatering`() {
-        fun fnr(i: Int) = format("%011d", i)
+        fun fnr(i: Int) = Ident(format("%011d", i))
         wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2), fnr(1_3)))
         wiremock.pdl(fnr(2), listOf(fnr(2_1), fnr(2_2), fnr(2_3)))
         wiremock.pdl(fnr(3), listOf(fnr(3_1), fnr(3_2), fnr(3_3)))
@@ -201,7 +201,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_2),
+            ident = fnr(1_2).value,
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -220,7 +220,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         println(komplettert)
         assertThat(komplettert.barnetrygdmottaker.personId?.fnr).isEqualTo(fnr(1))
         assertThat(komplettert.persongrunnlag).hasSize(1)
-        assertThat(komplettert.persongrunnlag[0].omsorgsyter).isEqualTo(fnr(1))
+        assertThat(komplettert.persongrunnlag[0].omsorgsyter).isEqualTo(fnr(1).value)
         assertThat(komplettert.persongrunnlag[0].omsorgsperioder).hasSize(2)
         assertThat(komplettert.persongrunnlag[0].hjelpestønadsperioder).hasSize(1)
     }
@@ -228,7 +228,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `barnetrygdmottaker finnes ikke i PDL`() {
-        fun fnr(i: Int) = format("%011d", i)
+        fun fnr(i: Int) = Ident(format("%011d", i))
         wiremock.`pdl error not_found`()
 
         wiremock.`hent-barnetrygd ok - ingen perioder`()
@@ -236,7 +236,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_1),
+            ident = fnr(1_1).value,
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -259,13 +259,13 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `omsorgsmottaker finnes ikke i PDL`() {
-        fun fnr(i: Int) = format("%011d", i)
-        wiremock.`pdl error not_found`(fnr(1))
+        fun fnr(i: Int) = Ident(format("%011d", i))
+        wiremock.`pdl error not_found`(fnr(1).value)
 
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1),
+            ident = fnr(1).value,
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -288,7 +288,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `omsorgsmottaker har overlappende perioder`() {
-        fun fnr(i: Int) = format("%011d", i)
+        fun fnr(i: Int) = Ident(format("%011d", i))
         wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2)))
         wiremock.pdl(fnr(2), listOf(fnr(2_1), fnr(2_2)))
 
@@ -339,7 +339,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_2),
+            ident = fnr(1_2).value,
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -362,7 +362,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `hjelpestønad har overlappende perioder`() {
-        fun fnr(i: Int) = format("%011d", i)
+        fun fnr(i: Int) = Ident(format("%011d", i))
         wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2), fnr(1_3)))
         wiremock.pdl(fnr(2), listOf(fnr(2_1), fnr(2_2), fnr(2_3)))
         wiremock.pdl(fnr(3), listOf(fnr(3_1), fnr(3_2), fnr(3_3)))
@@ -436,7 +436,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_2),
+            ident = fnr(1_2).value,
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
