@@ -6,6 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toJson
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toPerson
 import org.jetbrains.annotations.TestOnly
@@ -40,17 +41,10 @@ class BarnetrygdmottakerRepository(
             barnetrygdmottaker
                 .map {
                     mapOf(
-                        "ident" to it.ident,
+                        "ident" to it.ident.value,
                         "correlation_id" to it.correlationId.toString(),
                         "innlesing_id" to it.innlesingId.toString(),
-                        "status_type" to when (it.status) {
-                            is Barnetrygdmottaker.Status.Feilet -> "Feilet"
-                            is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
-                            is Barnetrygdmottaker.Status.Klar -> "Klar"
-                            is Barnetrygdmottaker.Status.Retry -> "Retry"
-                            is Barnetrygdmottaker.Status.Avsluttet -> "Avsluttet"
-                            is Barnetrygdmottaker.Status.Stoppet -> "Stoppet"
-                        },
+                        "status_type" to it.status.toDB(),
                         "karantene_til" to when (val s = it.status) {
                             is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
                             else -> null
@@ -60,6 +54,7 @@ class BarnetrygdmottakerRepository(
                 }.toTypedArray()
         )
     }
+
 
     fun updateStatus(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
         jdbcTemplate.update(
@@ -71,14 +66,7 @@ class BarnetrygdmottakerRepository(
             MapSqlParameterSource(
                 mapOf<String, Any?>(
                     "id" to barnetrygdmottaker.id,
-                    "status_type" to when (barnetrygdmottaker.status) {
-                        is Barnetrygdmottaker.Status.Feilet -> "Feilet"
-                        is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
-                        is Barnetrygdmottaker.Status.Klar -> "Klar"
-                        is Barnetrygdmottaker.Status.Retry -> "Retry"
-                        is Barnetrygdmottaker.Status.Avsluttet -> "Avsluttet"
-                        is Barnetrygdmottaker.Status.Stoppet -> "Stoppet"
-                    },
+                    "status_type" to barnetrygdmottaker.status.toDB(),
                     "karantene_til" to when (val s = barnetrygdmottaker.status) {
                         is Barnetrygdmottaker.Status.Retry -> s.karanteneTil.toString()
                         else -> null
@@ -305,13 +293,24 @@ class BarnetrygdmottakerRepository(
             return Barnetrygdmottaker.Mottatt(
                 id = UUID.fromString(rs.getString("id")),
                 opprettet = rs.getTimestamp("opprettet").toInstant(),
-                ident = rs.getString("ident"),
+                ident = Ident(rs.getString("ident")),
                 år = rs.getInt("år"),
                 correlationId = CorrelationId.fromString(rs.getString("correlation_id")),
                 statushistorikk = rs.getString("statushistorikk").deserializeList(),
                 innlesingId = InnlesingId.fromString(rs.getString("innlesing_id")),
                 personId = rs.getString("personid_historikk")?.toPerson(),
             )
+        }
+    }
+
+    private fun Barnetrygdmottaker.Status.toDB(): String {
+        return when (this) {
+            is Barnetrygdmottaker.Status.Feilet -> "Feilet"
+            is Barnetrygdmottaker.Status.Ferdig -> "Ferdig"
+            is Barnetrygdmottaker.Status.Klar -> "Klar"
+            is Barnetrygdmottaker.Status.Retry -> "Retry"
+            is Barnetrygdmottaker.Status.Avsluttet -> "Avsluttet"
+            is Barnetrygdmottaker.Status.Stoppet -> "Stoppet"
         }
     }
 

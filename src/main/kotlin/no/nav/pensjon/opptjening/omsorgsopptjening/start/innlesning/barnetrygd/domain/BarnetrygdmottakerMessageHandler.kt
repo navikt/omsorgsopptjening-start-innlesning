@@ -58,7 +58,7 @@ class BarnetrygdmottakerMessageHandler(
         return try {
             mottaData().let {
                 Barnetrygdmottaker.Transient(
-                    ident = melding.personIdent,
+                    ident = Ident(melding.personIdent),
                     correlationId = melding.correlationId,
                     innlesingId = melding.innlesingId
                 )

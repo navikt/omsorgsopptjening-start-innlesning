@@ -201,7 +201,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_2).value,
+            ident = fnr(1_2),
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -236,7 +236,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_1).value,
+            ident = fnr(1_1),
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -265,7 +265,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1).value,
+            ident = fnr(1),
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -339,7 +339,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_2).value,
+            ident = fnr(1_2),
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),
@@ -436,7 +436,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
             opprettet = Instant.now(),
-            ident = fnr(1_2).value,
+            ident = fnr(1_2),
             personId = null,
             correlationId = CorrelationId.generate(),
             innlesingId = InnlesingId.generate(),

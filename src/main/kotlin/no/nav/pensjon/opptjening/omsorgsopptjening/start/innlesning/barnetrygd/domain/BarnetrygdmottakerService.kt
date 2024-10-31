@@ -37,7 +37,7 @@ class BarnetrygdmottakerService(
         return client.bestillBarnetrygdmottakere(ar).let { response ->
             BarnetrygdInnlesing.Bestilt(
                 id = response.innlesingId,
-                år = response.år,
+                år = År(response.år),
                 forespurtTidspunkt = Instant.now()
             ).also {
                 innlesingRepository.bestilt(it)
@@ -131,32 +131,6 @@ class BarnetrygdmottakerService(
             correlationId = komplettert.barnetrygdmottaker.correlationId,
             innlesingId = komplettert.barnetrygdmottaker.innlesingId,
             status = Barnetrygdinformasjon.Status.KLAR,
-        )
-    }
-
-
-    private fun createKafkaMessage(
-        barnetrygdmottaker: Barnetrygdmottaker,
-        persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
-        rådata: Rådata
-    ): ProducerRecord<String, String> {
-        return ProducerRecord(
-            omsorgsopptjeningTopic,
-            null,
-            serialize(
-                Topics.Omsorgsopptjening.Key(
-                    ident = barnetrygdmottaker.ident
-                )
-            ),
-            serialize(
-                PersongrunnlagMelding(
-                    omsorgsyter = barnetrygdmottaker.ident,
-                    persongrunnlag = persongrunnlag,
-                    rådata = rådata,
-                    innlesingId = barnetrygdmottaker.innlesingId,
-                    correlationId = barnetrygdmottaker.correlationId,
-                )
-            )
         )
     }
 

@@ -12,7 +12,7 @@ import java.util.*
 sealed class Barnetrygdmottaker {
     abstract val id: UUID?
     abstract val opprettet: Instant?
-    abstract val ident: String
+    abstract val ident: Ident
     abstract val personId: PersonId?
     abstract val correlationId: CorrelationId
     abstract val statushistorikk: List<Status>
@@ -20,7 +20,7 @@ sealed class Barnetrygdmottaker {
     abstract val status: Status
 
     data class Transient(
-        override val ident: String,
+        override val ident: Ident,
         override val correlationId: CorrelationId,
         override val innlesingId: InnlesingId,
     ) : Barnetrygdmottaker() {
@@ -34,7 +34,7 @@ sealed class Barnetrygdmottaker {
     data class Mottatt(
         override val id: UUID,
         override val opprettet: Instant,
-        override val ident: String,
+        override val ident: Ident,
         override val personId: PersonId? = null,
         override val correlationId: CorrelationId,
         override val innlesingId: InnlesingId,

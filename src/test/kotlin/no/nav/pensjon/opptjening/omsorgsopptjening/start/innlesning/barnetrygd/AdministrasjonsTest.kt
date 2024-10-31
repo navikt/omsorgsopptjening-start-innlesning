@@ -2,9 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -217,7 +215,7 @@ class AdministrasjonsTest : SpringContextTest.NoKafka() {
     private fun lagreBarnetrygdMottaker(innlesing: BarnetrygdInnlesing): Barnetrygdmottaker.Mottatt {
         return barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -228,7 +226,7 @@ class AdministrasjonsTest : SpringContextTest.NoKafka() {
         val bestilt = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2023,
+                år = År(2023),
                 forespurtTidspunkt = Instant.now()
             )
         )

@@ -5,7 +5,7 @@ import java.time.Instant
 
 sealed class BarnetrygdInnlesing {
     abstract val id: InnlesingId
-    abstract val år: Int
+    abstract val år: År
     abstract val forespurtTidspunkt: Instant
     abstract val forventetAntallIdentiteter: Long?
 
@@ -26,7 +26,7 @@ sealed class BarnetrygdInnlesing {
 
     data class Bestilt(
         override val id: InnlesingId,
-        override val år: Int,
+        override val år: År,
         override val forespurtTidspunkt: Instant,
     ) : BarnetrygdInnlesing() {
         override val forventetAntallIdentiteter: Long? = null
@@ -37,7 +37,7 @@ sealed class BarnetrygdInnlesing {
 
     data class Startet(
         override val id: InnlesingId,
-        override val år: Int,
+        override val år: År,
         override val forespurtTidspunkt: Instant,
         val startTidspunkt: Instant,
         val antallIdenterLest: Int?,
@@ -63,7 +63,7 @@ sealed class BarnetrygdInnlesing {
 
     data class Ferdig(
         override val id: InnlesingId,
-        override val år: Int,
+        override val år: År,
         override val forespurtTidspunkt: Instant,
         val startTidspunkt: Instant,
         val ferdigTidspunkt: Instant,
@@ -74,7 +74,7 @@ sealed class BarnetrygdInnlesing {
     companion object Factory {
         fun of(
             id: InnlesingId,
-            år: Int,
+            år: År,
             forespurtTidspunkt: Instant,
             startTidspunkt: Instant?,
             ferdigTidspunkt: Instant?,

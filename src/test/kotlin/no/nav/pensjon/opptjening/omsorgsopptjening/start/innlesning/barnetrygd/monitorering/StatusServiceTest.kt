@@ -5,6 +5,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.databasecontainer.PostgresqlTestContainer
@@ -54,7 +56,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2001,
+                år = År(2001),
                 forespurtTidspunkt = Instant.now().minus(Duration.ofDays(500))
             )
         )
@@ -71,7 +73,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2001,
+                år = År(2001),
                 forespurtTidspunkt = Instant.now().minus(Duration.ofHours(4))
             )
         )
@@ -89,7 +91,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         val innlesing = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2001,
+                år = År(2001),
                 forespurtTidspunkt = Instant.now().minus(Duration.ofHours(3))
             )
         )
@@ -97,7 +99,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         innlesingRepository.fullført(startet.ferdig())
 
         val barnetrygdmottaker = Barnetrygdmottaker.Transient(
-            ident = "12345123451",
+            ident = Ident("12345123451"),
             correlationId = CorrelationId(UUID.randomUUID()),
             innlesingId = innlesing.id,
         )
@@ -124,7 +126,7 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         val innlesingGammel = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2001,
+                år = År(2001),
                 forespurtTidspunkt = Instant.now().minus(Duration.ofDays(5))
             )
         )
@@ -132,13 +134,13 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
         val innlesingNy = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2001,
+                år = År(2001),
                 forespurtTidspunkt = Instant.now().minus(Duration.ofMinutes(5))
             )
         )
 
         val barnetrygdmottaker = Barnetrygdmottaker.Transient(
-            ident = "12345123451",
+            ident = Ident("12345123451"),
             correlationId = CorrelationId(UUID.randomUUID()),
             innlesingId = innlesingGammel.id, // tilhører ikke siste innlesing
         )

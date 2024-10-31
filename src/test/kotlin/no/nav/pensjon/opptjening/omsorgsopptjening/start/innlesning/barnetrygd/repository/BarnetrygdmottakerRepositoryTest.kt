@@ -3,10 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Disabled
@@ -44,7 +41,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         val innlesing = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2023,
+                år = År(2023),
                 forespurtTidspunkt = Instant.now(),
             )
         ).let { innlesingRepository.start(it.startet(1)) }
@@ -53,7 +50,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.insert(
             barnetrygdmottaker = Barnetrygdmottaker.Transient(
-                ident = "123",
+                ident = Ident("123"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -84,7 +81,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         val mottaker = barnetrygdmottakerRepository.insert(
             barnetrygdmottaker = Barnetrygdmottaker.Transient(
-                ident = "123",
+                ident = Ident("123"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -103,7 +100,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         val innlesing = lagreFullførtInnlesing()
         val id = UUID.randomUUID()
         val barnetrygdmottaker = Barnetrygdmottaker.Transient(
-            ident = "12345123451",
+            ident = Ident("12345123451"),
             correlationId = CorrelationId.generate(),
             innlesingId = innlesing.id,
         )
@@ -124,7 +121,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.insert(
             barnetrygdmottaker = Barnetrygdmottaker.Transient(
-                ident = "123",
+                ident = Ident("123"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -147,21 +144,22 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `batch insert setter inn mange rader`() {
+        fun fnr(i: Int) = Ident(String.format("%011d", i))
         val innlesing = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2023,
+                år = År(2023),
                 forespurtTidspunkt = Instant.now(),
             )
         ).let { innlesingRepository.start(it.startet(1)) }
 
         val a = Barnetrygdmottaker.Transient(
-            ident = "123",
+            ident = fnr(1),
             correlationId = CorrelationId.generate(),
             innlesingId = innlesing.id
         )
         val b = Barnetrygdmottaker.Transient(
-            ident = "321",
+            ident = fnr(2),
             correlationId = CorrelationId.generate(),
             innlesingId = innlesing.id
         )
@@ -174,26 +172,27 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         )
 
         assertTrue(barnetrygdmottakerRepository.finnAlle(innlesing.id).map { it.ident }
-            .containsAll(listOf("123", "321")))
+            .containsAll(listOf(fnr(1), fnr(2))))
     }
 
     @Test
     fun `batch insert kobler sammen riktig barnetrydmottaker og status`() {
+        fun fnr(i: Int) = Ident(String.format("%011d", i))
         val innlesing = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2023,
+                år = År(2023),
                 forespurtTidspunkt = Instant.now(),
             )
         ).let { innlesingRepository.start(it.startet(1)) }
 
         val a = Barnetrygdmottaker.Transient(
-            ident = "123",
+            ident = fnr(1),
             correlationId = CorrelationId.generate(),
             innlesingId = innlesing.id
         )
         val b = Barnetrygdmottaker.Transient(
-            ident = "321",
+            ident = fnr(2),
             correlationId = CorrelationId.generate(),
             innlesingId = innlesing.id
         )
@@ -207,32 +206,34 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         val alle = barnetrygdmottakerRepository.finnAlle(innlesing.id)
 
-        barnetrygdmottakerRepository.updateStatus(alle.single { it.ident == "123" }.ferdig())
-        barnetrygdmottakerRepository.updateStatus(alle.single { it.ident == "321" }.retry("testing"))
+        barnetrygdmottakerRepository.updateStatus(alle.single { it.ident == fnr(1) }.ferdig())
+        barnetrygdmottakerRepository.updateStatus(alle.single { it.ident == fnr(2) }.retry("testing"))
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Ferdig::class.java,
-            barnetrygdmottakerRepository.finnAlle(innlesing.id).single { it.ident == "123" }.status
+            barnetrygdmottakerRepository.finnAlle(innlesing.id).single { it.ident == fnr(1) }.status
         )
         assertInstanceOf(
             Barnetrygdmottaker.Status.Retry::class.java,
-            barnetrygdmottakerRepository.finnAlle(innlesing.id).single { it.ident == "321" }.status
+            barnetrygdmottakerRepository.finnAlle(innlesing.id).single { it.ident == fnr(2) }.status
         )
     }
 
     @Test
     fun `oppdaterer alle feilede rader for en gitt innlesning til klar`() {
+        fun fnr(i: Int) = Ident(String.format("%011d", i))
+
         val innlesing = lagreStartetInnlesing()
         val innlesingUberørt = lagreStartetInnlesing()
 
         lesInnBarnetrygdmottakere(
             Barnetrygdmottaker.Transient(
-                ident = "a",
+                ident = fnr(1),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             ),
             Barnetrygdmottaker.Transient(
-                ident = "b",
+                ident = fnr(2),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -240,7 +241,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
         lesInnBarnetrygdmottakere(
             Barnetrygdmottaker.Transient(
-                ident = "c",
+                ident = fnr(3),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesingUberørt.id
             )
@@ -250,10 +251,10 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         assertThat(alleKlar.map { it.status }).allMatch { it is Barnetrygdmottaker.Status.Klar }
 
         barnetrygdmottakerRepository.updateStatus(
-            alleKlar.single { it.ident == "a" }.retry("a1").retry("a2").retry("a3").retry("afeil")
+            alleKlar.single { it.ident == fnr(1)}.retry("a1").retry("a2").retry("a3").retry("afeil")
         )
         barnetrygdmottakerRepository.updateStatus(
-            alleKlar.single { it.ident == "b" }.retry("b1").retry("b2").retry("b3").retry("bfeil")
+            alleKlar.single { it.ident == fnr(2) }.retry("b1").retry("b2").retry("b3").retry("bfeil")
         )
 
         val alleFeilet = barnetrygdmottakerRepository.finnAlle(innlesing.id)
@@ -282,7 +283,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
     private fun lagreBestiltInnlesing(
         innlesing: BarnetrygdInnlesing.Bestilt = BarnetrygdInnlesing.Bestilt(
             id = InnlesingId.generate(),
-            år = 2023,
+            år = År(2023),
             forespurtTidspunkt = Instant.now()
         )
     ): BarnetrygdInnlesing.Bestilt {
@@ -292,7 +293,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
     private fun lagreStartetInnlesing(
         innlesing: BarnetrygdInnlesing.Bestilt = BarnetrygdInnlesing.Bestilt(
             id = InnlesingId.generate(),
-            år = 2023,
+            år = År(2023),
             forespurtTidspunkt = Instant.now()
         ),
         forventetAntallIdenter: Long = 1
@@ -308,7 +309,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         val bestilt = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2023,
+                år = År(2023),
                 forespurtTidspunkt = Instant.now()
             )
         )

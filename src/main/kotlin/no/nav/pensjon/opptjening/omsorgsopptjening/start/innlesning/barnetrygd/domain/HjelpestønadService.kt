@@ -23,7 +23,7 @@ class HjelpestønadService(
     ): List<HentHjelpestønadResponse> {
         return omsorgsmottakere.map { omsorgsmottaker ->
             hentHjelpestønad(
-                fnr = omsorgsmottaker,
+                fnr = Ident(omsorgsmottaker),
                 fom = filter.min(),
                 tom = filter.max()
             ).let { response ->
@@ -69,7 +69,7 @@ class HjelpestønadService(
         }
     }
 
-    private fun hentHjelpestønad(fnr: String, fom: YearMonth, tom: YearMonth): HentHjelpestønadDBResponse {
+    private fun hentHjelpestønad(fnr: Ident, fom: YearMonth, tom: YearMonth): HentHjelpestønadDBResponse {
         return hjelpestønadClient.hentHjelpestønad(fnr = fnr, fom = fom.atDay(1), tom = tom.atEndOfMonth())
     }
 }

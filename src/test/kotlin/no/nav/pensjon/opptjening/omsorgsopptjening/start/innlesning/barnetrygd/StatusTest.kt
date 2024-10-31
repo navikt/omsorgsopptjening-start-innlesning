@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -14,7 +15,7 @@ class StatusTest {
     private val barnetrygdmottaker = Barnetrygdmottaker.Mottatt(
         id = UUID.randomUUID(),
         opprettet = Instant.now(),
-        ident = "12345678910",
+        ident = Ident("12345678910"),
         correlationId = CorrelationId.generate(),
         innlesingId = InnlesingId.generate(),
         år = 2020

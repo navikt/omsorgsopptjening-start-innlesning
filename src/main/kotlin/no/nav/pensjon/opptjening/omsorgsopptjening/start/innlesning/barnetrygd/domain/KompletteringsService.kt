@@ -19,10 +19,10 @@ class KompletteringsService(
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
             try {
                 println("kompletter(BarnetrygdmottakerUtenPdlData.ident=${barnetrygdmottakerUtenPdlData.ident}")
-                hentPersonId(Ident(barnetrygdmottakerUtenPdlData.ident), "barnetrygdmottaker")
+                hentPersonId(barnetrygdmottakerUtenPdlData.ident, "barnetrygdmottaker")
             } catch (e: PersonOppslagException) {
                 throw BarnetrygdException.FeilVedHentingAvPersonId(
-                    fnr = Ident(barnetrygdmottakerUtenPdlData.ident),
+                    fnr = barnetrygdmottakerUtenPdlData.ident,
                     msg = "Feil ved henting av barnetrygdmottaker fra PDL",
                     cause = e,
                 )

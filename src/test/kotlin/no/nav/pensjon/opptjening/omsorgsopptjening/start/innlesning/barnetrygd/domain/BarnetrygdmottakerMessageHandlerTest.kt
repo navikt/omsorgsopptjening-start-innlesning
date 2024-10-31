@@ -47,13 +47,13 @@ class BarnetrygdmottakerMessageHandlerTest {
 
     private val bestilt = BarnetrygdInnlesing.Bestilt(
         id = innlesingId,
-        år = 6624,
+        år = År(2124),
         forespurtTidspunkt = Instant.now(),
     )
 
     private val startet = BarnetrygdInnlesing.Startet(
         id = innlesingId,
-        år = 6624,
+        år = År(2124),
         forespurtTidspunkt = Instant.now(),
         startTidspunkt = Instant.now(),
         antallIdenterLest = 1,
@@ -61,7 +61,7 @@ class BarnetrygdmottakerMessageHandlerTest {
 
     private val ferdig = BarnetrygdInnlesing.Ferdig(
         id = innlesingId,
-        år = 6624,
+        år = År(2124),
         forespurtTidspunkt = Instant.now(),
         startTidspunkt = Instant.now(),
         ferdigTidspunkt = Instant.now(),
@@ -119,7 +119,7 @@ class BarnetrygdmottakerMessageHandlerTest {
         given(innlesingRepository.finn(any())).willReturn(
             BarnetrygdInnlesing.Ferdig(
                 id = InnlesingId.generate(),
-                år = 6624,
+                år = År(2124),
                 forespurtTidspunkt = Instant.now(),
                 startTidspunkt = Instant.now(),
                 ferdigTidspunkt = Instant.now(),
@@ -141,14 +141,14 @@ class BarnetrygdmottakerMessageHandlerTest {
             .willReturn(
                 BarnetrygdInnlesing.Bestilt(
                     id = innlesingId,
-                    år = 6624,
+                    år = År(2124),
                     forespurtTidspunkt = Instant.now(),
                 )
             )
             .willReturn(
                 BarnetrygdInnlesing.Startet(
                     id = innlesingId,
-                    år = 6624,
+                    år = År(2124),
                     forespurtTidspunkt = Instant.now(),
                     startTidspunkt = Instant.now(),
                     antallIdenterLest = 1,
@@ -185,7 +185,7 @@ class BarnetrygdmottakerMessageHandlerTest {
         verify(barnetrygdmottakerRepository).insertBatch(
             listOf(
                 Barnetrygdmottaker.Transient(
-                    ident = "12345",
+                    ident = Ident("12345"),
                     correlationId = correlationId,
                     innlesingId = innlesingId
                 )
@@ -194,7 +194,7 @@ class BarnetrygdmottakerMessageHandlerTest {
         verify(barnetrygdmottakerRepository).insertBatch(
             listOf(
                 Barnetrygdmottaker.Transient(
-                    ident = "12345",
+                    ident = Ident("12345"),
                     correlationId = correlationId,
                     innlesingId = enannen
                 )

@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -31,7 +32,7 @@ class HjelpestønadClient(
     private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).build()
 
     internal fun hentHjelpestønad(
-        fnr: String,
+        fnr: Ident,
         fom: LocalDate,
         tom: LocalDate
     ): HentHjelpestønadDBResponse {
@@ -39,14 +40,14 @@ class HjelpestønadClient(
     }
 
     private fun hentHjelpestønadInternal(
-        fnr: String,
+        fnr: Ident,
         fom: LocalDate,
         tom: LocalDate
     ): HentHjelpestønadDBResponse {
         return webClient
             .get()
             .uri("/api/hjelpestonad?fom=$fom&tom=$tom")
-            .header("fnr", fnr)
+            .header("fnr", fnr.value)
             .header(CorrelationId.identifier, Mdc.getCorrelationId().toString())
             .header(InnlesingId.identifier, Mdc.getInnlesingId().toString())
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -60,7 +61,7 @@ class HjelpestønadClient(
                         vedtak = it,
                         rådataFraKilde = RådataFraKilde(
                             mapOf(
-                                "fnr" to fnr,
+                                "fnr" to fnr.value,
                                 "fom" to fom.toString(),
                                 "tom" to tom.toString(),
                                 "hjelpestønad" to "${response.body}"
@@ -71,7 +72,7 @@ class HjelpestønadClient(
                     vedtak = emptyList(),
                     rådataFraKilde = RådataFraKilde(
                         mapOf(
-                            "fnr" to fnr,
+                            "fnr" to fnr.value,
                             "fom" to fom.toString(),
                             "tom" to tom.toString(),
                             "hjelpestønad" to "${response.body}"

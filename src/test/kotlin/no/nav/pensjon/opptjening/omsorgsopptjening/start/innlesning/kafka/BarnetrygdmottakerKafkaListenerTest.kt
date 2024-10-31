@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.S
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
@@ -250,7 +251,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             given(innlesingRepository.finn(any())).willReturn(
                 BarnetrygdInnlesing.Startet(
                     id = InnlesingId.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"),
-                    år = 6584,
+                    år = År(2184),
                     forespurtTidspunkt = Instant.now(),
                     startTidspunkt = Instant.now(),
                     antallIdenterLest = 1,
@@ -278,7 +279,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             given(innlesingRepository.finn(any())).willReturn(
                 BarnetrygdInnlesing.Ferdig(
                     id = InnlesingId.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"),
-                    år = 6584,
+                    år = År(2184),
                     forespurtTidspunkt = Instant.now(),
                     startTidspunkt = Instant.now(),
                     antallIdenterLest = 1,
@@ -311,7 +312,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             val innlesing = innlesingRepository.bestilt(
                 BarnetrygdInnlesing.Bestilt(
                     id = InnlesingId.generate(),
-                    2020,
+                    År(2020),
                     forespurtTidspunkt = Instant.now()
                 )
             )
@@ -332,7 +333,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             innlesingRepository.finn(innlesing.id.toString())!!.also { barnetrygdInnlesing ->
                 assertInstanceOf(BarnetrygdInnlesing.Ferdig::class.java, barnetrygdInnlesing).also {
                     assertThat(it.id).isEqualTo(innlesing.id)
-                    assertThat(innlesing.år).isEqualTo(2020)
+                    assertThat(innlesing.år).isEqualTo(År(2020))
                     assertThat(it.forespurtTidspunkt).isNotNull()
                     assertThat(it.startTidspunkt).isNotNull()
                     assertThat(it.ferdigTidspunkt).isNotNull()
@@ -345,7 +346,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             val innlesing = innlesingRepository.bestilt(
                 BarnetrygdInnlesing.Bestilt(
                     id = InnlesingId.generate(),
-                    år = 2020,
+                    år = År(2020),
                     forespurtTidspunkt = Instant.now()
                 )
             )
@@ -357,7 +358,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             sendStartInnlesingKafka(innlesing.id.toString())
             Thread.sleep(1000)
 
-            assertNull(innlesingRepository.finn(innlesing.id.toString()))
+            assertThat(innlesingRepository.finn(innlesing.id.toString())).isNull()
         }
     }
 }

@@ -5,6 +5,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -24,7 +26,7 @@ class InnlesingRepositoryTest : SpringContextTest.NoKafka() {
     fun `insert, update, delete`() {
         val bestilt = BarnetrygdInnlesing.Bestilt(
             id = InnlesingId.generate(),
-            år = 2023,
+            år = År(2023),
             forespurtTidspunkt = Instant.now()
         )
         val startet = bestilt.startet(1)
@@ -44,12 +46,12 @@ class InnlesingRepositoryTest : SpringContextTest.NoKafka() {
     fun `invalidering av innlesing sletter alle barnetrygdmottakere knyttet til innlesingen`() {
         val bestilt = BarnetrygdInnlesing.Bestilt(
             id = InnlesingId.generate(),
-            år = 2023,
+            år = År(2023),
             forespurtTidspunkt = Instant.EPOCH
         )
 
         val b = Barnetrygdmottaker.Transient(
-            ident = "12345678910",
+            ident = Ident("12345678910"),
             correlationId = CorrelationId.generate(),
             innlesingId = bestilt.id
         )
@@ -57,10 +59,10 @@ class InnlesingRepositoryTest : SpringContextTest.NoKafka() {
         val aa = innlesingRepository.bestilt(bestilt)
         val bb = barnetrygdmottakerRepository.insert(b)
 
-        assertEquals(aa, innlesingRepository.finn(bestilt.id.toString()))
-        assertEquals(bb, barnetrygdmottakerRepository.find(bb.id))
+        assertThat(innlesingRepository.finn(bestilt.id.toString())).isEqualTo(aa)
+        assertThat(barnetrygdmottakerRepository.find(bb.id)).isEqualTo(bb)
 
         innlesingRepository.invalider(aa.id.toUUID())
-        assertNull(barnetrygdmottakerRepository.find(bb.id))
+        assertThat(barnetrygdmottakerRepository.find(bb.id)).isNull()
     }
 }

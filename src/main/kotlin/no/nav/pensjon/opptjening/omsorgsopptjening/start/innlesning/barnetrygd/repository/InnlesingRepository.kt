@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -21,7 +22,7 @@ class InnlesingRepository(
             MapSqlParameterSource(
                 mapOf<String, Any>(
                     "id" to innlesing.id.toString(),
-                    "ar" to innlesing.år,
+                    "ar" to innlesing.år.value,
                     "forespurt_tidspunkt" to innlesing.forespurtTidspunkt.toString()
                 ),
             ),
@@ -102,7 +103,7 @@ class InnlesingRepository(
         override fun mapRow(rs: ResultSet, rowNum: Int): BarnetrygdInnlesing {
             return BarnetrygdInnlesing.of(
                 id = InnlesingId.fromString(rs.getString("id")),
-                år = rs.getInt("år"),
+                år = År(rs.getInt("år")),
                 forespurtTidspunkt = rs.getTimestamp("forespurt_tidspunkt").toInstant(),
                 startTidspunkt = rs.getTimestamp("start_tidspunkt")?.toInstant(),
                 ferdigTidspunkt = rs.getTimestamp("ferdig_tidspunkt")?.toInstant(),

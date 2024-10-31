@@ -84,7 +84,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -126,7 +126,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -213,7 +213,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -311,7 +311,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -358,7 +358,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker1 = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -366,7 +366,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker2 = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678911",
+                ident = Ident("12345678911"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -374,7 +374,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker3 = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678912",
+                ident = Ident("12345678912"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -471,7 +471,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker1 = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -479,7 +479,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker2 = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678911",
+                ident = Ident("12345678911"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -487,7 +487,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         val barnetrygdmottaker3 = barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678912",
+                ident = Ident("12345678912"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -544,7 +544,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -581,7 +581,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -615,7 +615,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
         barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = "12345678910",
+                ident = Ident("12345678910"),
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
@@ -640,7 +640,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         val bestilt = innlesingRepository.bestilt(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.generate(),
-                år = 2023,
+                år = År(2023),
                 forespurtTidspunkt = Instant.now()
             )
         )

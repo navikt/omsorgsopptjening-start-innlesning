@@ -4,6 +4,7 @@ import com.nimbusds.jose.JOSEObjectType
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -63,7 +64,7 @@ class BarnetrygdWebApiTest {
         given(barnetrygdmottakerService.bestillPersonerMedBarnetrygd(any())).willReturn(
             BarnetrygdInnlesing.Bestilt(
                 id = InnlesingId.fromString("f9792c4b-76ed-4906-ab06-caea51b3bf3b"),
-                år = 2022,
+                år = År(2022),
                 forespurtTidspunkt = Instant.now(),
             )
         )
