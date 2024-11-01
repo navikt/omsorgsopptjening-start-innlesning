@@ -1,6 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import no.nav.security.token.support.core.api.Protected
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,7 +22,7 @@ class BarnetrygdWebApi(
 
     @GetMapping("/innlesning/start/{ar}")
     fun startInnlesning(@PathVariable ar: Int): ResponseEntity<String> {
-        return barnetrygdService.bestillPersonerMedBarnetrygd(ar).let {
+        return barnetrygdService.bestillPersonerMedBarnetrygd(År(ar)).let {
             log.info("Bestilt innlesing: ${it.id} av barnetrygdmottakere for år:${it.år}")
             ResponseEntity.ok("""${it.id}""")
         }

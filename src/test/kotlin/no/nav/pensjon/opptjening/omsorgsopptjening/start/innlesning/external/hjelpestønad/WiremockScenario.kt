@@ -4,9 +4,11 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.WiremockFagsak.Companion.formatterForKall
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import java.lang.String.format
+import java.time.YearMonth
 import java.util.concurrent.atomic.AtomicInteger
 
 fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(forFnr: Ident): StubMapping {
@@ -43,8 +45,8 @@ fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(): StubMappi
 
 fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
     forFnr: Ident,
-    fom: String = "2020-01",
-    tom: String = "2025-12",
+    fom: YearMonth = YearMonth.of(2020, 1),
+    tom: YearMonth = YearMonth.of(2025, 12),
 ): StubMapping {
     return this.stubFor(
         WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
@@ -58,8 +60,8 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
                                     {
                                         "id":"123",
                                         "ident":"${forFnr.value}",
-                                        "fom":"$fom",
-                                        "tom":"$tom",
+                                        "fom":"${fom.formatterForKall()}",
+                                        "tom":"${tom.formatterForKall()}",
                                         "omsorgstype":"FORHØYET_SATS_3"
                                     }
                                 ]

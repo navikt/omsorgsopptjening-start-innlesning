@@ -430,8 +430,16 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         fnrUtenHjelpestønad.forEach {
             wiremock.`hent hjelpestønad ok - ingen hjelpestønad`(it)
         }
-        wiremock.`hent hjelpestønad ok - har hjelpestønad`(fnr(3_1), fom = "2022-02", tom = "2023-09")
-        wiremock.`hent hjelpestønad ok - har hjelpestønad`(fnr(3_3), fom = "2022-04", tom = "2023-10")
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`(
+            fnr(3_1),
+            fom = YearMonth.of(2022, 2),
+            tom = YearMonth.of(2023, 9)
+        )
+        wiremock.`hent hjelpestønad ok - har hjelpestønad`(
+            fnr(3_3),
+            fom = YearMonth.of(2022, 4),
+            tom = YearMonth.of(2023, 10),
+        )
 
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),

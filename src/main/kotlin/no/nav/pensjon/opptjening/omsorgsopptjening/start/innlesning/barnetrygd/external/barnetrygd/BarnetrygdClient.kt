@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.HentBarnetrygdResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -43,11 +44,11 @@ class BarnetrygdClient(
      * og fremover. Barnetrydmottakerne publiseres til topic \$BARNETRYGDMOTTAKERE_TOPIC.
      */
     fun bestillBarnetrygdmottakere(
-        ar: Int
+        ar: År
     ): BestillBarnetrygdmottakereResponse {
         return webClient
             .get()
-            .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/$ar")
+            .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/${ar.value}")
             .header(CorrelationId.identifier, UUID.randomUUID().toString())
             .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())

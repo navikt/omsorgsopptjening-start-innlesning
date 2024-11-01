@@ -27,11 +27,11 @@ class BarnetrygdmottakerService(
         private val log = LoggerFactory.getLogger(BarnetrygdmottakerService::class.java)
     }
 
-    fun bestillPersonerMedBarnetrygd(ar: Int): BarnetrygdInnlesing.Bestilt {
+    fun bestillPersonerMedBarnetrygd(ar: År): BarnetrygdInnlesing.Bestilt {
         return client.bestillBarnetrygdmottakere(ar).let { response ->
             BarnetrygdInnlesing.Bestilt(
                 id = response.innlesingId,
-                år = År(response.år),
+                år = response.år,
                 forespurtTidspunkt = Instant.now()
             ).also {
                 innlesingRepository.bestilt(it)

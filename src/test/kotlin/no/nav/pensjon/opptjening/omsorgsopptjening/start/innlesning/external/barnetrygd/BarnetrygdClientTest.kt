@@ -12,6 +12,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BestillBarnetrygdMottakereException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BestillBarnetrygdmottakereResponse
@@ -48,11 +49,11 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
         fun `returner ok dersom kall til bestill-personer-med-barnetrygd svarer med accepted`() {
             wiremock.`bestill-personer-med-barnetrygd accepted`()
 
-            client.bestillBarnetrygdmottakere(ar = 2020).also {
+            client.bestillBarnetrygdmottakere(ar = År(2020)).also {
                 assertEquals(
                     BestillBarnetrygdmottakereResponse(
                         InnlesingId.fromString("3d797c7d-6273-4be3-bd57-e13de35251f8"),
-                        2020
+                        År(2020),
                     ), it
                 )
             }
@@ -63,7 +64,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
             wiremock.`bestill-personer-med-barnetrygd internal server error`()
 
             assertThrows<BestillBarnetrygdMottakereException> {
-                client.bestillBarnetrygdmottakere(ar = 2020)
+                client.bestillBarnetrygdmottakere(ar = År(2020))
             }.also {
                 assertContains(it.msg, "500")
                 assertContains(it.msg, "{whatever this may contain}")
