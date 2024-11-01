@@ -87,7 +87,7 @@ class KompletteringsService(
     ): HjelpestønadResponse {
         val omsorgsmottakere = ekspanderFnrTilAlleIHistorikken(persongrunnlag.hentOmsorgsmottakere())
         val hjelpestønad = hjelpestønadService.hentHjelpestønad(
-            omsorgsmottakere = omsorgsmottakere,
+            omsorgsmottakere = omsorgsmottakere.map { Ident(it) }.toSet(),
             filter = gyldigÅrsintervall
         )
         val hjelpestønadRådata = hjelpestønad.map { it.rådataFraKilde }
@@ -183,28 +183,5 @@ class KompletteringsService(
         val barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
         val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
         val rådata: Rådata,
-    ) {
-        init {
-            // valider()
-        }
-
-        fun valider() {
-            /*
-                TODO: Mulige regler:
-                - minimum én omsorgsperiode per barnetrygdmottaker
-                - maksimum én periode per barnetrygdmottaker (var der tidligere, men usikker på om det fortsatt
-                  er gjeldende når man sjekker historike fnr)
-                - sjekker på hjelpestønad?
-                (sjekk på overlappende perioder ligger i omsorgsopptjening-domene-lib)
-
-                Original kommentar:
-                Tillater dette for å få kjørt ferdig en del rest-saker fra prodkjøringen.
-                Gjenstående tilfeller er en blanding av saker som ikke burde vært sendt til oss
-                i første omgang, og saker hvor relaterte saker ikke har noen perioder. Siden
-                det er fair å anta at noen av de sistnevnte er aktuell for godskriving, prøver vi
-                å behandle selv om det potensielt ikke eksisterer noen perioder på verken bruker
-                eller relatert.
-            */
-        }
-    }
+    )
 }

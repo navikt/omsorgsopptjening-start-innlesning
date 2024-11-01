@@ -326,8 +326,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     listOf(
                         WiremockFagsak.BarnetrygdPeriode(
                             personIdent = fnr(2_1),
-                            stønadFom = "2022-03",
-                            stønadTom = "2023-10"
+                            stønadFom = YearMonth.of(2022, 3),
+                            stønadTom = YearMonth.of(2023, 10)
                         ),
                     )
                 ),
@@ -385,8 +385,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     listOf(
                         WiremockFagsak.BarnetrygdPeriode(
                             personIdent = fnr(2_1),
-                            stønadFom = "2020-01",
-                            stønadTom = "2021-12"
+                            stønadFom = YearMonth.of(2020, 1),
+                            stønadTom = YearMonth.of(2021, 12),
                         ),
                         WiremockFagsak.BarnetrygdPeriode(personIdent = fnr(2_2)),
                     )
@@ -396,8 +396,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     listOf(
                         WiremockFagsak.BarnetrygdPeriode(
                             personIdent = fnr(2_3),
-                            stønadFom = "2020-02",
-                            stønadTom = "2020-03"
+                            stønadFom = YearMonth.of(2020, 2),
+                            stønadTom = YearMonth.of(2020, 3),
                         ),
                     )
                 ),

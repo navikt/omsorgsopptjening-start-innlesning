@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "2.0.3"
-val navTokenSupportVersion = "5.0.5"
+val navTokenSupportVersion = "5.0.8"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"
 val postgresqlVersion = "42.7.4"
@@ -20,7 +20,7 @@ val micrometerRegistryPrometheusVersion = "1.13.6"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.4"
 val jsonAssertVersion = "1.5.2"
-val jsunUnitVersion = "3.4.1"
+val jsonUnitVersion = "3.4.1"
 val guavaVersion = "33.3.1-jre"
 
 val snappyJavaVersion = "1.1.10.7"
@@ -95,7 +95,7 @@ dependencies {
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
     testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
     testImplementation("org.skyscreamer:jsonassert:$jsonAssertVersion")
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:$jsunUnitVersion")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:$jsonUnitVersion")
 }
 
 tasks.test {

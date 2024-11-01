@@ -169,7 +169,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
             }
         }
 
-        @Disabled /* TODO: temporært, i påvente av avklaring */
+        @Disabled
+        /* TODO: temporært, i påvente av avklaring */
         @Test
         fun `kaster exception dersom kall til hent-barnetrygd svarer med 200 ok med tom liste`() {
             Mdc.scopedMdc(CorrelationId.generate()) {
@@ -183,7 +184,6 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                         )
                     }.also {
                         assertThat(it.msg).contains("Liste med barnetrygdsaker er tom")
-//                        assertContains(it.msg, "Liste med barnetrygdsaker er tom")
                     }
                 }
             }

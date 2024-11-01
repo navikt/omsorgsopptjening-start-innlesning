@@ -17,13 +17,12 @@ class HjelpestønadService(
     private val hjelpestønadClient: HjelpestønadClient
 ) {
     internal fun hentHjelpestønad(
-//        persongrunnlag: PersongrunnlagMelding.Persongrunnlag,
-        omsorgsmottakere: Set<String>,
+        omsorgsmottakere: Set<Ident>,
         filter: GyldigÅrsintervallFilter,
     ): List<HentHjelpestønadResponse> {
         return omsorgsmottakere.map { omsorgsmottaker ->
             hentHjelpestønad(
-                fnr = Ident(omsorgsmottaker),
+                fnr = omsorgsmottaker,
                 fom = filter.min(),
                 tom = filter.max()
             ).let { response ->

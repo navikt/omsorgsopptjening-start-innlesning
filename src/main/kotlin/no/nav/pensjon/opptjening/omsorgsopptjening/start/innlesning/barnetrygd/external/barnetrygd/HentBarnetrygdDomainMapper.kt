@@ -14,7 +14,7 @@ internal object HentBarnetrygdDomainMapper {
         external: List<BarnetrygdSak>,
         filter: GyldigÅrsintervallFilter
     ): List<PersongrunnlagMelding.Persongrunnlag> {
-        return external.mapNotNull { map(it, filter) }
+        return external.map { map(it, filter) }
     }
 
     private fun map(

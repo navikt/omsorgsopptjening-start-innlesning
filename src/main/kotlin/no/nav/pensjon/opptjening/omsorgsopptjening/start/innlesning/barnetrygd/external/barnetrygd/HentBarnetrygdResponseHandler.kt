@@ -32,6 +32,7 @@ object HentBarnetrygdResponseHandler {
                                 wrapper.fagsaker == null -> {
                                     throw HentBarnetrygdException("Liste med barnetrygdsaker mangler")
                                 }
+
                                 else -> {
                                     HentBarnetrygdResponse(
                                         barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),

@@ -18,8 +18,7 @@ import java.time.YearMonth
 import java.util.*
 
 
-class BarnetrygdinformasjonRepositoryTest(
-) : SpringContextTest.NoKafka() {
+class BarnetrygdinformasjonRepositoryTest : SpringContextTest.NoKafka() {
 
     @Autowired
     lateinit var innlesingRepository: InnlesingRepository

@@ -24,16 +24,16 @@ data class Barnetrygdinformasjon(
     }
 
     override fun equals(other: Any?): Boolean {
-        return when (val o = other) {
+        return when (other) {
             is Barnetrygdinformasjon -> {
-                Objects.equals(id, o.id)
-                        && Objects.equals(barnetrygdmottakerId, o.barnetrygdmottakerId)
-                        && Objects.equals(ident, o.ident)
-                        && Objects.equals(persongrunnlag, o.persongrunnlag)
-                        && Objects.equals(rådata, o.rådata)
-                        && Objects.equals(correlationId, o.correlationId)
-                        && Objects.equals(innlesingId, o.innlesingId)
-                        && Objects.equals(status, o.status)
+                Objects.equals(id, other.id)
+                        && Objects.equals(barnetrygdmottakerId, other.barnetrygdmottakerId)
+                        && Objects.equals(ident, other.ident)
+                        && Objects.equals(persongrunnlag, other.persongrunnlag)
+                        && Objects.equals(rådata, other.rådata)
+                        && Objects.equals(correlationId, other.correlationId)
+                        && Objects.equals(innlesingId, other.innlesingId)
+                        && Objects.equals(status, other.status)
             }
 
             else -> false

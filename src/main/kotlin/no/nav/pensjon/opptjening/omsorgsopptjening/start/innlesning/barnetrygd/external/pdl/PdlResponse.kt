@@ -58,10 +58,6 @@ data class Folkeregisteridentifikator(
     val metadata: Metadata,
     val folkeregistermetadata: Folkeregistermetadata? = null,
 ) {
-    fun erGjeldende(): Boolean {
-        return status == Status.I_BRUK
-    }
-
     enum class Status { I_BRUK, OPPHOERT }
     enum class Type { FNR, DNR }
 }

@@ -34,14 +34,14 @@ class SendTilBestemTask(
 
     private fun sendAltSomErKlartTilBestem() {
         log.info("Sender all tilgjengelig barnetrygdinformasjon til bestem (via kafka)")
-        var harGjortNoe = true
-        while (harGjortNoe) {
+        var merÅGjøre = true
+        while (merÅGjøre) {
             val prosessert: List<Barnetrygdinformasjon>? = service.process()
             if (prosessert?.isNotEmpty() == true) {
                 metrikker.tellSendtTilBestem(prosessert.size)
             }
-            val harGjortNoe = prosessert.isNullOrEmpty()
-            if (harGjortNoe) {
+            merÅGjøre = prosessert.isNullOrEmpty()
+            if (merÅGjøre) {
                 log.info("Prosessert ${prosessert?.size} barnetrygdmottakere")
             }
         }

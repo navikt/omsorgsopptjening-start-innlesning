@@ -93,22 +93,6 @@ class BarnetrygdmottakerRepository(
         )
     }
 
-    fun updatePersongrunnlagOgRådata(barnetrygdmottaker: Barnetrygdmottaker.Mottatt) {
-        jdbcTemplate.update(
-            """update barnetrygdmottaker set 
-            | personid_gjeldende = :personid_gjeldende,
-            | personid_historikk = :personid_historikk::jsonb
-            | where id = :id""".trimMargin(),
-            MapSqlParameterSource(
-                mapOf<String, Any?>(
-                    "id" to barnetrygdmottaker.id,
-                    "persongrunnlag" to serialize("hello"),
-                    "rådata" to serialize("hello"),
-                )
-            )
-        )
-    }
-
     fun finnNesteTilBehandling(innlesingId: InnlesingId, antall: Int): Locked {
         val lockId = UUID.randomUUID()
         val id: List<UUID> =

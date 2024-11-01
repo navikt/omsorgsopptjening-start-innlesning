@@ -12,6 +12,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import java.time.Month
+import java.time.YearMonth
 
 fun WireMockExtension.`bestill-personer-med-barnetrygd accepted`(): StubMapping {
     return this.stubFor(
@@ -59,8 +61,8 @@ fun WireMockExtension.`hent-barnetrygd ok`(): StubMapping {
                     WiremockFagsak.BarnetrygdPeriode(
                         personIdent = Ident("09876543210"),
                         utbetaltPerMnd = 2000,
-                        stønadFom = "2020-01",
-                        stønadTom = "2025-12",
+                        stønadFom = YearMonth.of(2020, 1),
+                        stønadTom = YearMonth.of(2025, 12),
                     )
                 )
             )
@@ -78,8 +80,8 @@ fun WireMockExtension.`hent-barnetrygd ok`(forFnr: Ident): StubMapping {
                     WiremockFagsak.BarnetrygdPeriode(
                         personIdent = Ident("09876543210"),
                         utbetaltPerMnd = 2000,
-                        stønadFom = "2020-01",
-                        stønadTom = "2025-12",
+                        stønadFom = YearMonth.of(2020, 1),
+                        stønadTom = YearMonth.of(2025, 12),
                     )
                 )
             )
