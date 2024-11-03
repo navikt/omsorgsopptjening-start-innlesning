@@ -177,23 +177,6 @@ class AdministrasjonsTest : SpringContextTest.NoKafka() {
         }
     }
 
-    fun `kan avslutte en melding som er stoppet`() {
-        val innlesing = lagreFullførtInnlesing()
-        val barnetrygdmottaker = lagreBarnetrygdMottaker(innlesing).stoppet("Stoppet").let {
-            barnetrygdmottakerRepository.updateStatus(it)
-            barnetrygdmottakerRepository.find(it.id)
-        }!!
-        val avsluttResultat = barnetrygdmottakerService.avslutt(barnetrygdmottaker.id, BEGRUNNELSE)
-        assertThat(avsluttResultat).isEqualTo(BarnetrygdmottakerService.StoppResultat.ALLEREDE_FERDIG)
-        barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
-            assertThat(it).isNotNull()
-            assertThat(it!!.status).isInstanceOf(Barnetrygdmottaker.Status.Avsluttet::class.java)
-            val status = it.status as Barnetrygdmottaker.Status.Avsluttet
-            assertThat(status.begrunnelse).isEqualTo(BEGRUNNELSE)
-        }
-    }
-
-
     @Test
     fun `kan restarte en melding som er feilet`() {
         val innlesing = lagreFullførtInnlesing()

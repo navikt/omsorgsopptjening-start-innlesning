@@ -12,7 +12,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import java.time.Month
 import java.time.YearMonth
 
 fun WireMockExtension.`bestill-personer-med-barnetrygd accepted`(): StubMapping {

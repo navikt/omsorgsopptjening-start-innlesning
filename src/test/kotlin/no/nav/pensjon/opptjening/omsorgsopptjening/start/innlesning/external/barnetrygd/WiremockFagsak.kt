@@ -35,6 +35,6 @@ data class WiremockFagsak(val eier: Ident, val perioder: List<BarnetrygdPeriode>
 
     companion object {
         fun YearMonth.formatterForKall() = this.format(yearMonthFormatter)!!
-        val yearMonthFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
+        private val yearMonthFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
     }
 }

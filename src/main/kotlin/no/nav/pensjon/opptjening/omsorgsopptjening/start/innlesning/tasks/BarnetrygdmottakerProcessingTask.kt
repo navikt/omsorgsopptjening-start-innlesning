@@ -6,27 +6,32 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.Unlea
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
 class BarnetrygdmottakerProcessingTask(
+    private val taskExecutor: ThreadPoolTaskExecutor,
     private val service: BarnetrygdmottakerService,
     private val metrikker: Metrikker,
     private val unleash: Unleash,
 ) : Runnable {
-
     companion object {
         val log = LoggerFactory.getLogger(BarnetrygdmottakerProcessingTask::class.java)!!
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 5000)
     override fun run() {
-        try {
-            if (isEnabled()) {
-                processAllAvailableBarnetrygdMottakere()
+        if (isEnabled() && isIdle()) {
+            for (i in 1..taskExecutor.poolSize) {
+                taskExecutor.execute {
+                    try {
+                        processAllAvailableBarnetrygdMottakere()
+                    } catch (ex: Throwable) {
+                        log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
+                        log.error("Pausing for 10 seconds")
+                        Thread.sleep(10_000)
+                    }
+                }
             }
-        } catch (ex: Throwable) {
-            log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
-            log.error("Pausing for 10 seconds")
-            Thread.sleep(10_000)
         }
     }
 
@@ -46,5 +51,9 @@ class BarnetrygdmottakerProcessingTask(
 
     private fun isEnabled(): Boolean {
         return unleash.isEnabled(UnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
+    }
+
+    private fun isIdle(): Boolean {
+        return taskExecutor.activeCount == 0
     }
 }

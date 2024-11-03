@@ -10,10 +10,14 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metr
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.BarnetrygdmottakerProcessingTask
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.FrigiLaserTask
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.SendTilBestemTask
+import org.apache.tomcat.util.threads.ThreadPoolExecutor
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
 @Configuration
 @EnableScheduling
@@ -36,8 +40,11 @@ class ScheduledTasksConfig(
     }
 
     @Bean
-    fun barnetrygdmottakerProcessingTask(): BarnetrygdmottakerProcessingTask {
+    fun barnetrygdmottakerProcessingTask(
+        @Qualifier("scheduledTasksExecutor") taskExecutor: ThreadPoolTaskExecutor,
+    ): BarnetrygdmottakerProcessingTask {
         return BarnetrygdmottakerProcessingTask(
+            taskExecutor = taskExecutor,
             service = barnetrygdmottakerService,
             metrikker = metrikker,
             unleash = unleash,
@@ -51,5 +58,16 @@ class ScheduledTasksConfig(
             metrikker = metrikker,
             unleash = unleash,
         )
+    }
+
+    @Bean("scheduledTasksExecutor")
+    fun threadpoolExecutor(): ThreadPoolTaskExecutor {
+        return ThreadPoolTaskExecutor().apply {
+            queueCapacity = 25
+            corePoolSize = 2
+            maxPoolSize = 5
+            setThreadNamePrefix("ScheduledTasksExecutor-")
+            initialize()
+        }
     }
 }
