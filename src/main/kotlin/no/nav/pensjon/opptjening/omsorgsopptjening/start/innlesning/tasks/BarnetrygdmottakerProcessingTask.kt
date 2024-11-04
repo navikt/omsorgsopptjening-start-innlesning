@@ -51,10 +51,13 @@ class BarnetrygdmottakerProcessingTask(
     }
 
     private fun isEnabled(): Boolean {
-        return unleash.isEnabled(UnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
+        val enabled = unleash.isEnabled(UnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
+        println("isEnabled() -> $enabled")
+        return enabled
     }
 
     private fun isIdle(): Boolean {
+        println("isIdle() -> ${taskExecutor.activeCount} == 0")
         return taskExecutor.activeCount == 0
     }
 }
