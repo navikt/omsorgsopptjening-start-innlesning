@@ -22,8 +22,9 @@ class BarnetrygdmottakerProcessingTask(
     override fun run() {
         log.info("BarnetrygdmottakerProcessingTask.run()")
         if (isEnabled() && isIdle()) {
-            log.info("Starter ${taskExecutor.poolSize} antall tasks")
+            log.info("Starter ${taskExecutor.maxPoolSize} antall tasks")
             for (i in 1..taskExecutor.maxPoolSize) {
+                println("scheduling processAllAvailableBarnetrygdMottakere()")
                 taskExecutor.execute {
                     try {
                         processAllAvailableBarnetrygdMottakere()
