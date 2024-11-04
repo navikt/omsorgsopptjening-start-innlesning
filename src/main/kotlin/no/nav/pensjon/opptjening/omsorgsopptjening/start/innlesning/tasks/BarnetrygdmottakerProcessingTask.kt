@@ -20,6 +20,7 @@ class BarnetrygdmottakerProcessingTask(
 
     @Scheduled(fixedDelay = 5000)
     override fun run() {
+        log.info("BarnetrygdmottakerProcessingTask.run()")
         if (isEnabled() && isIdle()) {
             log.info("Starter ${taskExecutor.poolSize} antall tasks")
             for (i in 1..taskExecutor.poolSize) {

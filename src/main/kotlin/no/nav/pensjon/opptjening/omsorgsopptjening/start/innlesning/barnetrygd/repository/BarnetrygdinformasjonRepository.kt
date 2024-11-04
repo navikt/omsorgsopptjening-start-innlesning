@@ -82,7 +82,6 @@ class BarnetrygdinformasjonRepository(
     fun finnNesteTilBehandling(antall: Int): Locked {
         val lockId = UUID.randomUUID()
         val id: List<UUID> = finnNesteKlarTilBehandling(lockId, antall)
-        println("finnNesteTilBehandling: id.size=${id.size}")
         return Locked(lockId, id.map { hent(it)!! })
     }
 

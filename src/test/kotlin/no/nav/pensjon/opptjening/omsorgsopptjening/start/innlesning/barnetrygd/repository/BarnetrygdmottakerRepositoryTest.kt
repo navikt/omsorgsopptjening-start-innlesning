@@ -251,7 +251,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         assertThat(alleKlar.map { it.status }).allMatch { it is Barnetrygdmottaker.Status.Klar }
 
         barnetrygdmottakerRepository.updateStatus(
-            alleKlar.single { it.ident == fnr(1)}.retry("a1").retry("a2").retry("a3").retry("afeil")
+            alleKlar.single { it.ident == fnr(1) }.retry("a1").retry("a2").retry("a3").retry("afeil")
         )
         barnetrygdmottakerRepository.updateStatus(
             alleKlar.single { it.ident == fnr(2) }.retry("b1").retry("b2").retry("b3").retry("bfeil")
@@ -278,6 +278,11 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             Barnetrygdmottaker.Status.Klar::class.java
         )
         assertThat(barnetrygdmottakerRepository.finnAlle(innlesingUberørt.id).single().statushistorikk).hasSize(1)
+    }
+
+    @Test
+    fun `harBarnetrygdmottakereKlareTilBehandling svarer riktig når ingen barnetrygdmottakere`() {
+
     }
 
     private fun lagreBestiltInnlesing(
