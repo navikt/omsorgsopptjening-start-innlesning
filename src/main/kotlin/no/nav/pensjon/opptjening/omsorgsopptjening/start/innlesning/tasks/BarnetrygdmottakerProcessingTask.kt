@@ -23,7 +23,7 @@ class BarnetrygdmottakerProcessingTask(
         log.info("BarnetrygdmottakerProcessingTask.run()")
         if (isEnabled() && isIdle()) {
             log.info("Starter ${taskExecutor.poolSize} antall tasks")
-            for (i in 1..taskExecutor.poolSize) {
+            for (i in 1..taskExecutor.maxPoolSize) {
                 taskExecutor.execute {
                     try {
                         processAllAvailableBarnetrygdMottakere()
