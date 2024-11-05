@@ -82,7 +82,9 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         )
 
         Thread.sleep(2000)
-        barnetrygdmottakerService.process()
+        barnetrygdmottakerService.låsForBehandling().forEach {
+            barnetrygdmottakerService.prosesserOgFrigi(it)
+        }
         sendTilBestemService.process()
 
         listener.removeFirstRecord(3).let { consumerRecord ->

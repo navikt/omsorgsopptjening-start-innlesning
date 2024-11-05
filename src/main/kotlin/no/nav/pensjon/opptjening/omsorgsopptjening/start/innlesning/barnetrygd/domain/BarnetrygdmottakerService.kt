@@ -38,32 +38,31 @@ class BarnetrygdmottakerService(
         }
     }
 
-    fun process(): List<Barnetrygdmottaker>? {
-        return innlesingRepository.finnAlleFullførte().stream()
-            .map { processForInnlesingId(it) }
-            .filter { it != null }
-            .findFirst()
-            .orElse(null)
-    }
+    fun låsForBehandling() = innlesingRepository.finnAlleFullførte().stream()
+        .map { låsForBehandling(it) }
+        .toList()
+        .filterNotNull()
 
-    fun processForInnlesingId(innlesingId: InnlesingId): List<Barnetrygdmottaker>? {
-        val låsteTilBehandling = transactionTemplate.execute {
-            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId, 10)
-        }
+    fun prosesserOgFrigi(låsteTilBehandling: BarnetrygdmottakerRepository.Locked): List<Barnetrygdmottaker>? {
         try {
-            val barnetrygdmottaker: List<Barnetrygdmottaker.Mottatt?>? =
-                låsteTilBehandling?.data?.map { barnetrygdmottaker ->
+            val barnetrygdmottaker: List<Barnetrygdmottaker.Mottatt?> =
+                låsteTilBehandling.data.map { barnetrygdmottaker ->
                     Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                         Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
                             prosesserMottattBarnetrygmottaker(barnetrygdmottaker)
                         }
                     }
                 }
-            return barnetrygdmottaker?.filterNotNull()?.ifEmpty { null }
+            return barnetrygdmottaker.filterNotNull().ifEmpty { null }
         } finally {
-            låsteTilBehandling?.let { barnetrygdmottakerRepository.frigi(it) }
+            låsteTilBehandling.let { barnetrygdmottakerRepository.frigi(it) }
         }
     }
+
+    private fun låsForBehandling(innlesingId: InnlesingId) =
+        transactionTemplate.execute {
+            barnetrygdmottakerRepository.finnNesteTilBehandling(innlesingId, 10)
+        }
 
     protected fun prosesserMottattBarnetrygmottaker(
         barnetrygdmottaker: Barnetrygdmottaker.Mottatt

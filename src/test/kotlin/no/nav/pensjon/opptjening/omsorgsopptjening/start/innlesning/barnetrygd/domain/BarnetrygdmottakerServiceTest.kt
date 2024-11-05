@@ -94,7 +94,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it.status).also { retry ->
                 assertThat(retry.antallForsøk).isEqualTo(1)
@@ -102,9 +102,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             }
         }
 
-        barnetrygdService.process()
-        barnetrygdService.process()
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
 
         assertInstanceOf(
             Barnetrygdmottaker.Status.Feilet::class.java,
@@ -183,7 +183,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
                 assertThat(retry.antallForsøk).isEqualTo(1)
@@ -191,7 +191,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             }
         }
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         assertInstanceOf(
             Barnetrygdmottaker.Status.Ferdig::class.java,
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
@@ -269,7 +269,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).let {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
                 assertThat(retry.antallForsøk).isEqualTo(1)
@@ -277,7 +277,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             }
         }
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.let { barnetrygdmottaker ->
             assertThat(barnetrygdmottaker.status)
                 .isInstanceOf(Barnetrygdmottaker.Status.Retry::class.java)
@@ -322,7 +322,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             barnetrygdmottakerRepository.find(barnetrygdmottaker.id)!!.status
         )
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
@@ -396,7 +396,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         )
 
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
 
         barnetrygdmottakerRepository.find(barnetrygdmottaker1.id).also {
             assertInstanceOf(Barnetrygdmottaker.Status.Retry::class.java, it!!.status).also { retry ->
@@ -509,7 +509,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         )
 
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
 
         wiremock.allServeEvents.forEach {
             println("REQUEST: ")
@@ -554,7 +554,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         sendTilBestemService.process()
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
@@ -591,7 +591,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         sendTilBestemService.process()
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
@@ -625,7 +625,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent-barnetrygd ok - ingen perioder`()
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
-        barnetrygdService.process()
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
         sendTilBestemService.process()
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
