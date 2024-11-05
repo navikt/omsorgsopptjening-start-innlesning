@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
 import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.UnleashConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
@@ -21,33 +22,41 @@ class BarnetrygdmottakerProcessingTask(
     @Scheduled(fixedDelay = 5000)
     override fun run() {
         log.info("BarnetrygdmottakerProcessingTask.run()")
-        if (isEnabled() && isIdle()) {
-            log.info("Starter ${taskExecutor.maxPoolSize} antall tasks")
-            for (i in 1..taskExecutor.maxPoolSize) {
-                println("scheduling processAllAvailableBarnetrygdMottakere()")
-                taskExecutor.execute {
-                    try {
-                        processAllAvailableBarnetrygdMottakere()
-                    } catch (ex: Throwable) {
-                        log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
-                        log.error("Pausing for 10 seconds")
-                        Thread.sleep(10_000)
-                    }
-                }
+        if (isEnabled()) {
+            println("processAllAvailableBarnetrygdMottakere()")
+            try {
+                processAllAvailableBarnetrygdMottakere()
+            } catch (ex: Throwable) {
+                log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
+                log.error("Pausing for 10 seconds")
+                Thread.sleep(10_000)
             }
         }
     }
 
     private fun processAllAvailableBarnetrygdMottakere() {
         log.info("Prosesserer alle tilgjengelige barnetrygdmottakere")
-        var prosesserteMinstEnBarnetrygdmottaker = true
-        while (prosesserteMinstEnBarnetrygdmottaker) {
-            val barnetrygdmottakere = metrikker.tellBarnetrygdmottakerStatus {
-                service.process()
-            }
-            prosesserteMinstEnBarnetrygdmottaker = !barnetrygdmottakere.isNullOrEmpty()
-            if (prosesserteMinstEnBarnetrygdmottaker) {
-                log.info("Prosessert ${barnetrygdmottakere?.size} barnetrygdmottakere")
+        do {
+            val låste = service.låsForBehandling()
+            val antallBarnetrygdmottakere = låste.sumOf { it.data.size }
+            log.info("Schedulerer prosessering av $antallBarnetrygdmottakere barnetrygdmottakere")
+            schedulerProsessering(låste)
+        } while (antallBarnetrygdmottakere > 0)
+    }
+
+    private fun schedulerProsessering(låste: List<BarnetrygdmottakerRepository.Locked>) {
+        låste.forEach {
+            schedulerProsessering(it)
+        }
+    }
+
+    private fun schedulerProsessering(it: BarnetrygdmottakerRepository.Locked) {
+        // Forutsetter at rejection handler i taskExecutor er CallerRunsPolicy, som medfører at
+        // prosesseringen blir gjort synkront her hvis executor'en er full
+        taskExecutor.execute {
+            metrikker.tellBarnetrygdmottakerStatus {
+                log.info("Prosesser og frigi barnetrygdmottakere i tråden ${Thread.currentThread().name}")
+                service.prosesserOgFrigi(it)
             }
         }
     }
