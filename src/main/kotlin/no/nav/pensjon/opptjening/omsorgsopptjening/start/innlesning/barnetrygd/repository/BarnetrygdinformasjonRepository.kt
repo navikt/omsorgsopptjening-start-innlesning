@@ -143,8 +143,6 @@ class BarnetrygdinformasjonRepository(
                 "lockId" to lockId,
             ),
         )
-        println("finnNesteKlarTilBehandling.update count: $updateCount")
-
         return jdbcTemplate.queryForList(
             """select id from barnetrygdinformasjon where lockId = :lockId""".trimMargin(),
             mapOf(

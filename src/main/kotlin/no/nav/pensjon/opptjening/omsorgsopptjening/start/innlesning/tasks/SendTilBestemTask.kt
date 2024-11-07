@@ -18,7 +18,7 @@ class SendTilBestemTask(
         val log = LoggerFactory.getLogger(SendTilBestemTask::class.java)!!
     }
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 20_000)
     override fun run() {
         log.info("sendTilBestemTask().run()") // TODO: fjern ekstra logging
         try {
@@ -27,24 +27,20 @@ class SendTilBestemTask(
             }
         } catch (ex: Throwable) {
             log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
-            log.error("Pausing for 10 seconds")
-            Thread.sleep(10_000)
+            log.error("Pausing for 5 seconds")
+            Thread.sleep(5_000)
         }
     }
 
     private fun sendAltSomErKlartTilBestem() {
         log.info("Sender all tilgjengelig barnetrygdinformasjon til bestem (via kafka)")
-        var merÅGjøre = true
-        while (merÅGjøre) {
-            val prosessert: List<Barnetrygdinformasjon>? = service.process()
-            if (prosessert?.isNotEmpty() == true) {
+        do {
+            val prosessert: List<Barnetrygdinformasjon>? = service.sendTilBestem()
+            if (!prosessert.isNullOrEmpty()) {
                 metrikker.tellSendtTilBestem(prosessert.size)
+                log.info("sendt ${prosessert.size} barnetrygdmottakere til bestem")
             }
-            merÅGjøre = prosessert.isNullOrEmpty()
-            if (merÅGjøre) {
-                log.info("Prosessert ${prosessert?.size} barnetrygdmottakere")
-            }
-        }
+        } while (!prosessert.isNullOrEmpty())
     }
 
     private fun isEnabled(): Boolean {

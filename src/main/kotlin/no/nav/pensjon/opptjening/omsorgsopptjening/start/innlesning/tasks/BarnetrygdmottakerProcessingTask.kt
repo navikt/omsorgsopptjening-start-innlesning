@@ -66,9 +66,4 @@ class BarnetrygdmottakerProcessingTask(
         println("isEnabled() -> $enabled")
         return enabled
     }
-
-    private fun isIdle(): Boolean {
-        println("isIdle() -> ${taskExecutor.activeCount} == 0")
-        return taskExecutor.activeCount == 0
-    }
 }

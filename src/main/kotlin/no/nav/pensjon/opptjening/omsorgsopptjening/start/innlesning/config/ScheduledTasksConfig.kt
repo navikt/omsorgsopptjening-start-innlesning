@@ -63,10 +63,12 @@ class ScheduledTasksConfig(
     fun threadpoolExecutor(): ThreadPoolTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
             queueCapacity = 25
-            corePoolSize = 2
+            corePoolSize = 1
             maxPoolSize = 5
             setThreadNamePrefix("ScheduledTasksExecutor-")
             setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
+            setAllowCoreThreadTimeOut(true)
+            keepAliveSeconds = 60
             initialize()
         }
     }

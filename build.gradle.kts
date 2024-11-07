@@ -20,7 +20,7 @@ val micrometerRegistryPrometheusVersion = "1.13.6"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.4"
 val jsonAssertVersion = "1.5.2"
-val jsonUnitVersion = "3.4.1"
+val jsonUnitVersion = "3.5.0"
 val guavaVersion = "33.3.1-jre"
 
 val snappyJavaVersion = "1.1.10.7"

@@ -85,7 +85,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         barnetrygdmottakerService.låsForBehandling().forEach {
             barnetrygdmottakerService.prosesserOgFrigi(it)
         }
-        sendTilBestemService.process()
+        sendTilBestemService.sendTilBestem()
 
         listener.removeFirstRecord(3).let { consumerRecord ->
             val expectedKey =

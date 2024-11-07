@@ -555,7 +555,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 
         barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
-        sendTilBestemService.process()
+        sendTilBestemService.sendTilBestem()
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
             persongrunnlagMelding.persongrunnlag.single().also { sak ->
@@ -592,7 +592,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
         barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
-        sendTilBestemService.process()
+        sendTilBestemService.sendTilBestem()
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
             persongrunnlagMelding.persongrunnlag.single().also { sak ->
@@ -626,7 +626,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
         barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
-        sendTilBestemService.process()
+        sendTilBestemService.sendTilBestem()
 
         deserialize<PersongrunnlagMelding>(captor.allValues.single().value()).also { persongrunnlagMelding ->
             persongrunnlagMelding.persongrunnlag.single().also { sak ->

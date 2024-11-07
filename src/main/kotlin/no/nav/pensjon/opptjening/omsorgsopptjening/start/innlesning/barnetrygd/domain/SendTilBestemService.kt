@@ -24,7 +24,7 @@ class SendTilBestemService(
         private val log = LoggerFactory.getLogger(SendTilBestemService::class.java)
     }
 
-    fun process(): List<Barnetrygdinformasjon>? {
+    fun sendTilBestem(): List<Barnetrygdinformasjon>? {
         val låsteTilSending = transactionTemplate.execute {
             barnetrygdinformasjonRepository.finnNesteTilBehandling(10)
         }
