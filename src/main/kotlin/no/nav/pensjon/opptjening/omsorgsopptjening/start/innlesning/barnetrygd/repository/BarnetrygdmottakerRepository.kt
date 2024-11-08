@@ -241,22 +241,7 @@ class BarnetrygdmottakerRepository(
             Long::class.java,
         )!!
     }
-
-    fun harBarnetrygdmottakereKlareTilBehandling(): Boolean {
-        return jdbcTemplate.queryForObject(
-            """select 1 
-                |from barnetrygdmottaker
-                |and status_type = 'Klar'
-                |or (status_type = 'Retry' and karanteneTil < :now)
-                |fetch first row only
-                |""".trimMargin(),
-            mapOf(
-                "now" to Instant.now(clock).toString(),
-            ),
-            Long::class.java,
-        ) != null
-    }
-
+    
     fun oppdaterFeiledeRaderTilKlar(innlesingId: UUID): Int {
         val nyStatus = serialize(Barnetrygdmottaker.Status.Klar())
         return jdbcTemplate.update(

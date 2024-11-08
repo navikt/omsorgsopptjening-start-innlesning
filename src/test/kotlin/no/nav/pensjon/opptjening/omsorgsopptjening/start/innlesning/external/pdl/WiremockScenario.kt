@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 
-private fun WireMockExtension.pdlResponse(fileName: String): StubMapping {
+fun WireMockExtension.`pdl error not_found`(): StubMapping {
     synchronized(this) {
         return this.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/graphql"))
@@ -15,13 +15,13 @@ private fun WireMockExtension.pdlResponse(fileName: String): StubMapping {
                     aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(202)
-                        .withBodyFile("pdl/$fileName")
+                        .withBodyFile("pdl/error_not_found.json")
                 )
         )
     }
 }
 
-private fun WireMockExtension.pdlResponse(fnr: String, fileName: String): StubMapping {
+fun WireMockExtension.`pdl error not_found`(fnr: String): StubMapping {
     synchronized(this) {
         return this.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/graphql"))
@@ -30,7 +30,7 @@ private fun WireMockExtension.pdlResponse(fnr: String, fileName: String): StubMa
                     aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(202)
-                        .withBodyFile("pdl/$fileName")
+                        .withBodyFile("pdl/error_not_found.json")
                 )
         )
     }
@@ -76,12 +76,4 @@ fun WireMockExtension.`pdl fnr fra query`(): StubMapping {
                     )
             )
     )
-}
-
-fun WireMockExtension.`pdl error not_found`(): StubMapping {
-    return this.pdlResponse("error_not_found.json")
-}
-
-fun WireMockExtension.`pdl error not_found`(fnr: String): StubMapping {
-    return this.pdlResponse(fnr, "error_not_found.json")
 }

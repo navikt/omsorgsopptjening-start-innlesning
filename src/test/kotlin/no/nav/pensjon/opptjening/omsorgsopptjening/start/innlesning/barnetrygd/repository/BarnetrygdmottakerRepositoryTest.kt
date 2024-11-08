@@ -280,11 +280,6 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
         assertThat(barnetrygdmottakerRepository.finnAlle(innlesingUberørt.id).single().statushistorikk).hasSize(1)
     }
 
-    @Test
-    fun `harBarnetrygdmottakereKlareTilBehandling svarer riktig når ingen barnetrygdmottakere`() {
-
-    }
-
     private fun lagreBestiltInnlesing(
         innlesing: BarnetrygdInnlesing.Bestilt = BarnetrygdInnlesing.Bestilt(
             id = InnlesingId.generate(),

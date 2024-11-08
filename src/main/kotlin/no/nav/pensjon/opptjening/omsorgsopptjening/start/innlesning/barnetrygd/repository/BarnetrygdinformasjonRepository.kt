@@ -152,21 +152,6 @@ class BarnetrygdinformasjonRepository(
         )
     }
 
-    fun finnAntallMedStatus(status: Barnetrygdinformasjon.Status): Long {
-        return jdbcTemplate.queryForObject(
-            """select count(*) 
-                |from barnetrygdinnlesing
-                |and status = :status""".trimMargin(),
-            mapOf(
-                "status" to when (status) {
-                    Barnetrygdinformasjon.Status.KLAR -> "Klar"
-                    Barnetrygdinformasjon.Status.SENDT -> "Sendt"
-                }
-            ),
-            Long::class.java,
-        )!!
-    }
-
     fun frigiGamleLåser(): Int {
         val oneHourAgo = Instant.now(clock).minus(1.hours.toJavaDuration()).toString()
         return jdbcTemplate.update(
