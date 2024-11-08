@@ -43,15 +43,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
     fun `Given hentPerson then call pdl one time`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
-                wiremock.stubFor(
-                    WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
-                        WireMock.aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBodyFile("pdl/fnr_1bruk.json")
-                    )
-                )
-
+                wiremock.`pdl fnr fra query`()
                 pdlService.hentPerson(FNR)
 
                 wiremock.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
@@ -63,14 +55,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
     fun `Given hentPerson Then call pdl with fnr`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
-                wiremock.stubFor(
-                    WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
-                        WireMock.aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBodyFile("pdl/fnr_1bruk.json")
-                    )
-                )
+                wiremock.`pdl fnr fra query`()
 
                 pdlService.hentPerson(FNR)
 
@@ -85,14 +70,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
     fun `Given hentPerson Then call pdl with token and other headers`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
-                wiremock.stubFor(
-                    WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
-                        WireMock.aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBodyFile("pdl/fnr_1bruk.json")
-                    )
-                )
+                wiremock.`pdl fnr fra query`()
 
                 pdlService.hentPerson(FNR)
 
@@ -120,13 +98,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
     fun `Given PDL return folkeregisteridentifikator When hentPerson Then return pdl response`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
-                wiremock.stubFor(
-                    WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
-                        WireMock.aResponse()
-                            .withHeader("Content-Type", "application/json")
-                            .withBodyFile("pdl/fnr_1bruk.json")
-                    )
-                )
+                wiremock.`pdl fnr fra query`()
 
                 assertThat(pdlService.hentPerson(FNR)).isNotNull()
             }

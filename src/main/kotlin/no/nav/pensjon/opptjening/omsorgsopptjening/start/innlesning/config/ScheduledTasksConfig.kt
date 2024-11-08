@@ -5,6 +5,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.StatusCheckTask
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.StatusRapporteringCachingAdapter
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.BarnetrygdmottakerProcessingTask
@@ -34,8 +35,11 @@ class ScheduledTasksConfig(
     }
 
     @Bean
-    fun frigiGamleLåserTask(): FrigiLaserTask {
-        return FrigiLaserTask(barnetrygdmottakerRepository)
+    fun frigiGamleLåserTask(barnetrygdinformasjonRepository: BarnetrygdinformasjonRepository): FrigiLaserTask {
+        return FrigiLaserTask(
+            barnetrygdmottakerRepository = barnetrygdmottakerRepository,
+            barnetrygdinformasjonRepository = barnetrygdinformasjonRepository,
+        )
     }
 
     @Bean

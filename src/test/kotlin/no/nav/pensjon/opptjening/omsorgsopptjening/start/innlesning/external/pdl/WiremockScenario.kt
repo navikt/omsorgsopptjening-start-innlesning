@@ -45,7 +45,8 @@ fun WireMockExtension.pdl(fnr: Ident, historiske: List<Ident>): StubMapping {
                 or(
                     *fnrs.map { fnr: String ->
                         WireMock.containing(""""variables":{"ident":"$fnr"}""")
-                    }.toTypedArray()
+                    }.plus(WireMock.containing("FINNES_IKKE_I_FILEN")) // må til fordi or krever minst to matchers
+                        .toTypedArray()
                 )
             )
             .willReturn(
@@ -83,8 +84,4 @@ fun WireMockExtension.`pdl error not_found`(): StubMapping {
 
 fun WireMockExtension.`pdl error not_found`(fnr: String): StubMapping {
     return this.pdlResponse(fnr, "error_not_found.json")
-}
-
-fun WireMockExtension.`pdl fnr ett i bruk`(): StubMapping {
-    return this.pdlResponse("fnr_1bruk.json")
 }

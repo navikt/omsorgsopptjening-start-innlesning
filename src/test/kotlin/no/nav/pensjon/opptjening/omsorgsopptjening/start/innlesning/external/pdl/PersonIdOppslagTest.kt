@@ -37,15 +37,9 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
     fun `Et fnr i bruk - Ett fnr i person`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
-                wiremock.stubFor(
-                    WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
-                        WireMock.aResponse()
-                            .withHeader("Content-Type", "application/json")
-                            .withBodyFile("pdl/fnr_1bruk.json")
-                    )
-                )
+                wiremock.`pdl fnr fra query`()
                 val personId: PersonId = personOppslag.hentPerson(FNR)
-                assertThat(personId.fnr).isEqualTo(Ident("12345678910"))
+                assertThat(personId.fnr).isEqualTo(Ident(FNR.value))
             }
         }
     }
@@ -54,15 +48,9 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
     fun `Samme historiske fnr som gjeldende - et fnr i person`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
-                wiremock.stubFor(
-                    WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
-                        WireMock.aResponse()
-                            .withHeader("Content-Type", "application/json")
-                            .withBodyFile("pdl/fnr_samme_fnr_gjeldende_og_historisk.json")
-                    )
-                )
+                wiremock.pdl(FNR, listOf(FNR))
                 val personId: PersonId = personOppslag.hentPerson(FNR)
-                assertThat(personId.fnr).isEqualTo(Ident("04010012797"))
+                assertThat(personId.fnr).isEqualTo(Ident(FNR.value))
             }
         }
     }

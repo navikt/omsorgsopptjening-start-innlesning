@@ -19,7 +19,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.bar
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - ingen hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl error not_found`
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr ett i bruk`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
@@ -550,7 +549,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
             )
         )
 
-        wiremock.`pdl fnr ett i bruk`()
+        wiremock.`pdl fnr fra query`()
+//        wiremock.`pdl fnr ett i bruk`()
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 
@@ -620,8 +620,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                 innlesingId = innlesing.id
             )
         )
-
-        wiremock.`pdl fnr ett i bruk`()
+        wiremock.`pdl fnr fra query`()
         wiremock.`hent-barnetrygd ok - ingen perioder`()
         wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
 
