@@ -38,7 +38,6 @@ fun WireMockExtension.`pdl error not_found`(fnr: String): StubMapping {
 
 fun WireMockExtension.pdl(fnr: Ident, historiske: List<Ident>): StubMapping {
     val fnrs = historiske.map { it.value }.toSet().plus(fnr.value)
-    println("PDL: fnrs=$fnrs")
     return this.stubFor(
         WireMock.post(WireMock.urlPathEqualTo("/graphql"))
             .withRequestBody(

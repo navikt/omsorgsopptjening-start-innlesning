@@ -6,6 +6,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.Serializer.toJson
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import pensjon.opptjening.azure.ad.client.TokenProvider
@@ -29,7 +31,9 @@ class HjelpestønadClient(
     internal val metrikker: Metrikker,
     webClientBuilder: WebClient.Builder,
 ) {
-    private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).build()
+    private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).filter(
+        logRequest()
+    ).build()
 
     internal fun hentHjelpestønad(
         fnr: Ident,
@@ -45,18 +49,26 @@ class HjelpestønadClient(
         tom: LocalDate
     ): HentHjelpestønadDBResponse {
         return webClient
-            .get()
-            .uri("/api/hjelpestonad?fom=$fom&tom=$tom")
-            .header("fnr", fnr.value)
+            .post()
+            .uri("/api/hjelpestonad/hent")
             .header(CorrelationId.identifier, Mdc.getCorrelationId().toString())
             .header(InnlesingId.identifier, Mdc.getInnlesingId().toString())
             .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(
+                HentHjelpestønadQuery(
+                    fnr = fnr.value,
+                    fom = fom,
+                    tom = tom
+                ).toJson()
+            )
             .retrieve()
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
             .block()?.let { response ->
-                response.body?.deserializeList<HjelpestønadVedtak>()?.let {
+                println("RESPONSE: ${response.body}")
+                val resp = response.body?.deserializeList<HjelpestønadVedtak>()?.let {
                     HentHjelpestønadDBResponse(
                         vedtak = it,
                         rådataFraKilde = RådataFraKilde(
@@ -68,7 +80,9 @@ class HjelpestønadClient(
                             )
                         )
                     )
-                } ?: HentHjelpestønadDBResponse(
+                }
+                println("RESP: $resp")
+                resp ?: HentHjelpestønadDBResponse(
                     vedtak = emptyList(),
                     rådataFraKilde = RådataFraKilde(
                         mapOf(

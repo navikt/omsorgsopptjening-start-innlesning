@@ -1,6 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad
 
-import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
@@ -13,10 +13,12 @@ import java.util.concurrent.atomic.AtomicInteger
 
 fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(forFnr: Ident): StubMapping {
     return this.stubFor(
-        WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
-            .withHeader("fnr", WireMock.equalTo(forFnr.value))
+        post(urlPathEqualTo("/api/hjelpestonad/hent"))
+            .withRequestBody(
+                matchingJsonPath("$.fnr", equalTo(forFnr.value))
+            )
             .willReturn(
-                WireMock.ok()
+                ok()
                     .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withBody(
                         """
@@ -29,9 +31,9 @@ fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(forFnr: Iden
 
 fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(): StubMapping {
     return this.stubFor(
-        WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
+        post(urlPathEqualTo("/api/hjelpestonad/hent"))
             .willReturn(
-                WireMock.ok()
+                ok()
                     .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withBody(
                         """
@@ -42,6 +44,21 @@ fun WireMockExtension.`hent hjelpestønad ok - ingen hjelpestønad`(): StubMappi
     )
 }
 
+fun WireMockExtension.`hent hjelpestønad - echo request`(): StubMapping {
+    return this.stubFor(
+        post(urlPathEqualTo("/api/hjelpestonad/hent"))
+            .willReturn(
+                ok()
+                    .withTransformers("response-template")
+                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .withBody(
+                        """
+                                {{{ request.body }}}
+                            """.trimIndent()
+                    )
+            )
+    )
+}
 
 fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
     forFnr: Ident,
@@ -49,10 +66,12 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
     tom: YearMonth = YearMonth.of(2025, 12),
 ): StubMapping {
     return this.stubFor(
-        WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
-            .withHeader("fnr", WireMock.equalTo(forFnr.value))
+        post(urlPathEqualTo("/api/hjelpestonad/hent"))
+            .withRequestBody(
+                matchingJsonPath("$.fnr", equalTo(forFnr.value))
+            )
             .willReturn(
-                WireMock.ok()
+                ok()
                     .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withBody(
                         """
@@ -79,18 +98,19 @@ fun resetHjelpestønadSequence() {
 
 fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(): StubMapping {
     return this.stubFor(
-        WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
+        post(urlPathEqualTo("/api/hjelpestonad/hent"))
             .willReturn(
-                WireMock.ok()
+                ok()
                     .withTransformers("response-template")
                     .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withTransformerParameter("seq", format("%d", sequence.incrementAndGet()))
                     .withBody(
                         """
+                            {{regexExtract request.body '"fnr"\:"([0-9]+)"' 'fnr'}}
                                 [
                                     {
                                         "id":"{{parameters.seq}}",
-                                        "ident":"{{request.headers.fnr}}",
+                                        "ident":"{{fnr}}",
                                         "fom":"2020-01",
                                         "tom":"2025-12",
                                         "omsorgstype":"FORHØYET_SATS_3"

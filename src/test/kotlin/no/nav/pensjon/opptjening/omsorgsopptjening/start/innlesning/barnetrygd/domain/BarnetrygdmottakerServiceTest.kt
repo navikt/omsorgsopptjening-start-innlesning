@@ -453,7 +453,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         )
 
         wiremock.stubFor(
-            WireMock.get(WireMock.urlPathEqualTo("/api/hjelpestonad"))
+            WireMock.post(WireMock.urlPathEqualTo("/api/hjelpestonad/hent"))
                 .willReturn(
                     WireMock.ok()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -511,9 +511,7 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
 
         wiremock.allServeEvents.forEach {
-            println("REQUEST: ")
             println(it.request.bodyAsString)
-            println("RESPONSE: ")
             println(it.response.bodyAsString)
         }
 
@@ -550,7 +548,6 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
         )
 
         wiremock.`pdl fnr fra query`()
-//        wiremock.`pdl fnr ett i bruk`()
         wiremock.`hent-barnetrygd ok`()
         wiremock.`hent hjelpestønad ok - har hjelpestønad`()
 

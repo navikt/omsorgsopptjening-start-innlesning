@@ -111,9 +111,7 @@ fun WireMockExtension.`hent-barnetrygd-med-fagsaker`(forFnr: Ident, fagsaker: Li
 
 fun WireMockExtension.`hent-barnetrygd-med-fagsaker`(fagsaker: List<WiremockFagsak>): StubMapping {
     synchronized(this) {
-        println("Wiremock: fagsaker: $fagsaker")
         val a = fagsaker.map { it.toMap() }
-        println("Wiremock: fagsaker: $fagsaker")
         return this.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/api/ekstern/pensjon/hent-barnetrygd"))
                 .withExpectedRequestHeadersHentBarnetryd()

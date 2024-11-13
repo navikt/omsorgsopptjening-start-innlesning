@@ -133,19 +133,6 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                 }""".trimIndent(),
                             false,
                         )
-                        /*
-                        println("XXXX")
-                        assertThat(
-                            serialize(it.rådataFraKilde)
-                        ).isEqualTo(
-                            """
-                                {"fnr":"123",
-                                "fom":"2020-01-01",
-                                "barnetrygd":
-                                "{\n    \"fagsaker\": [\n        {\n            \"fagsakEiersIdent\":\"12345678910\",\n            \"barnetrygdPerioder\":[\n                {\n                    \"personIdent\":\"09876543210\",\n                    \"delingsprosentYtelse\":\"FULL\",\n                    \"ytelseTypeEkstern\":\"ORDINÆR_BARNETRYGD\",\n                    \"utbetaltPerMnd\":2000,\n                    \"stønadFom\": \"2020-01\",\n                    \"stønadTom\": \"2025-12\",\n                    \"sakstypeEkstern\":\"NASJONAL\",\n                    \"kildesystem\":\"BA\",\n                    \"pensjonstrygdet\":null,\n                    \"norgeErSekundærlandMedNullUtbetaling\":false\n                }\n            ]\n        }\n    ]\n}"}
-                            """.trimIndent()
-                        )
-                         */
                     }
                 }
             }
@@ -202,7 +189,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                             gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
-                        assertContains(it.msg, "Liste med barnetrygdsaker mangler")
+                        assertThat(it.msg).contains("Liste med barnetrygdsaker mangler")
                     }
                 }
             }
@@ -222,7 +209,7 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                             gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
-                        assertContains(it.msg, "En eller flere av barnetrygdsakene mangler perioder")
+                        assertThat(it.msg).contains("En eller flere av barnetrygdsakene mangler perioder")
                     }
                 }
             }
