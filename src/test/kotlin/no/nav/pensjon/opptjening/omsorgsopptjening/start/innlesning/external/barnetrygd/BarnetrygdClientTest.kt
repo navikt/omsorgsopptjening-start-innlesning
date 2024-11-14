@@ -18,7 +18,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BestillBarnetrygdmottakereResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.HentBarnetrygdException
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -28,7 +27,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Month
 import java.time.YearMonth
-import kotlin.test.assertContains
 
 class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
@@ -50,11 +48,11 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
             wiremock.`bestill-personer-med-barnetrygd accepted`()
 
             client.bestillBarnetrygdmottakere(ar = År(2020)).also {
-                assertEquals(
+                assertThat(it).isEqualTo(
                     BestillBarnetrygdmottakereResponse(
                         InnlesingId.fromString("3d797c7d-6273-4be3-bd57-e13de35251f8"),
                         År(2020),
-                    ), it
+                    )
                 )
             }
         }
@@ -66,8 +64,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
             assertThrows<BestillBarnetrygdMottakereException> {
                 client.bestillBarnetrygdmottakere(ar = År(2020))
             }.also {
-                assertContains(it.msg, "500")
-                assertContains(it.msg, "{whatever this may contain}")
+                assertThat(it.msg).contains("500")
+                assertThat(it.msg).contains("{whatever this may contain}")
             }
         }
     }
@@ -150,8 +148,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                             gyldigÅrsintervall = GyldigÅrsintervallFilter(2020)
                         )
                     }.also {
-                        assertContains(it.msg, "FUNKSJONELL_FEIL")
-                        assertContains(it.msg, "Dette gikk ikke så bra")
+                        assertThat(it.msg).contains("FUNKSJONELL_FEIL")
+                        assertThat(it.msg).contains("Dette gikk ikke så bra")
                     }
                 }
             }

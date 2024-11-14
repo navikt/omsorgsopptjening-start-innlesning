@@ -17,8 +17,6 @@ import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
@@ -56,7 +54,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertNull(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1))
+        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1)).isNull()
 
         innlesingRepository.fullført(innlesing.ferdig())
 
@@ -171,8 +169,8 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             )
         )
 
-        assertTrue(barnetrygdmottakerRepository.finnAlle(innlesing.id).map { it.ident }
-            .containsAll(listOf(fnr(1), fnr(2))))
+        assertThat(barnetrygdmottakerRepository.finnAlle(innlesing.id).map { it.ident })
+            .containsExactlyInAnyOrder(fnr(1), fnr(2))
     }
 
     @Test

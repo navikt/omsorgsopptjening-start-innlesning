@@ -17,9 +17,9 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.Sakstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.YtelseTypeEkstern
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import java.time.Month
 import java.time.YearMonth
-import kotlin.test.Test
 
 class HentBarnetrygdDomainMapperTest {
     @Test

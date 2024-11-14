@@ -22,7 +22,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestClientException
-import kotlin.test.assertEquals
 
 internal class PdlServiceTest : SpringContextTest.NoKafka() {
 
@@ -175,7 +174,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
 
                 val error = assertThrows<PersonOppslagException> { pdlService.hentPerson(FNR) }
                 assertInstanceOf(PdlException::class.java, error.cause).also {
-                    assertEquals(PdlErrorCode.UNAUTHENTICATED, it.code)
+                    assertThat(it.code).isEqualTo(PdlErrorCode.UNAUTHENTICATED)
                 }
                 wiremock.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
             }
@@ -196,7 +195,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
 
                 val error = assertThrows<PersonOppslagException> { pdlService.hentPerson(FNR) }
                 assertInstanceOf(PdlException::class.java, error.cause).also {
-                    assertEquals(PdlErrorCode.UNAUTHORIZED, it.code)
+                    assertThat(it.code).isEqualTo(PdlErrorCode.UNAUTHORIZED)
                 }
                 wiremock.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
             }
@@ -217,7 +216,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
 
                 val error = assertThrows<PersonOppslagException> { pdlService.hentPerson(FNR) }
                 assertInstanceOf(PdlException::class.java, error.cause).also {
-                    assertEquals(PdlErrorCode.BAD_REQUEST, it.code)
+                    assertThat(it.code).isEqualTo(PdlErrorCode.BAD_REQUEST)
                 }
                 wiremock.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
             }
