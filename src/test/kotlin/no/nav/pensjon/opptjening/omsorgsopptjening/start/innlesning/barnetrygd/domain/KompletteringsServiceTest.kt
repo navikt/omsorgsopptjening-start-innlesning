@@ -5,10 +5,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.WiremockFagsak
@@ -347,7 +344,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             år = 2022,
         )
 
-        assertThatThrownBy {
+
+        val komplettert =
             Mdc.scopedMdc(mottatt.correlationId) {
                 Mdc.scopedMdc(mottatt.innlesingId) {
                     kompletteringsService.kompletter(
@@ -355,9 +353,13 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     )
                 }
             }
-        }
-            .isInstanceOf(BarnetrygdException.OverlappendePerioder::class.java)
-            .hasMessage("Overlappende perioder for samme omsorgsmottaker")
+        assertThat(komplettert.feilinformasjon)
+            .hasSize(1)
+            .first()
+            .isInstanceOf(Feilinformasjon.OverlappendeBarnetrygdperioder::class.java)
+        println(komplettert.feilinformasjon.first())
+
+        println(komplettert)
     }
 
     @Test
