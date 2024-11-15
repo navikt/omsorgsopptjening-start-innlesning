@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.IdentRolle
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
 import org.springframework.stereotype.Service
@@ -18,11 +19,15 @@ class KompletteringsService(
 
         val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
             try {
-                println("kompletter(BarnetrygdmottakerUtenPdlData.ident=${barnetrygdmottakerUtenPdlData.ident}")
-                hentPersonId(barnetrygdmottakerUtenPdlData.ident, "barnetrygdmottaker")
+                hentPersonId(
+                    fnr = barnetrygdmottakerUtenPdlData.ident,
+                    rolle = IdentRolle.BARNETRYGDMOTTAKER,
+                    beskrivelse = "barnetrygdmottaker"
+                )
             } catch (e: PersonOppslagException) {
                 throw BarnetrygdException.FeilVedHentingAvPersonId(
                     fnr = barnetrygdmottakerUtenPdlData.ident,
+                    rolle = IdentRolle.BARNETRYGDMOTTAKER,
                     msg = "Feil ved henting av barnetrygdmottaker fra PDL",
                     cause = e,
                 )
@@ -131,17 +136,26 @@ class KompletteringsService(
     fun oppdaterAlleFnr(barnetrygdData: PersongrunnlagOgRådata): PersongrunnlagOgRådata {
         try {
             val saker = barnetrygdData.persongrunnlag.map { sak ->
-                val omsorgsyter = hentPersonId(Ident(sak.omsorgsyter), "omsorgsyter").fnr
+                val omsorgsyter = hentPersonId(
+                    fnr = Ident(value = sak.omsorgsyter),
+                    rolle = IdentRolle.OMSORGSYTER_BARNETRYGD,
+                    beskrivelse = "omsorgsyter",
+                ).fnr
                 val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
                     val omsorgsmottaker =
-                        hentPersonId(Ident(omsorgsperiode.omsorgsmottaker), "omsorgsmottaker, barnetrygd").fnr
+                        hentPersonId(
+                            fnr = Ident(omsorgsperiode.omsorgsmottaker),
+                            rolle = IdentRolle.OMSORGSMOTTAKER_BARNETRYGD,
+                            beskrivelse = "omsorgsmottaker, barnetrygd"
+                        ).fnr
                     omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker.value)
                 }.distinct()
                 val hjelpestønadperioder = sak.hjelpestønadsperioder.map {
                     it.copy(
                         omsorgsmottaker = hentPersonId(
-                            Ident(it.omsorgsmottaker),
-                            "omsorgsmottaker, hjelpestønad"
+                            fnr = Ident(value = it.omsorgsmottaker),
+                            rolle = IdentRolle.OMSORGSMOTTAKER_HJELPESTONAD,
+                            beskrivelse = "omsorgsmottaker, hjelpestønad"
                         ).fnr.value
                     )
                 }.distinct()
@@ -161,16 +175,16 @@ class KompletteringsService(
         }
     }
 
-    private fun hentPersonId(fnr: Ident, beskrivelse: String): PersonId {
+    private fun hentPersonId(fnr: Ident, rolle: IdentRolle, beskrivelse: String): PersonId {
         try {
             return personIdService.personFromIdent(fnr)!!
         } catch (e: PersonOppslagException) {
-            println("XXXX: feil")
             e.printStackTrace()
             throw BarnetrygdException.FeilVedHentingAvPersonId(
-                fnr,
-                "Feil ved oppslag i PDL for '$beskrivelse'",
-                e
+                fnr = fnr,
+                rolle = rolle,
+                msg = "Feil ved oppslag i PDL for '$beskrivelse'",
+                cause = e
             )
         }
     }
