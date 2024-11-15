@@ -2,9 +2,11 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Feilinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.IdentRolle
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdClient
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
@@ -13,58 +15,117 @@ class KompletteringsService(
     private val client: BarnetrygdClient,
     private val hjelpestønadService: HjelpestønadService,
 ) {
+    companion object {
+        private val log = LoggerFactory.getLogger(KompletteringsService::class.java)
+        private val secureLog = LoggerFactory.getLogger("secure")
+    }
 
     fun kompletter(barnetrygdmottakerUtenPdlData: Barnetrygdmottaker.Mottatt): Komplettert {
         val gyldigÅrsIntervall = GyldigÅrsintervallFilter(barnetrygdmottakerUtenPdlData.år)
 
-        val barnetrygdmottaker = barnetrygdmottakerUtenPdlData.withPerson(
+        return Komplettering(
+            barnetrygdmottaker = barnetrygdmottakerUtenPdlData
+        ).andThen { komplettering ->
             try {
-                hentPersonId(
-                    fnr = barnetrygdmottakerUtenPdlData.ident,
-                    rolle = IdentRolle.BARNETRYGDMOTTAKER,
-                    beskrivelse = "barnetrygdmottaker"
+                komplettering.withBarnetrygdMottaker(
+                    barnetrygdmottakerUtenPdlData.withPerson(
+                        hentPersonId(
+                            fnr = barnetrygdmottakerUtenPdlData.ident,
+                            rolle = IdentRolle.BARNETRYGDMOTTAKER,
+                            beskrivelse = "barnetrygdmottaker"
+                        )
+                    )
                 )
             } catch (e: PersonOppslagException) {
-                throw BarnetrygdException.FeilVedHentingAvPersonId(
-                    fnr = barnetrygdmottakerUtenPdlData.ident,
-                    rolle = IdentRolle.BARNETRYGDMOTTAKER,
-                    msg = "Feil ved henting av barnetrygdmottaker fra PDL",
-                    cause = e,
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.UgyldigIdent(
+                        message = "Feil ved oppdatering av ident for barnetrygdmottaker",
+                        exceptionMessage = e.message ?: "",
+                        exceptionType = e::class.java.canonicalName,
+                        ident = barnetrygdmottakerUtenPdlData.ident.value,
+                        identRolle = IdentRolle.BARNETRYGDMOTTAKER,
+                    )
+                )
+            }
+        }.andThen { komplettering ->
+            komplettering.withBarnetrygdData(
+                hentBarnetrygd(komplettering.barnetrygdmottaker, gyldigÅrsIntervall)
+            )
+        }.andThen { komplettering ->
+            komplettering.withBarnetrygdData(
+                oppdaterAlleFnr(komplettering.barnetrygdData!!)
+            )
+        }.andThen { komplettering ->
+            println("FØR KOMPRIMERING BT:")
+            println("-> $komplettering")
+            try {
+                komplettering.withBarnetrygdData(
+                    komplettering.barnetrygdData!!.komprimer()
+                )
+            } catch (e: BarnetrygdException.OverlappendePerioder) {
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.OverlappendeBarnetrygdperioder(
+                        message = "Overlappende barnetrygdperioder"
+                    )
+                )
+            }
+        }.andThen { komplettering ->
+            println("FØR KOMPRIMERING HS:")
+            komplettering.withBarnetrygdData(
+                hentHjelpestønadGrunnlag(komplettering.barnetrygdData!!, gyldigÅrsIntervall)
+            )
+        }.andThen { komplettering ->
+            komplettering.withBarnetrygdData(
+                oppdaterAlleFnr(
+                    komplettering.barnetrygdData!!
+                )
+            )
+        }.andThen { komplettering ->
+            try {
+                komplettering.withBarnetrygdData(
+                    komplettering.barnetrygdData!!.komprimer()
+                )
+            } catch (e: BarnetrygdException.OverlappendePerioder) {
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.Overlappendehjelpestønadperioder(
+                        message = "Overlappende hjelpestønadperioder"
+                    )
+                )
+            }
+
+        }.andThen { komplettering ->
+            komplettering.withRådata(
+                Rådata(komplettering.barnetrygdData!!.rådataFraKilde + komplettering.barnetrygdData!!.rådataFraKilde)
+            )
+        }.mapTo(
+            whenOk = { komplettering ->
+                Komplettert(
+                    barnetrygdmottaker = komplettering.barnetrygdmottaker,
+                    persongrunnlag = komplettering.barnetrygdData!!.persongrunnlag,
+                    rådata = komplettering.rådata!!,
+                )
+            },
+            whenFeilet = { komplettering ->
+                Komplettert(
+                    barnetrygdmottaker = komplettering.barnetrygdmottaker,
+                    persongrunnlag = komplettering.barnetrygdData?.persongrunnlag ?: emptyList(),
+                    feilinformasjon = listOf(komplettering.feilinformasjon!!),
+                    rådata = komplettering.rådata ?: Rådata(),
                 )
             }
         )
-
-        val barnetrygdData: PersongrunnlagOgRådata =
-            oppdaterAlleFnr(
-                hentBarnetrygd(barnetrygdmottaker, gyldigÅrsIntervall)
-            ).komprimer()
-
-
-        val hjelpestønadData =
-            oppdaterAlleFnr(
-                hentHjelpestønadGrunnlag(barnetrygdData.persongrunnlag, gyldigÅrsIntervall)
-            )
-
-        val rådata = Rådata(barnetrygdData.rådataFraKilde + hjelpestønadData.rådataFraKilde)
-
-        val komplettert = Komplettert(
-            barnetrygdmottaker = barnetrygdmottaker,
-            persongrunnlag = hjelpestønadData.persongrunnlag,
-            rådata = rådata,
-        )
-        return komplettert
     }
 
     private fun hentHjelpestønadGrunnlag(
-        persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
+        persongrunnlagOgRådata: PersongrunnlagOgRådata,
         filter: GyldigÅrsintervallFilter
     ): PersongrunnlagOgRådata {
-        return persongrunnlag.map {
+        return persongrunnlagOgRådata.persongrunnlag.map {
             persongrunnlagMedHjelpestønader(it, filter)
         }.let { responses ->
             PersongrunnlagOgRådata(
                 persongrunnlag = responses.map { resp -> resp.persongrunnlag },
-                rådataFraKilde = responses.flatMap { resp -> resp.rådataFraKilde }
+                rådataFraKilde = persongrunnlagOgRådata.rådataFraKilde + responses.flatMap { resp -> resp.rådataFraKilde }
             )
         }
     }
@@ -97,7 +158,10 @@ class KompletteringsService(
         )
         val hjelpestønadRådata = hjelpestønad.map { it.rådataFraKilde }
         val hjelpestønadsperioder = hjelpestønad.flatMap { it.perioder }
-        return HjelpestønadResponse(persongrunnlag.medHjelpestønadPerioder(hjelpestønadsperioder), hjelpestønadRådata)
+        return HjelpestønadResponse(
+            persongrunnlag.medHjelpestønadPerioder(hjelpestønadsperioder),
+            hjelpestønadRådata
+        )
     }
 
 
@@ -196,6 +260,53 @@ class KompletteringsService(
     data class Komplettert(
         val barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
         val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
+        val feilinformasjon: List<Feilinformasjon> = emptyList(),
         val rådata: Rådata,
     )
+
+
+    data class Komplettering(
+        val barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
+        val feilinformasjon: Feilinformasjon? = null,
+        val barnetrygdData: PersongrunnlagOgRådata? = null,
+        val rådata: Rådata? = null,
+    ) {
+
+        val feilet = feilinformasjon != null
+
+        fun andThen(block: (Komplettering) -> Komplettering): Komplettering {
+            return if (feilet) {
+                this
+            } else {
+                block(this)
+            }
+        }
+
+        fun <T> mapTo(
+            whenOk: (Komplettering) -> T,
+            whenFeilet: (Komplettering) -> T
+        ): T {
+            return if (feilet) {
+                whenFeilet(this)
+            } else {
+                return whenOk(this)
+            }
+        }
+
+        fun withBarnetrygdMottaker(barnetrygdmottaker: Barnetrygdmottaker.Mottatt): Komplettering {
+            return copy(barnetrygdmottaker = barnetrygdmottaker)
+        }
+
+        fun withBarnetrygdData(barnetrygdData: PersongrunnlagOgRådata): Komplettering {
+            return copy(barnetrygdData = barnetrygdData)
+        }
+
+        fun withFeilinformasjon(feilinformasjon: Feilinformasjon): Komplettering {
+            return copy(feilinformasjon = feilinformasjon)
+        }
+
+        fun withRådata(rådata: Rådata): Komplettering {
+            return copy(rådata = rådata)
+        }
+    }
 }
