@@ -363,6 +363,66 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
+    fun `omsorgsmottaker har overlappende perioder fra samme kall`() {
+        fun fnr(i: Int) = Ident(format("%011d", i))
+        wiremock.`pdl fnr fra query`()
+
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2),
+                            stønadFom = YearMonth.of(2022, 3),
+                            stønadTom = YearMonth.of(2023, 10),
+                            utbetaltPerMnd = 1000,
+                        ),
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2),
+                            stønadFom = YearMonth.of(2022, 5),
+                            stønadTom = YearMonth.of(2023, 11),
+                            utbetaltPerMnd = 2000,
+                        ),
+                    )
+                ),
+            )
+        )
+
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+
+        val komplettert =
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    kompletteringsService.kompletter(
+                        mottatt
+                    )
+                }
+            }
+        println(komplettert)
+
+        assertThat(komplettert.feilinformasjon)
+            .hasSize(1)
+            .first()
+            .isInstanceOf(Feilinformasjon.FeilIDataGrunnlag::class.java)
+        println(komplettert.feilinformasjon.first())
+    }
+
+
+    @Test
     fun `hjelpestønad har overlappende perioder`() {
         fun fnr(i: Int) = Ident(format("%011d", i))
         wiremock.pdl(fnr(1), listOf(fnr(1_1), fnr(1_2), fnr(1_3)))
@@ -454,22 +514,21 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             år = 2022,
         )
 
-        assertThatThrownBy {
+        val komplettert =
             Mdc.scopedMdc(mottatt.correlationId) {
                 Mdc.scopedMdc(mottatt.innlesingId) {
-                    val komplettert = kompletteringsService.kompletter(
+                    kompletteringsService.kompletter(
                         mottatt
                     )
-                    assertThat(komplettert.persongrunnlag).hasSize(1)
-                    println("---")
-                    komplettert.persongrunnlag[0].hjelpestønadsperioder.forEach {
-                        println("HS: $it")
-                    }
-                    println("---")
                 }
             }
-        }.isInstanceOf(BarnetrygdException.OverlappendePerioder::class.java)
-            .hasMessage("Overlappende hjelpestønadsperioder")
+        assertThat(komplettert.feilinformasjon)
+            .hasSize(1)
+            .first()
+            .isInstanceOf(Feilinformasjon.OverlappendeHjelpestønadperioder::class.java)
+        println(komplettert.feilinformasjon.first())
+
+        assertThat(komplettert.persongrunnlag).hasSize(1)
     }
 
 

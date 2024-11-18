@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.HentBarnetrygdResponse
 import org.springframework.http.HttpStatus
@@ -34,16 +35,25 @@ object HentBarnetrygdResponseHandler {
                                 }
 
                                 else -> {
-                                    HentBarnetrygdResponse(
-                                        barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),
-                                        rådataFraKilde = RådataFraKilde(
-                                            mapOf(
-                                                "fnr" to request.ident,
-                                                "fom" to request.fraDato,
-                                                "barnetrygd" to "${response.body}"
-                                            )
+                                    val rådata = RådataFraKilde(
+                                        mapOf(
+                                            "fnr" to request.ident,
+                                            "fom" to request.fraDato,
+                                            "barnetrygd" to "${response.body}"
                                         )
                                     )
+                                    try {
+                                        HentBarnetrygdResponse(
+                                            barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),
+                                            rådataFraKilde = rådata
+                                        )
+                                    } catch (e: IllegalArgumentException) {
+                                        throw BarnetrygdException.FeilIGrunnlagsdata(
+                                            msg = "Feil ved deserialisering av barnetrygdsaker",
+                                            cause = e,
+                                            rådata = rådata
+                                        )
+                                    }
                                 }
                             }
                         }

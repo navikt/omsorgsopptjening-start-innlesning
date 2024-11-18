@@ -37,6 +37,7 @@ class KompletteringsService(
                     )
                 )
             } catch (e: PersonOppslagException) {
+                log.warn("Fikk ved ved oppdatering av ident for barnetrygdmottaker", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.UgyldigIdent(
                         message = "Feil ved oppdatering av ident for barnetrygdmottaker",
@@ -48,16 +49,24 @@ class KompletteringsService(
                 )
             }
         }.andThen { komplettering ->
-            komplettering.withBarnetrygdData(
-                hentBarnetrygd(komplettering.barnetrygdmottaker, gyldigÅrsIntervall)
-            )
+            try {
+                komplettering.withBarnetrygdData(
+                    hentBarnetrygd(komplettering.barnetrygdmottaker, gyldigÅrsIntervall)
+                )
+            } catch (e: BarnetrygdException.FeilIGrunnlagsdata) {
+                komplettering
+                    .withRådata(Rådata(listOf(e.rådata))) // TODO: gjøre dette penere
+                    .withFeilinformasjon(
+                        Feilinformasjon.FeilIDataGrunnlag(
+                            message = "Feil i datagrunnlag: ${e.message}",
+                        )
+                    )
+            }
         }.andThen { komplettering ->
             komplettering.withBarnetrygdData(
                 oppdaterAlleFnr(komplettering.barnetrygdData!!)
             )
         }.andThen { komplettering ->
-            println("FØR KOMPRIMERING BT:")
-            println("-> $komplettering")
             try {
                 komplettering.withBarnetrygdData(
                     komplettering.barnetrygdData!!.komprimer()
@@ -70,16 +79,23 @@ class KompletteringsService(
                 )
             }
         }.andThen { komplettering ->
-            println("FØR KOMPRIMERING HS:")
             komplettering.withBarnetrygdData(
                 hentHjelpestønadGrunnlag(komplettering.barnetrygdData!!, gyldigÅrsIntervall)
             )
         }.andThen { komplettering ->
-            komplettering.withBarnetrygdData(
-                oppdaterAlleFnr(
-                    komplettering.barnetrygdData!!
+            try {
+                komplettering.withBarnetrygdData(
+                    oppdaterAlleFnr(
+                        komplettering.barnetrygdData!!
+                    )
                 )
-            )
+            } catch (e: BarnetrygdException.OverlappendePerioder) {
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.OverlappendeHjelpestønadperioder(
+                        message = "Overlappende hjelpestønadperioder"
+                    )
+                )
+            }
         }.andThen { komplettering ->
             try {
                 komplettering.withBarnetrygdData(
@@ -87,7 +103,7 @@ class KompletteringsService(
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
                 komplettering.withFeilinformasjon(
-                    Feilinformasjon.Overlappendehjelpestønadperioder(
+                    Feilinformasjon.OverlappendeHjelpestønadperioder(
                         message = "Overlappende hjelpestønadperioder"
                     )
                 )
