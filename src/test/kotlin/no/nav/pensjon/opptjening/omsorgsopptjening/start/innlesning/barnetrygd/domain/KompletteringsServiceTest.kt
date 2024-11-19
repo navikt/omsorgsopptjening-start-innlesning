@@ -8,7 +8,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFr
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.ApplicationStatus
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.WiremockFagsak
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok uten fagsaker`
@@ -20,7 +19,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl error not_found`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -555,7 +553,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    fun `barnetrygdmottaker har ugyldig fødselsnummer`() {
+    fun `barnetrygdmottaker mangler gjeldende ident`() {
         fun fnr(i: Int) = Ident(format("%011d", i))
         wiremock.`pdl - ingen gjeldende`(listOf(fnr(1)))
         wiremock.`hent-barnetrygd-med-fagsaker`(
@@ -605,7 +603,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    fun `omsorgsmottaker har ugyldig fødselsnummer`() {
+    fun `omsorgsmottaker for barnetrygd mangler gjeldende ident`() {
         fun fnr(i: Int) = Ident(format("%011d", i))
         wiremock.pdl(fnr(1), emptyList())
         wiremock.`pdl - ingen gjeldende`(listOf(fnr(2)))
@@ -638,7 +636,6 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             statushistorikk = emptyList(),
             år = 2022,
         )
-
 
         val komplettert =
             Mdc.scopedMdc(mottatt.correlationId) {
