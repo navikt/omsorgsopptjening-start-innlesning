@@ -12,7 +12,6 @@ class PdlService(
 ) : PersonOppslag {
 
     override fun hentPerson(fnr: Ident): PersonId {
-        println("hentPerson: fnr=$fnr")
         try {
             val pdlResponse = pdlClient.hentPerson(fnr = fnr)
 

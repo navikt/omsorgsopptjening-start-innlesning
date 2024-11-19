@@ -66,7 +66,6 @@ class HjelpestønadClient(
             .onStatus(not200()) { Mono.empty() }
             .toEntity<String>()
             .block()?.let { response ->
-                println("RESPONSE: ${response.body}")
                 val resp = response.body?.deserializeList<HjelpestønadVedtak>()?.let {
                     HentHjelpestønadDBResponse(
                         vedtak = it,
@@ -80,7 +79,6 @@ class HjelpestønadClient(
                         )
                     )
                 }
-                println("RESP: $resp")
                 resp ?: HentHjelpestønadDBResponse(
                     vedtak = emptyList(),
                     rådataFraKilde = RådataFraKilde(

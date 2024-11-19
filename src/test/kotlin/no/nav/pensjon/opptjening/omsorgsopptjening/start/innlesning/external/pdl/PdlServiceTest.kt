@@ -185,14 +185,7 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
     fun `Given unauthorized When calling pdl Then throw PdlException`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
-                wiremock.stubFor(
-                    WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(
-                        WireMock.aResponse()
-                            .withHeader("Content-Type", "application/json")
-                            .withBodyFile("pdl/error_unauthorized.json")
-                    )
-                )
-
+                wiremock.`pdl - unauthorized`()
                 val error = assertThrows<PersonOppslagException> { pdlService.hentPerson(FNR) }
                 assertInstanceOf(PdlException::class.java, error.cause).also {
                     assertThat(it.code).isEqualTo(PdlErrorCode.UNAUTHORIZED)
