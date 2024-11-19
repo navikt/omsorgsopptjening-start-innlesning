@@ -8,6 +8,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFr
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.ApplicationStatus
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.WiremockFagsak
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok - ingen perioder`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok uten fagsaker`
@@ -15,6 +16,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.bar
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - ingen hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.pdl
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl - ingen gjeldende`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl error not_found`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl fnr fra query`
 import org.assertj.core.api.Assertions.assertThat
@@ -241,7 +243,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             år = 2022,
         )
 
-        assertThatThrownBy {
+        val komplettert =
             Mdc.scopedMdc(mottatt.correlationId) {
                 Mdc.scopedMdc(mottatt.innlesingId) {
                     kompletteringsService.kompletter(
@@ -249,15 +251,33 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     )
                 }
             }
-        }.isInstanceOf(BarnetrygdException.FeilVedHentingAvPersonId::class.java)
-            .hasMessageContaining("barnetrygdmottaker")
-            .hasFieldOrPropertyWithValue("fnr", fnr(1_1))
+        assertThat(komplettert.feilinformasjon)
+            .hasSize(1)
+            .first()
+            .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
+            .hasFieldOrPropertyWithValue("ident", fnr(1_1).value)
+            .hasFieldOrPropertyWithValue("identRolle", IdentRolle.BARNETRYGDMOTTAKER)
     }
 
     @Test
     fun `omsorgsmottaker finnes ikke i PDL`() {
         fun fnr(i: Int) = Ident(format("%011d", i))
-        wiremock.`pdl error not_found`(fnr(1).value)
+        wiremock.pdl(fnr(1), emptyList())
+        wiremock.`pdl error not_found`(fnr(2).value)
+
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1),
+                    perioder = listOf(
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2),
+                        )
+                    )
+                )
+            )
+        )
 
         val mottatt = Barnetrygdmottaker.Mottatt(
             id = UUID.randomUUID(),
@@ -270,7 +290,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             år = 2022,
         )
 
-        assertThatThrownBy {
+        val komplettert =
             Mdc.scopedMdc(mottatt.correlationId) {
                 Mdc.scopedMdc(mottatt.innlesingId) {
                     kompletteringsService.kompletter(
@@ -278,9 +298,12 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     )
                 }
             }
-        }.isInstanceOf(BarnetrygdException.FeilVedHentingAvPersonId::class.java)
-            .hasMessageContaining("barnetrygdmottaker")
-            .hasFieldOrPropertyWithValue("fnr", fnr(1))
+        assertThat(komplettert.feilinformasjon)
+            .hasSize(1)
+            .first()
+            .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
+            .hasFieldOrPropertyWithValue("ident", fnr(2).value)
+            .hasFieldOrPropertyWithValue("identRolle", IdentRolle.OMSORGSMOTTAKER_BARNETRYGD)
     }
 
     @Test
@@ -531,6 +554,106 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         assertThat(komplettert.persongrunnlag).hasSize(1)
     }
 
+    @Test
+    fun `barnetrygdmottaker har ugyldig fødselsnummer`() {
+        fun fnr(i: Int) = Ident(format("%011d", i))
+        wiremock.`pdl - ingen gjeldende`(listOf(fnr(1)))
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2),
+                            stønadFom = YearMonth.of(2022, 3),
+                            stønadTom = YearMonth.of(2023, 10),
+                            utbetaltPerMnd = 1000,
+                        ),
+                    )
+                ),
+            )
+        )
+
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+
+        val komplettert =
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    kompletteringsService.kompletter(
+                        mottatt
+                    )
+                }
+            }
+        assertThat(komplettert.feilinformasjon)
+            .hasSize(1)
+            .first()
+            .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
+        println(komplettert.feilinformasjon.first())
+    }
+
+    @Test
+    fun `omsorgsmottaker har ugyldig fødselsnummer`() {
+        fun fnr(i: Int) = Ident(format("%011d", i))
+        wiremock.pdl(fnr(1), emptyList())
+        wiremock.`pdl - ingen gjeldende`(listOf(fnr(2)))
+        wiremock.`hent-barnetrygd-med-fagsaker`(
+            forFnr = fnr(1),
+            fagsaker = listOf(
+                WiremockFagsak(
+                    eier = fnr(1), perioder =
+                    listOf(
+                        WiremockFagsak.BarnetrygdPeriode(
+                            personIdent = fnr(2),
+                            stønadFom = YearMonth.of(2022, 3),
+                            stønadTom = YearMonth.of(2023, 10),
+                            utbetaltPerMnd = 1000,
+                        ),
+                    )
+                ),
+            )
+        )
+
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        val mottatt = Barnetrygdmottaker.Mottatt(
+            id = UUID.randomUUID(),
+            opprettet = Instant.now(),
+            ident = fnr(1),
+            personId = null,
+            correlationId = CorrelationId.generate(),
+            innlesingId = InnlesingId.generate(),
+            statushistorikk = emptyList(),
+            år = 2022,
+        )
+
+
+        val komplettert =
+            Mdc.scopedMdc(mottatt.correlationId) {
+                Mdc.scopedMdc(mottatt.innlesingId) {
+                    kompletteringsService.kompletter(
+                        mottatt
+                    )
+                }
+            }
+        assertThat(komplettert.feilinformasjon)
+            .hasSize(1)
+            .first()
+            .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
+        println(komplettert.feilinformasjon.first())
+    }
 
     private fun persongrunnlag(
         omsorgsyter: String,

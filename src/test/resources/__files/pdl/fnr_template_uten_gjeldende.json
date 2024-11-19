@@ -1,0 +1,19 @@
+{
+  "data": {
+    "hentPerson": {
+      "folkeregisteridentifikator": [
+        {{#each parameters.historiske}}
+        {
+          "identifikasjonsnummer": "{{this}}",
+          "status": "OPPHOERT",
+          "type": "FNR",
+          "metadata": {
+            "historisk": true,
+            "master": "FREG"
+          }
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+      ]
+    }
+  }
+}

@@ -36,7 +36,7 @@ class KompletteringsService(
                         )
                     )
                 )
-            } catch (e: PersonOppslagException) {
+            } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 log.warn("Fikk ved ved oppdatering av ident for barnetrygdmottaker", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.UgyldigIdent(
@@ -63,9 +63,21 @@ class KompletteringsService(
                     )
             }
         }.andThen { komplettering ->
-            komplettering.withBarnetrygdData(
-                oppdaterAlleFnr(komplettering.barnetrygdData!!)
-            )
+            try {
+                komplettering.withBarnetrygdData(
+                    oppdaterAlleFnr(komplettering.barnetrygdData!!)
+                )
+            } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.UgyldigIdent(
+                        message = "Feil ved oppdatering av ident for omsorgsmottaker",
+                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.message ?: "",
+                        ident = e.fnr.value,
+                        identRolle = e.rolle,
+                    )
+                )
+            }
         }.andThen { komplettering ->
             try {
                 komplettering.withBarnetrygdData(
@@ -259,7 +271,6 @@ class KompletteringsService(
         try {
             return personIdService.personFromIdent(fnr)!!
         } catch (e: PersonOppslagException) {
-            e.printStackTrace()
             throw BarnetrygdException.FeilVedHentingAvPersonId(
                 fnr = fnr,
                 rolle = rolle,
