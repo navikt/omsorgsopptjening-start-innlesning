@@ -103,6 +103,7 @@ class BarnetrygdinformasjonRepositoryTest : SpringContextTest.NoKafka() {
                     )
                 )
             ),
+            feilinformasjon = emptyList(),
             rådata = Rådata(listOf(RådataFraKilde(mapOf("eple" to "eple", "banan" to "banan")))),
             correlationId = barnetrygdmottaker.correlationId,
             innlesingId = innlesing.id,

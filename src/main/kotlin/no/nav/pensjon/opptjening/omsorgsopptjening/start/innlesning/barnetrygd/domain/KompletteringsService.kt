@@ -139,8 +139,8 @@ class KompletteringsService(
             whenFeilet = { komplettering ->
                 Komplettert(
                     barnetrygdmottaker = komplettering.barnetrygdmottaker,
-                    persongrunnlag = komplettering.persongrunnlag?.persongrunnlag ?: emptyList(),
-                    feilinformasjon = listOf(komplettering.feilinformasjon!!),
+                    persongrunnlag = emptyList(),
+                    feilinformasjon = komplettering.feilinformasjon?.let { listOf(it) } ?: emptyList(),
                     rådata = komplettering.akkumulertRådata(),
                 )
             }
