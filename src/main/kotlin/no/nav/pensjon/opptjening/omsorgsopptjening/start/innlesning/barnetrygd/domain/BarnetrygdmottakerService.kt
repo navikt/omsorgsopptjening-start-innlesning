@@ -119,10 +119,15 @@ class BarnetrygdmottakerService(
             barnetrygdmottakerId = komplettert.barnetrygdmottaker.id,
             ident = komplettert.barnetrygdmottaker.personId!!.fnr,
             persongrunnlag = komplettert.persongrunnlag,
+            feilinformasjon = komplettert.feilinformasjon,
             rådata = komplettert.rådata,
             correlationId = komplettert.barnetrygdmottaker.correlationId,
             innlesingId = komplettert.barnetrygdmottaker.innlesingId,
-            status = Barnetrygdinformasjon.Status.KLAR,
+            status = if (komplettert.feilinformasjon.isEmpty()) {
+                Barnetrygdinformasjon.Status.KLAR
+            } else {
+                Barnetrygdinformasjon.Status.IKKE_SEND
+            }
         )
     }
 

@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Feilinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
@@ -32,6 +33,7 @@ class BarnetrygdinformasjonRepository(
                 |created,
                 |ident,
                 |persongrunnlag,
+                |feilinformasjon,
                 |rådata,
                 |correlationId,
                 |innlesingId,
@@ -44,6 +46,7 @@ class BarnetrygdinformasjonRepository(
                 |:created::timestamptz,
                 |:ident,
                 |to_jsonb(:persongrunnlag::jsonb),
+                |to_jsonb(:feilinformasjon::jsonb),
                 |to_jsonb(:rådata::jsonb),
                 |:correlationId,
                 |:innlesingId,
@@ -56,12 +59,14 @@ class BarnetrygdinformasjonRepository(
                 "created" to Instant.now().toString(),
                 "ident" to barnetrygdinformasjon.ident.value,
                 "persongrunnlag" to serialize(barnetrygdinformasjon.persongrunnlag),
+                "feilinformasjon" to serialize(barnetrygdinformasjon.feilinformasjon),
                 "rådata" to serialize(barnetrygdinformasjon.rådata),
                 "correlationId" to barnetrygdinformasjon.correlationId.toUUID(),
                 "innlesingId" to barnetrygdinformasjon.innlesingId.toUUID(),
                 "status" to when (barnetrygdinformasjon.status) {
                     Barnetrygdinformasjon.Status.KLAR -> "Klar"
                     Barnetrygdinformasjon.Status.SENDT -> "Sendt"
+                    Barnetrygdinformasjon.Status.IKKE_SEND -> "Ikke send"
                 },
                 "lockId" to null,
                 "lockTime" to null
@@ -101,6 +106,7 @@ class BarnetrygdinformasjonRepository(
                 "status" to when (barnetrygdinformasjon.status) {
                     Barnetrygdinformasjon.Status.KLAR -> "Klar"
                     Barnetrygdinformasjon.Status.SENDT -> "Sendt"
+                    Barnetrygdinformasjon.Status.IKKE_SEND -> "Ikke send"
                 },
                 "id" to barnetrygdinformasjon.id
             )
@@ -171,12 +177,14 @@ class BarnetrygdinformasjonRepository(
                 created = rs.getTimestamp("created").toInstant(),
                 ident = Ident(rs.getString("ident")),
                 persongrunnlag = deserialize<List<PersongrunnlagMelding.Persongrunnlag>>(rs.getString("persongrunnlag")),
+                feilinformasjon = deserialize<List<Feilinformasjon>>(rs.getString("feilinformasjon")),
                 rådata = deserialize<Rådata>(rs.getString("rådata")),
                 correlationId = CorrelationId.fromString(rs.getString("correlationId")),
                 innlesingId = InnlesingId.fromString(rs.getString("innlesingId")),
                 status = when (val value = rs.getString("status")) {
                     "Klar" -> Barnetrygdinformasjon.Status.KLAR
                     "Sendt" -> Barnetrygdinformasjon.Status.SENDT
+                    "Ikke send" -> Barnetrygdinformasjon.Status.IKKE_SEND
                     else -> throw UgyldigBarnetrygdinformasjonException("Ukjent status: $value")
                 }
             )

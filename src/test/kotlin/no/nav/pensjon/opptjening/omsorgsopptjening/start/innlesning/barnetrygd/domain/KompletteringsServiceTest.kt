@@ -548,7 +548,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .isInstanceOf(Feilinformasjon.OverlappendeHjelpestønadperioder::class.java)
         println(komplettert.feilinformasjon.first())
 
-        assertThat(komplettert.persongrunnlag).hasSize(1)
+        assertThat(komplettert.persongrunnlag).isEmpty()
         assertThat(komplettert.rådata).hasSize(12)
     }
 

@@ -90,6 +90,7 @@ class SendTilBestemService(
                 PersongrunnlagMelding(
                     omsorgsyter = barnetrygdinformasjon.ident.value,
                     persongrunnlag = barnetrygdinformasjon.persongrunnlag,
+                    feilinfo = barnetrygdinformasjon.feilinformasjon,
                     rådata = barnetrygdinformasjon.rådata,
                     innlesingId = barnetrygdinformasjon.innlesingId,
                     correlationId = barnetrygdinformasjon.correlationId,

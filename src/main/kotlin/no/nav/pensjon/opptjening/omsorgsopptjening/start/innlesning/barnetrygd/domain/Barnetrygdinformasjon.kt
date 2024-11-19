@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Feilinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import java.time.Instant
 import java.util.*
@@ -13,6 +14,7 @@ data class Barnetrygdinformasjon(
     val created: Instant = Instant.now(),
     val ident: Ident,
     val persongrunnlag: List<PersongrunnlagMelding.Persongrunnlag>,
+    val feilinformasjon: List<Feilinformasjon>,
     val rådata: Rådata,
     val correlationId: CorrelationId,
     val innlesingId: InnlesingId,
@@ -21,6 +23,7 @@ data class Barnetrygdinformasjon(
     enum class Status {
         KLAR,
         SENDT,
+        IKKE_SEND,
     }
 
     override fun equals(other: Any?): Boolean {
@@ -42,6 +45,10 @@ data class Barnetrygdinformasjon(
 
     fun sendt(): Barnetrygdinformasjon {
         return copy(status = Status.SENDT)
+    }
+
+    fun feil(): Barnetrygdinformasjon {
+        return copy(status = Status.IKKE_SEND)
     }
 
     override fun hashCode(): Int {
