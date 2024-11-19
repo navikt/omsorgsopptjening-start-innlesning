@@ -50,12 +50,12 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
-                komplettering.withBarnetrygdData(
+                komplettering.withPersongrunnlag(
                     hentBarnetrygd(komplettering.barnetrygdmottaker, gyldigÅrsIntervall)
                 )
             } catch (e: BarnetrygdException.FeilIGrunnlagsdata) {
                 komplettering
-                    .withRådata(Rådata(listOf(e.rådata))) // TODO: gjøre dette penere
+                    .withLøseRådata(e.rådata) // TODO: gjøre dette penere
                     .withFeilinformasjon(
                         Feilinformasjon.FeilIDataGrunnlag(
                             message = "Feil i datagrunnlag: ${e.message}",
@@ -64,8 +64,8 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
-                komplettering.withBarnetrygdData(
-                    oppdaterAlleFnr(komplettering.barnetrygdData!!)
+                komplettering.withPersongrunnlag(
+                    oppdaterAlleFnr(komplettering.persongrunnlag!!)
                 )
             } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 komplettering.withFeilinformasjon(
@@ -80,8 +80,8 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
-                komplettering.withBarnetrygdData(
-                    komplettering.barnetrygdData!!.komprimer()
+                komplettering.withPersongrunnlag(
+                    komplettering.persongrunnlag!!.komprimer()
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
                 komplettering.withFeilinformasjon(
@@ -91,14 +91,22 @@ class KompletteringsService(
                 )
             }
         }.andThen { komplettering ->
-            komplettering.withBarnetrygdData(
-                hentHjelpestønadGrunnlag(komplettering.barnetrygdData!!, gyldigÅrsIntervall)
-            )
+            try {
+                komplettering.withPersongrunnlag(
+                    hentHjelpestønadGrunnlag(komplettering.persongrunnlag!!, gyldigÅrsIntervall)
+                )
+            } catch (e: IllegalArgumentException) {
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.FeilIDataGrunnlag(
+                        message = "Feil i datagrunnlag ved henting av hjelpestønadgrunnlag"
+                    )
+                )
+            }
         }.andThen { komplettering ->
             try {
-                komplettering.withBarnetrygdData(
+                komplettering.withPersongrunnlag(
                     oppdaterAlleFnr(
-                        komplettering.barnetrygdData!!
+                        komplettering.persongrunnlag!!
                     )
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
@@ -110,8 +118,8 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
-                komplettering.withBarnetrygdData(
-                    komplettering.barnetrygdData!!.komprimer()
+                komplettering.withPersongrunnlag(
+                    komplettering.persongrunnlag!!.komprimer()
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
                 komplettering.withFeilinformasjon(
@@ -120,25 +128,20 @@ class KompletteringsService(
                     )
                 )
             }
-
-        }.andThen { komplettering ->
-            komplettering.withRådata(
-                Rådata(komplettering.barnetrygdData!!.rådataFraKilde + komplettering.barnetrygdData!!.rådataFraKilde)
-            )
         }.mapTo(
             whenOk = { komplettering ->
                 Komplettert(
                     barnetrygdmottaker = komplettering.barnetrygdmottaker,
-                    persongrunnlag = komplettering.barnetrygdData!!.persongrunnlag,
-                    rådata = komplettering.rådata!!,
+                    persongrunnlag = komplettering.persongrunnlag!!.persongrunnlag,
+                    rådata = komplettering.akkumulertRådata(),
                 )
             },
             whenFeilet = { komplettering ->
                 Komplettert(
                     barnetrygdmottaker = komplettering.barnetrygdmottaker,
-                    persongrunnlag = komplettering.barnetrygdData?.persongrunnlag ?: emptyList(),
+                    persongrunnlag = komplettering.persongrunnlag?.persongrunnlag ?: emptyList(),
                     feilinformasjon = listOf(komplettering.feilinformasjon!!),
-                    rådata = komplettering.rådata ?: Rådata(),
+                    rådata = komplettering.akkumulertRådata(),
                 )
             }
         )
@@ -295,10 +298,9 @@ class KompletteringsService(
     data class Komplettering(
         val barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
         val feilinformasjon: Feilinformasjon? = null,
-        val barnetrygdData: PersongrunnlagOgRådata? = null,
-        val rådata: Rådata? = null,
+        val persongrunnlag: PersongrunnlagOgRådata? = null,
+        val løseRådata: RådataFraKilde? = null,
     ) {
-
         val feilet = feilinformasjon != null
 
         fun andThen(block: (Komplettering) -> Komplettering): Komplettering {
@@ -307,6 +309,12 @@ class KompletteringsService(
             } else {
                 block(this)
             }
+        }
+
+        fun akkumulertRådata(): Rådata {
+            val rådataFraPersongrunnlag = persongrunnlag?.rådataFraKilde ?: emptyList()
+            val rådataFraKilder = rådataFraPersongrunnlag + løseRådata
+            return Rådata(rådataFraKilder.filterNotNull())
         }
 
         fun <T> mapTo(
@@ -324,16 +332,16 @@ class KompletteringsService(
             return copy(barnetrygdmottaker = barnetrygdmottaker)
         }
 
-        fun withBarnetrygdData(barnetrygdData: PersongrunnlagOgRådata): Komplettering {
-            return copy(barnetrygdData = barnetrygdData)
+        fun withPersongrunnlag(barnetrygdData: PersongrunnlagOgRådata): Komplettering {
+            return copy(persongrunnlag = barnetrygdData)
         }
 
         fun withFeilinformasjon(feilinformasjon: Feilinformasjon): Komplettering {
             return copy(feilinformasjon = feilinformasjon)
         }
 
-        fun withRådata(rådata: Rådata): Komplettering {
-            return copy(rådata = rådata)
+        fun withLøseRådata(rådata: RådataFraKilde): Komplettering {
+            return copy(løseRådata = rådata)
         }
     }
 }
