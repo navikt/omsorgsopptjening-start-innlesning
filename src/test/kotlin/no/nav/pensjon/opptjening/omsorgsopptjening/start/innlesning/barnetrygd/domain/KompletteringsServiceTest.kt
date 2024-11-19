@@ -220,6 +220,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         assertThat(komplettert.persongrunnlag[0].omsorgsyter).isEqualTo(fnr(1).value)
         assertThat(komplettert.persongrunnlag[0].omsorgsperioder).hasSize(2)
         assertThat(komplettert.persongrunnlag[0].hjelpestønadsperioder).hasSize(1)
+        assertThat(komplettert.rådata).hasSize(12)
     }
 
 
@@ -255,6 +256,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
             .hasFieldOrPropertyWithValue("ident", fnr(1_1).value)
             .hasFieldOrPropertyWithValue("identRolle", IdentRolle.BARNETRYGDMOTTAKER)
+        assertThat(komplettert.rådata.isEmpty())
     }
 
     @Test
@@ -302,6 +304,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
             .hasFieldOrPropertyWithValue("ident", fnr(2).value)
             .hasFieldOrPropertyWithValue("identRolle", IdentRolle.OMSORGSMOTTAKER_BARNETRYGD)
+        assertThat(komplettert.rådata).hasSize(1)
     }
 
     @Test
@@ -378,9 +381,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .hasSize(1)
             .first()
             .isInstanceOf(Feilinformasjon.OverlappendeBarnetrygdperioder::class.java)
-        println(komplettert.feilinformasjon.first())
-
-        println(komplettert)
+        assertThat(komplettert.rådata).hasSize(3)
     }
 
     @Test
@@ -433,13 +434,13 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     )
                 }
             }
-        println(komplettert)
 
         assertThat(komplettert.feilinformasjon)
             .hasSize(1)
             .first()
             .isInstanceOf(Feilinformasjon.FeilIDataGrunnlag::class.java)
-        println(komplettert.feilinformasjon.first())
+        println(komplettert)
+        assertThat(komplettert.rådata).hasSize(1)
     }
 
 
@@ -453,8 +454,6 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         val fnrUtenBarnetrygdSaker =
             setOf(
                 fnr(1), fnr(1_1),
-                fnr(2), fnr(2_1), fnr(2_2), fnr(2_3),
-                fnr(3), fnr(3_1), fnr(3_2), fnr(3_3),
             )
         fnrUtenBarnetrygdSaker.forEach {
             wiremock.`hent-barnetrygd ok uten fagsaker`(it)
@@ -550,6 +549,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         println(komplettert.feilinformasjon.first())
 
         assertThat(komplettert.persongrunnlag).hasSize(1)
+        assertThat(komplettert.rådata).hasSize(12)
     }
 
     @Test
@@ -599,7 +599,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .hasSize(1)
             .first()
             .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
-        println(komplettert.feilinformasjon.first())
+        assertThat(komplettert.rådata.isEmpty())
     }
 
     @Test
@@ -649,7 +649,7 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .hasSize(1)
             .first()
             .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
-        println(komplettert.feilinformasjon.first())
+        assertThat(komplettert.rådata).hasSize(1)
     }
 
     private fun persongrunnlag(
