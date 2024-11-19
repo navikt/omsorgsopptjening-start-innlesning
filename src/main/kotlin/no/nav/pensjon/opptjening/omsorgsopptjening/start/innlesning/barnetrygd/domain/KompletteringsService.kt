@@ -77,6 +77,12 @@ class KompletteringsService(
                         identRolle = e.rolle,
                     )
                 )
+            } catch (e: BarnetrygdException.OverlappendePerioder) {
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.OverlappendeHjelpestønadperioder(
+                        message = "Overlappende hjelpestønadperioder",
+                    )
+                )
             }
         }.andThen { komplettering ->
             try {
