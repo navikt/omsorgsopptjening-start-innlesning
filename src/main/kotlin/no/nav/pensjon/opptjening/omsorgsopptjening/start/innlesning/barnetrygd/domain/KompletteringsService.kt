@@ -85,9 +85,9 @@ class KompletteringsService(
                 secureLog.warn("Feil ved oppdatering av fødselsnummer etter henting av barnetrygdgrunnlag", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeBarnetrygdperioder(
-                        message = "Overlappende barnetrygdperioder",
-                        exceptionType = e::class.java.canonicalName,
-                        exceptionMessage = e.message ?: "",
+                        message = e.message ?: "",
+                        exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
+                        exceptionMessage = e.cause?.message ?: "",
                     )
                 )
             }
@@ -100,9 +100,9 @@ class KompletteringsService(
                 secureLog.warn("Feil ved komprimering av persongrunnlag etter henting av barnetrygdgrunnlag", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeBarnetrygdperioder(
-                        message = "Overlappende barnetrygdperioder",
-                        exceptionType = e::class.java.canonicalName,
-                        exceptionMessage = e.message ?: "",
+                        message = e.message ?: "",
+                        exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
+                        exceptionMessage = e.cause?.message ?: "",
                     )
                 )
             }
@@ -158,9 +158,9 @@ class KompletteringsService(
                 secureLog.warn("Feil ved komprimering av persongrunnlag etter henting av hjelpestønadgrunnlag", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeHjelpestønadperioder(
-                        message = "Overlappende hjelpestønadperioder",
-                        exceptionType = e::class.java.canonicalName,
-                        exceptionMessage = e.message ?: "",
+                        message = e.message ?: "",
+                        exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
+                        exceptionMessage = e.cause?.message ?: "",
                     )
                 )
             }
@@ -299,7 +299,7 @@ class KompletteringsService(
             return barnetrygdData.copy(persongrunnlag = saker)
         } catch (e: IllegalArgumentException) {
             if ("Overlappende perioder for samme omsorgsmottaker" == e.message) {
-                throw BarnetrygdException.OverlappendePerioder("Overlappende hjelpestønadsperioder", e)
+                throw BarnetrygdException.OverlappendePerioder("Overlappende perioder", e)
             } else {
                 throw e
             }
