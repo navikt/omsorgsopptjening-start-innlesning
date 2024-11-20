@@ -2,6 +2,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
@@ -88,14 +89,10 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         sendTilBestemService.sendTilBestem()
 
         listener.removeFirstRecord(3).let { consumerRecord ->
-            val expectedKey =
+            assertThatJson(consumerRecord.key()).isEqualTo(
                 """
                     {"ident":"12345678910"}
                 """.trimIndent()
-            JSONAssert.assertEquals(
-                consumerRecord.key(),
-                expectedKey,
-                true
             )
 
             deserialize<PersongrunnlagMelding>(consumerRecord.value()).also {

@@ -30,9 +30,7 @@ class HjelpestønadClient(
     internal val metrikker: Metrikker,
     webClientBuilder: WebClient.Builder,
 ) {
-    private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).filter(
-        logRequest()
-    ).build()
+    private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).build()
 
     internal fun hentHjelpestønad(
         fnr: Ident,

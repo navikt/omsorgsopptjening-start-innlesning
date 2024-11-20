@@ -41,8 +41,6 @@ data class HentPersonQueryResponse(
     }
 
     fun toDomain(): PersonId {
-        println("identhistorikk:gjeldende: ${identhistorikk().gjeldende().ident}")
-        println("identhistorikk:historikk: ${identhistorikk().historikk()}")
         return PersonId(
             fnr = Ident(identhistorikk().gjeldende().ident),
             historiske = identhistorikk().historikk().map { it.ident }.toSet()

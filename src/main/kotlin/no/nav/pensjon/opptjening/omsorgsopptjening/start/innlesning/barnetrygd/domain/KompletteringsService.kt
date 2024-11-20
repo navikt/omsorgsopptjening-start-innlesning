@@ -60,6 +60,8 @@ class KompletteringsService(
                     .withFeilinformasjon(
                         Feilinformasjon.FeilIDataGrunnlag(
                             message = "Feil i datagrunnlag: ${e.message}",
+                            exceptionType = e::class.java.canonicalName,
+                            exceptionMessage = e.message ?: "",
                         )
                     )
             }
@@ -84,6 +86,8 @@ class KompletteringsService(
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeBarnetrygdperioder(
                         message = "Overlappende barnetrygdperioder",
+                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.message ?: "",
                     )
                 )
             }
@@ -96,7 +100,9 @@ class KompletteringsService(
                 secureLog.warn("Feil ved komprimering av persongrunnlag etter henting av barnetrygdgrunnlag", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeBarnetrygdperioder(
-                        message = "Overlappende barnetrygdperioder"
+                        message = "Overlappende barnetrygdperioder",
+                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.message ?: "",
                     )
                 )
             }
@@ -109,7 +115,9 @@ class KompletteringsService(
                 secureLog.warn("Feil ved henting av hjelpestønadgrunnlag", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.FeilIDataGrunnlag(
-                        message = "Feil i datagrunnlag ved henting av hjelpestønadgrunnlag"
+                        message = "Feil i datagrunnlag ved henting av hjelpestønadgrunnlag",
+                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.message ?: "",
                     )
                 )
             }
@@ -136,6 +144,8 @@ class KompletteringsService(
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeHjelpestønadperioder(
                         message = "Overlappende hjelpestønadperioder",
+                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.message ?: "",
                     )
                 )
             }
@@ -149,6 +159,8 @@ class KompletteringsService(
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeHjelpestønadperioder(
                         message = "Overlappende hjelpestønadperioder",
+                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.message ?: "",
                     )
                 )
             }
