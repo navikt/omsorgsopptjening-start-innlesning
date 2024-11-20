@@ -23,7 +23,6 @@ class BarnetrygdmottakerProcessingTask(
     override fun run() {
         log.info("BarnetrygdmottakerProcessingTask.run()")
         if (isEnabled()) {
-            println("processAllAvailableBarnetrygdMottakere()")
             try {
                 processAllAvailableBarnetrygdMottakere()
             } catch (ex: Throwable) {

@@ -24,6 +24,7 @@ class BarnetrygdmottakerService(
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdmottakerService::class.java)
+        private val secureLog = LoggerFactory.getLogger("secure")
     }
 
     fun bestillPersonerMedBarnetrygd(ar: År): BarnetrygdInnlesing.Bestilt {
@@ -89,8 +90,7 @@ class BarnetrygdmottakerService(
                 else -> outerEx
             }
             log.warn("Fikk feil ved prosessering av melding: ${ex::class.qualifiedName}")
-            // todo: fjern igjen
-            // log.warn("Fikk feil ved prosessering av melding", ex)
+            secureLog.warn("Fikk feil ved prosessering av melding", ex)
 
             try {
                 transactionTemplate.execute {
@@ -104,6 +104,7 @@ class BarnetrygdmottakerService(
                 null
             } catch (ex: Throwable) {
                 log.error("Feil ved oppdatering av status til retry: ${ex::class.qualifiedName}")
+                secureLog.error("Feil ved oppdatering av status til retry", ex)
                 null
             }
         } finally {

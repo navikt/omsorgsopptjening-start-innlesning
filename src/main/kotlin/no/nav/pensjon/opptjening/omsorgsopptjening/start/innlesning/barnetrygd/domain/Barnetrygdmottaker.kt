@@ -126,7 +126,11 @@ sealed class Barnetrygdmottaker {
         @JsonTypeName("Ferdig")
         data class Ferdig(
             val tidspunkt: Instant = Instant.now(),
-        ) : Status()
+        ) : Status() {
+            override fun klar(): Status {
+                return Klar() // TODO: finne på en bedre/tryggere måte å støtte rekjøring
+            }
+        }
 
         @JsonTypeName("Retry")
         data class Retry(

@@ -22,6 +22,7 @@ class SendTilBestemService(
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(SendTilBestemService::class.java)
+        private val secureLog = LoggerFactory.getLogger("secure")
     }
 
     fun sendTilBestem(): List<Barnetrygdinformasjon>? {
@@ -63,6 +64,7 @@ class SendTilBestemService(
                 else -> outerEx
             }
             log.warn("Fikk feil ved sending av barnetrygdinformasjon: ${ex::class.qualifiedName}")
+            secureLog.warn("Fikk feil ved sending av barnetrygdinformasjon", ex)
             null
         }
     }
