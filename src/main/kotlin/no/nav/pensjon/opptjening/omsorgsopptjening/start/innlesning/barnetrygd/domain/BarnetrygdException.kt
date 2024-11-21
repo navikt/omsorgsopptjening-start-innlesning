@@ -1,6 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.IdentRolle
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.periode.Periode
 
@@ -15,6 +16,7 @@ sealed class BarnetrygdException(msg: String, cause: Throwable) : RuntimeExcepti
     class OverlappendePerioder(
         msg: String,
         cause: Throwable,
+        val rådata: Rådata? = null,
         val perioder: List<Periode>,
     ) : BarnetrygdException(msg, cause)
 

@@ -54,6 +54,17 @@ class KompletteringsService(
                 komplettering.withPersongrunnlag(
                     hentBarnetrygd(komplettering.barnetrygdmottaker, gyldigÅrsIntervall)
                 )
+            } catch (e: BarnetrygdException.OverlappendePerioder) {
+                secureLog.warn("Feil ved henting av barnetrygd", e)
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.FeilIDataGrunnlag(
+                            message = "Feil i datagrunnlag: ${e.message}",
+                            exceptionType = e::class.java.canonicalName,
+                            exceptionMessage = e.message ?: "",
+                        )
+                    )
             } catch (e: BarnetrygdException.FeilIGrunnlagsdata) {
                 secureLog.warn("Feil ved henting av barnetrygd", e)
                 komplettering
@@ -83,7 +94,10 @@ class KompletteringsService(
                     )
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
-                secureLog.warn("Feil ved oppdatering av fødselsnummer etter henting av barnetrygdgrunnlag", e)
+                secureLog.warn(
+                    "Feil ved oppdatering av fødselsnummer etter henting av barnetrygdgrunnlag. Overlappende perioder: ${e.perioder}",
+                    e
+                )
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeBarnetrygdperioder(
                         message = e.message ?: "",
@@ -99,7 +113,10 @@ class KompletteringsService(
                     komplettering.persongrunnlag!!.komprimer()
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
-                secureLog.warn("Feil ved komprimering av persongrunnlag etter henting av barnetrygdgrunnlag", e)
+                secureLog.warn(
+                    "Feil ved komprimering av persongrunnlag etter henting av barnetrygdgrunnlag. Overlappende perioder: ${e.perioder}",
+                    e
+                )
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeBarnetrygdperioder(
                         message = e.message ?: "",
@@ -401,14 +418,12 @@ class KompletteringsService(
             return copy(feilinformasjon = feilinformasjon)
         }
 
-        fun withLøseRådata(rådata: RådataFraKilde): Komplettering {
-            return copy(løseRådata = løseRådata + rådata)
-
-        }
-
-        fun withLøseRådata(rådata: List<RådataFraKilde>): Komplettering {
-            return copy(løseRådata = løseRådata + rådata)
-
+        fun withLøseRådata(rådata: List<RådataFraKilde>?): Komplettering {
+            return if (rådata == null) {
+                this
+            } else {
+                return copy(løseRådata = løseRådata + rådata)
+            }
         }
     }
 }

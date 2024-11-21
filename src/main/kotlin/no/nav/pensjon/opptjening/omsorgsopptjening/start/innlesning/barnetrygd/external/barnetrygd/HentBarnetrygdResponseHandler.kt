@@ -49,6 +49,13 @@ object HentBarnetrygdResponseHandler {
                                             barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),
                                             rådataFraKilde = rådata
                                         )
+                                    } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
+                                        throw BarnetrygdException.OverlappendePerioder(
+                                            msg = "Feil ved deserialisering av barnetrygdsaker",
+                                            cause = e,
+                                            perioder = e.perioder,
+                                            rådata = Rådata(listOf(rådata))
+                                        )
                                     } catch (e: UgyldigPersongrunnlag) {
                                         throw BarnetrygdException.FeilIGrunnlagsdata(
                                             msg = "Feil ved deserialisering av barnetrygdsaker",
