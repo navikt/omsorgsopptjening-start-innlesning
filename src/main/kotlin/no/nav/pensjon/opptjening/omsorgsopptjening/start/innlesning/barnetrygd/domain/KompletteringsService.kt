@@ -55,14 +55,15 @@ class KompletteringsService(
                     hentBarnetrygd(komplettering.barnetrygdmottaker, gyldigÅrsIntervall)
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
-                secureLog.warn("Feil ved henting av barnetrygd", e)
+                secureLog.warn("Feil ved henting av barnetrygd. Overlappende perioder: ${e.perioder}", e)
                 komplettering
                     .withLøseRådata(e.rådata)
                     .withFeilinformasjon(
-                        Feilinformasjon.FeilIDataGrunnlag(
+                        Feilinformasjon.OverlappendeBarnetrygdperioder(
                             message = "Feil i datagrunnlag: ${e.message}",
                             exceptionType = e::class.java.canonicalName,
                             exceptionMessage = e.message ?: "",
+                            perioder = e.perioder,
                         )
                     )
             } catch (e: BarnetrygdException.FeilIGrunnlagsdata) {
@@ -132,7 +133,7 @@ class KompletteringsService(
                     hentHjelpestønadGrunnlag(komplettering.persongrunnlag!!, gyldigÅrsIntervall)
                 )
             } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
-                secureLog.warn("Overlappende perioder ved henting av hjelpestønadsgrunnlag", e)
+                secureLog.warn("Overlappende perioder ved henting av hjelpestønadsgrunnlag: ${e.perioder}", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeHjelpestønadperioder(
                         message = "Overlappende perioder ved henting av hjelpestønadsgrunnlag",
@@ -170,7 +171,10 @@ class KompletteringsService(
                     )
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
-                secureLog.warn("Feil ved oppdatering av fødselsnummer etter henting av hjelpestønadgrunnlag", e)
+                secureLog.warn(
+                    "Feil ved oppdatering av fødselsnummer etter henting av hjelpestønadgrunnlag. Overlappende perioder: ${e.perioder}",
+                    e
+                )
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeHjelpestønadperioder(
                         message = "Overlappende hjelpestønadperioder",
@@ -186,7 +190,10 @@ class KompletteringsService(
                     komplettering.persongrunnlag!!.komprimer()
                 )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
-                secureLog.warn("Feil ved komprimering av persongrunnlag etter henting av hjelpestønadgrunnlag", e)
+                secureLog.warn(
+                    "Overlappende perioder ved komprimering av persongrunnlag etter henting av hjelpestønadgrunnlag: ${e.perioder}",
+                    e
+                )
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.OverlappendeHjelpestønadperioder(
                         message = e.message ?: "",

@@ -436,11 +436,12 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             }
 
         assertThat(komplettert.feilinformasjon)
-            .hasSize(1)
-            .first()
-            .isInstanceOf(Feilinformasjon.FeilIDataGrunnlag::class.java)
+            .hasSize(1)            .first()
+            .isInstanceOf(Feilinformasjon.OverlappendeBarnetrygdperioder::class.java)
         println(komplettert)
         assertThat(komplettert.rådata).hasSize(1)
+        assertThat((komplettert.feilinformasjon.first() as Feilinformasjon.OverlappendeBarnetrygdperioder).perioder)
+            .hasSize(2)
     }
 
 
