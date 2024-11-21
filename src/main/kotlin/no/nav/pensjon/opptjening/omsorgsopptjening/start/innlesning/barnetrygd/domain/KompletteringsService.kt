@@ -290,7 +290,7 @@ class KompletteringsService(
                         ).fnr.value
                     )
                 }.distinct()
-                sak.copy(
+                PersongrunnlagMelding.Persongrunnlag.of(
                     omsorgsyter = omsorgsyter.value,
                     omsorgsperioder = omsorgsperioder,
                     hjelpestønadsperioder = hjelpestønadperioder

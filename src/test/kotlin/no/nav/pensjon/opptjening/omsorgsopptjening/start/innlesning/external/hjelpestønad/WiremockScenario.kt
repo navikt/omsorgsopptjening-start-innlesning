@@ -64,6 +64,7 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
     forFnr: Ident,
     fom: YearMonth = YearMonth.of(2020, 1),
     tom: YearMonth = YearMonth.of(2025, 12),
+    omsorgstype: String = "FORHØYET_SATS_3",
 ): StubMapping {
     return this.stubFor(
         post(urlPathEqualTo("/api/hjelpestonad/hent"))
@@ -81,7 +82,7 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
                                         "ident":"${forFnr.value}",
                                         "fom":"${fom.formatterForKall()}",
                                         "tom":"${tom.formatterForKall()}",
-                                        "omsorgstype":"FORHØYET_SATS_3"
+                                        "omsorgstype":"${omsorgstype}"
                                     }
                                 ]
                             """.trimIndent()

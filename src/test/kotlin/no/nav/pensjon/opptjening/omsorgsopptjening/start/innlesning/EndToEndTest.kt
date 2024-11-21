@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
+import net.javacrumbs.jsonunit.core.Option
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Landstilknytning
@@ -129,8 +130,10 @@ class EndToEndTest : SpringContextTest.WithKafka() {
 
                 assertThat(it.rådata[0]["fnr"]).isEqualTo("12345678910")
                 assertThat(it.rådata[0]["fom"]).isEqualTo("2020-01-01")
-                JSONAssert.assertEquals(
-                    """
+                assertThatJson(it.rådata[0]["barnetrygd"] as String)
+                    .`when`(Option.IGNORING_EXTRA_FIELDS)
+                    .isEqualTo(
+                        """
                         {
                             "fagsaker": [
                                 {
@@ -153,9 +156,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                             ]
                         }
                     """.trimIndent(),
-                    it.rådata[0]["barnetrygd"] as String,
-                    false,
-                )
+                    )
                 assertThat(it.rådata[1]["fnr"]).isEqualTo("09876543210")
                 assertThat(it.rådata[1]["fom"]).isEqualTo("2020-01-01")
                 assertThat(it.rådata[1]["tom"]).isEqualTo("2021-12-31")

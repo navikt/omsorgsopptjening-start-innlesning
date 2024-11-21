@@ -515,12 +515,14 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         wiremock.`hent hjelpestønad ok - har hjelpestønad`(
             fnr(3_1),
             fom = YearMonth.of(2022, 2),
-            tom = YearMonth.of(2023, 9)
+            tom = YearMonth.of(2023, 9),
+            omsorgstype = "FORHØYET_SATS_3"
         )
         wiremock.`hent hjelpestønad ok - har hjelpestønad`(
             fnr(3_3),
             fom = YearMonth.of(2022, 4),
             tom = YearMonth.of(2023, 10),
+            omsorgstype = "FORHØYET_SATS_4",
         )
 
         val mottatt = Barnetrygdmottaker.Mottatt(
