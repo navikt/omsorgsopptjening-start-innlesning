@@ -63,7 +63,7 @@ class KompletteringsService(
                             message = "Feil i datagrunnlag: ${e.message}",
                             exceptionType = e::class.java.canonicalName,
                             exceptionMessage = e.message ?: "",
-                            perioder = e.perioder,
+                            omsorgsmottaker = e.omsorgsmottaker,
                         )
                     )
             } catch (e: BarnetrygdException.FeilIGrunnlagsdata) {
@@ -104,7 +104,7 @@ class KompletteringsService(
                         message = e.message ?: "",
                         exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
                         exceptionMessage = e.cause?.message ?: "",
-                        perioder = e.perioder,
+                        omsorgsmottaker = e.omsorgsmottaker,
                     )
                 )
             }
@@ -123,7 +123,7 @@ class KompletteringsService(
                         message = e.message ?: "",
                         exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
                         exceptionMessage = e.cause?.message ?: "",
-                        perioder = e.perioder,
+                        omsorgsmottaker = e.omsorgsmottaker,
                     )
                 )
             }
@@ -139,7 +139,7 @@ class KompletteringsService(
                         message = "Overlappende perioder ved henting av hjelpestønadsgrunnlag",
                         exceptionType = e::class.java.canonicalName,
                         exceptionMessage = e.message ?: "",
-                        perioder = e.perioder,
+                        omsorgsmottaker = e.omsorgsmottaker,
                     )
                 )
             } catch (e: UgyldigPersongrunnlag) {
@@ -180,7 +180,7 @@ class KompletteringsService(
                         message = "Overlappende hjelpestønadperioder",
                         exceptionType = e::class.java.canonicalName,
                         exceptionMessage = e.message ?: "",
-                        perioder = e.perioder,
+                        omsorgsmottaker = e.omsorgsmottaker,
                     )
                 )
             }
@@ -199,7 +199,7 @@ class KompletteringsService(
                         message = e.message ?: "",
                         exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
                         exceptionMessage = e.cause?.message ?: "",
-                        e.perioder,
+                        omsorgsmottaker = e.omsorgsmottaker,
                     )
                 )
             }
@@ -301,7 +301,8 @@ class KompletteringsService(
                 throw BarnetrygdException.OverlappendePerioder(
                     msg = "Overlappende perioder for samme omsorgsmottaker",
                     cause = e,
-                    perioder = e.perioder
+                    perioder = e.perioder,
+                    omsorgsmottaker = e.omsorgsmottaker,
                 )
             } catch (e: UgyldigPersongrunnlag) {
                 throw BarnetrygdException.FeilIGrunnlagsdata(
@@ -351,6 +352,7 @@ class KompletteringsService(
                 msg = "Overlappende perioder",
                 cause = e,
                 perioder = e.perioder,
+                omsorgsmottaker = e.omsorgsmottaker,
             )
         }
     }

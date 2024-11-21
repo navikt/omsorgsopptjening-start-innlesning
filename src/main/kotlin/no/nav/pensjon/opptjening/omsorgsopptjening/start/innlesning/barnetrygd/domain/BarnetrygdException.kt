@@ -18,6 +18,7 @@ sealed class BarnetrygdException(msg: String, cause: Throwable) : RuntimeExcepti
         cause: Throwable,
         val rådata: Rådata? = null,
         val perioder: List<Periode>,
+        val omsorgsmottaker: String,
     ) : BarnetrygdException(msg, cause)
 
     class FeilIGrunnlagsdata(

@@ -54,7 +54,8 @@ object HentBarnetrygdResponseHandler {
                                             msg = "Feil ved deserialisering av barnetrygdsaker",
                                             cause = e,
                                             perioder = e.perioder,
-                                            rådata = Rådata(listOf(rådata))
+                                            rådata = Rådata(listOf(rådata)),
+                                            omsorgsmottaker = e.omsorgsmottaker,
                                         )
                                     } catch (e: UgyldigPersongrunnlag) {
                                         throw BarnetrygdException.FeilIGrunnlagsdata(
