@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain
 
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.UgyldigPersongrunnlag
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Feilinformasjon
@@ -75,8 +76,8 @@ class KompletteringsService(
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.UgyldigIdent(
                         message = "Feil ved oppdatering av ident for omsorgsmottaker",
-                        exceptionType = e::class.java.canonicalName,
-                        exceptionMessage = e.message ?: "",
+                        exceptionType = e.cause?.javaClass?.canonicalName ?: "",
+                        exceptionMessage = e.cause?.message ?: "",
                         ident = e.fnr.value,
                         identRolle = e.rolle,
                     )
@@ -88,6 +89,7 @@ class KompletteringsService(
                         message = e.message ?: "",
                         exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
                         exceptionMessage = e.cause?.message ?: "",
+                        perioder = e.perioder,
                     )
                 )
             }
@@ -103,6 +105,7 @@ class KompletteringsService(
                         message = e.message ?: "",
                         exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
                         exceptionMessage = e.cause?.message ?: "",
+                        perioder = e.perioder,
                     )
                 )
             }
@@ -111,7 +114,17 @@ class KompletteringsService(
                 komplettering.withPersongrunnlag(
                     hentHjelpestønadGrunnlag(komplettering.persongrunnlag!!, gyldigÅrsIntervall)
                 )
-            } catch (e: IllegalArgumentException) {
+            } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
+                secureLog.warn("Overlappende perioder ved henting av hjelpestønadsgrunnlag", e)
+                komplettering.withFeilinformasjon(
+                    Feilinformasjon.OverlappendeHjelpestønadperioder(
+                        message = "Overlappende perioder ved henting av hjelpestønadsgrunnlag",
+                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.message ?: "",
+                        perioder = e.perioder,
+                    )
+                )
+            } catch (e: UgyldigPersongrunnlag) {
                 secureLog.warn("Feil ved henting av hjelpestønadgrunnlag", e)
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.FeilIDataGrunnlag(
@@ -146,6 +159,7 @@ class KompletteringsService(
                         message = "Overlappende hjelpestønadperioder",
                         exceptionType = e::class.java.canonicalName,
                         exceptionMessage = e.message ?: "",
+                        perioder = e.perioder,
                     )
                 )
             }
@@ -161,6 +175,7 @@ class KompletteringsService(
                         message = e.message ?: "",
                         exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
                         exceptionMessage = e.cause?.message ?: "",
+                        e.perioder,
                     )
                 )
             }
@@ -258,8 +273,18 @@ class KompletteringsService(
                     persongrunnlag = persongrunnlag,
                     rådataFraKilde = this.rådataFraKilde
                 )
-            } catch (e: IllegalArgumentException) {
-                throw BarnetrygdException.OverlappendePerioder("Overlappende perioder for samme omsorgsmottaker", e)
+            } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
+                throw BarnetrygdException.OverlappendePerioder(
+                    msg = "Overlappende perioder for samme omsorgsmottaker",
+                    cause = e,
+                    perioder = e.perioder
+                )
+            } catch (e: UgyldigPersongrunnlag) {
+                throw BarnetrygdException.FeilIGrunnlagsdata(
+                    msg = "Feil i datagrunnlag ved komprimering av persongrunnlag",
+                    cause = e,
+                    rådata = Rådata(rådataFraKilde)
+                )
             }
         }
     }
@@ -297,12 +322,12 @@ class KompletteringsService(
                 )
             }
             return barnetrygdData.copy(persongrunnlag = saker)
-        } catch (e: IllegalArgumentException) {
-            if ("Overlappende perioder for samme omsorgsmottaker" == e.message) {
-                throw BarnetrygdException.OverlappendePerioder("Overlappende perioder", e)
-            } else {
-                throw e
-            }
+        } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
+            throw BarnetrygdException.OverlappendePerioder(
+                msg = "Overlappende perioder",
+                cause = e,
+                perioder = e.perioder,
+            )
         }
     }
 
@@ -335,7 +360,7 @@ class KompletteringsService(
         val barnetrygdmottaker: Barnetrygdmottaker.Mottatt,
         val feilinformasjon: Feilinformasjon? = null,
         val persongrunnlag: PersongrunnlagOgRådata? = null,
-        val løseRådata: RådataFraKilde? = null,
+        val løseRådata: List<RådataFraKilde> = emptyList(),
     ) {
         val feilet = feilinformasjon != null
 
@@ -377,7 +402,13 @@ class KompletteringsService(
         }
 
         fun withLøseRådata(rådata: RådataFraKilde): Komplettering {
-            return copy(løseRådata = rådata)
+            return copy(løseRådata = løseRådata + rådata)
+
+        }
+
+        fun withLøseRådata(rådata: List<RådataFraKilde>): Komplettering {
+            return copy(løseRådata = løseRådata + rådata)
+
         }
     }
 }

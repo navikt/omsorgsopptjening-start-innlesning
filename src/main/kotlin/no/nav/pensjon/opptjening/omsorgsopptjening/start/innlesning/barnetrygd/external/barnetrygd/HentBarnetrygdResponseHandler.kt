@@ -1,6 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.UgyldigPersongrunnlag
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
@@ -47,11 +49,11 @@ object HentBarnetrygdResponseHandler {
                                             barnetrygdsaker = HentBarnetrygdDomainMapper.map(wrapper.fagsaker, filter),
                                             rådataFraKilde = rådata
                                         )
-                                    } catch (e: IllegalArgumentException) {
+                                    } catch (e: UgyldigPersongrunnlag) {
                                         throw BarnetrygdException.FeilIGrunnlagsdata(
                                             msg = "Feil ved deserialisering av barnetrygdsaker",
                                             cause = e,
-                                            rådata = rådata
+                                            rådata = Rådata(listOf(rådata))
                                         )
                                     }
                                 }
