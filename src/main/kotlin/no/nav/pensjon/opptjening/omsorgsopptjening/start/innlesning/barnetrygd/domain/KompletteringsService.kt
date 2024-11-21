@@ -42,8 +42,8 @@ class KompletteringsService(
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.UgyldigIdent(
                         message = "Feil ved oppdatering av ident for barnetrygdmottaker",
-                        exceptionMessage = e.message ?: "",
-                        exceptionType = e::class.java.canonicalName,
+                        exceptionMessage = e.cause?.message ?: "",
+                        exceptionType = e.cause?.javaClass?.canonicalName ?: "",
                         ident = barnetrygdmottakerUtenPdlData.ident.value,
                         identRolle = IdentRolle.BARNETRYGDMOTTAKER,
                     )
@@ -164,8 +164,8 @@ class KompletteringsService(
                 komplettering.withFeilinformasjon(
                     Feilinformasjon.UgyldigIdent(
                         message = "Feil ved oppdatering av ident for hjelpestønadmottager",
-                        exceptionType = e::class.java.canonicalName,
-                        exceptionMessage = e.message ?: "",
+                        exceptionMessage = e.cause?.message ?: "",
+                        exceptionType = e.cause?.javaClass?.canonicalName ?: "",
                         ident = e.fnr.value,
                         identRolle = e.rolle,
                     )
