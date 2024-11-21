@@ -1,12 +1,9 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Feilinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.springframework.jdbc.core.RowMapper
@@ -58,8 +55,8 @@ class BarnetrygdinformasjonRepository(
                 "barnetrygdmottaker_id" to barnetrygdinformasjon.barnetrygdmottakerId,
                 "created" to Instant.now().toString(),
                 "ident" to barnetrygdinformasjon.ident.value,
-                "persongrunnlag" to serialize(barnetrygdinformasjon.persongrunnlag),
-                "feilinformasjon" to serialize(barnetrygdinformasjon.feilinformasjon),
+                "persongrunnlag" to barnetrygdinformasjon.persongrunnlag.serializeList(),
+                "feilinformasjon" to barnetrygdinformasjon.feilinformasjon.serializeList(),
                 "rådata" to serialize(barnetrygdinformasjon.rådata),
                 "correlationId" to barnetrygdinformasjon.correlationId.toUUID(),
                 "innlesingId" to barnetrygdinformasjon.innlesingId.toUUID(),
@@ -176,8 +173,8 @@ class BarnetrygdinformasjonRepository(
                 barnetrygdmottakerId = UUID.fromString(rs.getString("barnetrygdmottaker_id")),
                 created = rs.getTimestamp("created").toInstant(),
                 ident = Ident(rs.getString("ident")),
-                persongrunnlag = deserialize<List<PersongrunnlagMelding.Persongrunnlag>>(rs.getString("persongrunnlag")),
-                feilinformasjon = deserialize<List<Feilinformasjon>>(rs.getString("feilinformasjon")),
+                persongrunnlag = rs.getString("persongrunnlag").deserializeList(),
+                feilinformasjon = rs.getString("feilinformasjon").deserializeList<Feilinformasjon>(),
                 rådata = deserialize<Rådata>(rs.getString("rådata")),
                 correlationId = CorrelationId.fromString(rs.getString("correlationId")),
                 innlesingId = InnlesingId.fromString(rs.getString("innlesingId")),
