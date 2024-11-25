@@ -1,7 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
 class IdentHistorikk(
-    private val identer: Set<PdlIdent.FolkeregisterPdlIdent>
+    private val identer: Set<PdlIdent.FolkeregisterPdlIdent>,
 ) {
     fun gjeldende(): PdlIdent.FolkeregisterPdlIdent {
         return identer.singleOrNull { it is PdlIdent.FolkeregisterPdlIdent.Gjeldende }

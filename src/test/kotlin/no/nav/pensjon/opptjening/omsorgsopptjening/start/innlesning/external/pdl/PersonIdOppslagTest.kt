@@ -7,10 +7,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslag
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonOppslagException
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.*
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -38,8 +35,8 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
                 wiremock.`pdl fnr fra query`()
-                val personId: PersonId = personOppslag.hentPerson(FNR)
-                assertThat(personId.fnr).isEqualTo(Ident(FNR.value))
+                val personId: MedRådata<PersonId> = personOppslag.hentPerson(FNR)
+                assertThat(personId.value.fnr).isEqualTo(Ident(FNR.value))
             }
         }
     }
@@ -49,8 +46,8 @@ internal class PersonIdOppslagTest : SpringContextTest.NoKafka() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
                 wiremock.pdl(FNR, listOf(FNR))
-                val personId: PersonId = personOppslag.hentPerson(FNR)
-                assertThat(personId.fnr).isEqualTo(Ident(FNR.value))
+                val personId: MedRådata<PersonId> = personOppslag.hentPerson(FNR)
+                assertThat(personId.value.fnr).isEqualTo(Ident(FNR.value))
             }
         }
     }
