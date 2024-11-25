@@ -1,10 +1,22 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.KompletteringsService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.MedRådata
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -27,6 +39,11 @@ class PdlClient(
     registry: MeterRegistry,
     private val graphqlQuery: GraphqlQuery,
 ) {
+    companion object {
+        private val log = LoggerFactory.getLogger(KompletteringsService::class.java)
+        private val secureLog = LoggerFactory.getLogger("secure")
+    }
+
     private val antallPersonerHentet = registry.counter("personer", "antall", "hentet")
     private val restTemplate = RestTemplateBuilder().build()
 
@@ -35,7 +52,7 @@ class PdlClient(
         value = [RestClientException::class, PdlException::class],
         backoff = Backoff(delay = 1500L, maxDelay = 30000L, multiplier = 2.5)
     )
-    fun hentPerson(fnr: Ident): PdlResponse? {
+    fun hentPerson(fnr: Ident): MedRådata<PdlResponse>? {
         val entity = RequestEntity<PdlQuery>(
             PdlQuery(graphqlQuery.hentPersonQuery(), FnrVariables(ident = fnr.value)),
             HttpHeaders().apply {
@@ -52,17 +69,41 @@ class PdlClient(
             HttpMethod.POST,
             URI.create(pdlUrl)
         )
-//        restTemplate.interceptors = listOf(RestTemplateLoggingInterceptor())
-        val response = restTemplate.exchange(
+
+        val responseBody = restTemplate.exchange(
             entity,
-            PdlResponse::class.java
+            String::class.java
         ).body
 
-        response?.error?.extensions?.code?.also {
-            if (it == PdlErrorCode.SERVER_ERROR) throw PdlException(response.error)
+        val mapper = ObjectMapper().registerModules(KotlinModule.Builder().build(), JavaTimeModule()).apply {
+            propertyNamingStrategy = LOWER_CAMEL_CASE
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true)
+            configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            setSerializationInclusion(JsonInclude.Include.NON_NULL)
         }
+
+        val response = responseBody?.let { } // deserialize(responseBody)
+
         antallPersonerHentet.increment()
-        return response
+        return responseBody?.let { body ->
+            val response = mapper.readValue(body, PdlResponse::class.java)
+            response?.error?.extensions?.code?.also { code ->
+                if (code == PdlErrorCode.SERVER_ERROR) throw PdlException(response.error)
+            }
+            MedRådata(
+                response,
+                Rådata(
+                    listOf(
+                        RådataFraKilde(
+                            mapOf(
+                                fnr.value to body
+                            )
+                        )
+                    )
+                )
+            )
+        }
     }
 }
 

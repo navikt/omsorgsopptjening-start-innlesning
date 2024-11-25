@@ -37,6 +37,6 @@ class WiremockScenarioTest : SpringContextTest.NoKafka() {
                     pdlService.hentPerson(fnr)
                 }
             }
-        assertThat(person.fnr).isEqualTo(fnr)
+        assertThat(person.value.fnr).isEqualTo(fnr)
     }
 }

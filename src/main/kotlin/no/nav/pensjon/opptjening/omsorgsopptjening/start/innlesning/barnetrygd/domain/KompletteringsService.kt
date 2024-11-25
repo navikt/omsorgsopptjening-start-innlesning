@@ -28,15 +28,18 @@ class KompletteringsService(
             barnetrygdmottaker = barnetrygdmottakerUtenPdlData
         ).andThen { komplettering ->
             try {
-                komplettering.withBarnetrygdMottaker(
-                    barnetrygdmottakerUtenPdlData.withPerson(
-                        hentPersonId(
-                            fnr = barnetrygdmottakerUtenPdlData.ident,
-                            rolle = IdentRolle.BARNETRYGDMOTTAKER,
-                            beskrivelse = "barnetrygdmottaker"
+                val personIdOgRådata = hentPersonId(
+                    fnr = barnetrygdmottakerUtenPdlData.ident,
+                    rolle = IdentRolle.BARNETRYGDMOTTAKER,
+                    beskrivelse = "barnetrygdmottaker"
+                )
+                komplettering
+                    .withLøseRådata(Rådata(personIdOgRådata.rådata))
+                    .withBarnetrygdMottaker(
+                        barnetrygdmottakerUtenPdlData.withPerson(
+                            personIdOgRådata.value,
                         )
                     )
-                )
             } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 secureLog.warn("Feil ved oppdatering av ident for barnetrygdmottaker", e)
                 komplettering.withFeilinformasjon(
@@ -317,36 +320,25 @@ class KompletteringsService(
     fun oppdaterAlleFnr(barnetrygdData: PersongrunnlagOgRådata): PersongrunnlagOgRådata {
         try {
             val saker = barnetrygdData.persongrunnlag.map { sak ->
-                val omsorgsyter = hentPersonId(
+                val personIdOgRådataForOmsorgsyter = hentPersonId(
                     fnr = Ident(value = sak.omsorgsyter),
                     rolle = IdentRolle.OMSORGSYTER_BARNETRYGD,
                     beskrivelse = "omsorgsyter",
-                ).fnr
-                val omsorgsperioder = sak.omsorgsperioder.map { omsorgsperiode ->
-                    val omsorgsmottaker =
-                        hentPersonId(
-                            fnr = Ident(omsorgsperiode.omsorgsmottaker),
-                            rolle = IdentRolle.OMSORGSMOTTAKER_BARNETRYGD,
-                            beskrivelse = "omsorgsmottaker, barnetrygd"
-                        ).fnr
-                    omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker.value)
-                }.distinct()
-                val hjelpestønadperioder = sak.hjelpestønadsperioder.map {
-                    it.copy(
-                        omsorgsmottaker = hentPersonId(
-                            fnr = Ident(value = it.omsorgsmottaker),
-                            rolle = IdentRolle.OMSORGSMOTTAKER_HJELPESTONAD,
-                            beskrivelse = "omsorgsmottaker, hjelpestønad"
-                        ).fnr.value
-                    )
-                }.distinct()
+                )
+                val omsorgsyter = personIdOgRådataForOmsorgsyter.value.fnr
+                val omsorgsperioderMedrådata = sak.omsorgsperioder.map { oppdaterAlleFnr(it) }.distinct()
+                val hjelpestønadperioderMedRådata = sak.hjelpestønadsperioder.map { oppdaterAlleFnr(it) }.distinct()
+
                 PersongrunnlagMelding.Persongrunnlag.of(
                     omsorgsyter = omsorgsyter.value,
-                    omsorgsperioder = omsorgsperioder,
-                    hjelpestønadsperioder = hjelpestønadperioder
+                    omsorgsperioder = omsorgsperioderMedrådata.map { it.value },
+                    hjelpestønadsperioder = hjelpestønadperioderMedRådata.map { it.value },
                 )
             }
-            return barnetrygdData.copy(persongrunnlag = saker)
+            return barnetrygdData.copy(
+                persongrunnlag = saker,
+                rådataFraKilde = barnetrygdData.rådataFraKilde
+            )
         } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
             throw BarnetrygdException.OverlappendePerioder(
                 msg = "Overlappende perioder",
@@ -357,7 +349,38 @@ class KompletteringsService(
         }
     }
 
-    private fun hentPersonId(fnr: Ident, rolle: IdentRolle, beskrivelse: String): PersonId {
+    private fun oppdaterAlleFnr(
+        hjelpestønadperiode: PersongrunnlagMelding.Hjelpestønadperiode,
+    ): MedRådata<PersongrunnlagMelding.Hjelpestønadperiode> {
+        val personIdOgRådata = hentPersonId(
+            fnr = Ident(value = hjelpestønadperiode.omsorgsmottaker),
+            rolle = IdentRolle.OMSORGSMOTTAKER_HJELPESTONAD,
+            beskrivelse = "omsorgsmottaker, hjelpestønad"
+        )
+        return MedRådata(
+            value = hjelpestønadperiode.copy(
+                omsorgsmottaker = personIdOgRådata.value.fnr.value
+            ),
+            rådata = personIdOgRådata.rådata
+        )
+    }
+
+    private fun oppdaterAlleFnr(
+        omsorgsperiode: PersongrunnlagMelding.Omsorgsperiode
+    ): MedRådata<PersongrunnlagMelding.Omsorgsperiode> {
+        val personIdOgRådata = hentPersonId(
+            fnr = Ident(omsorgsperiode.omsorgsmottaker),
+            rolle = IdentRolle.OMSORGSMOTTAKER_BARNETRYGD,
+            beskrivelse = "omsorgsmottaker, barnetrygd"
+        )
+        val omsorgsmottaker = personIdOgRådata.value.fnr
+        return MedRådata(
+            value = omsorgsperiode.copy(omsorgsmottaker = omsorgsmottaker.value),
+            rådata = personIdOgRådata.rådata
+        )
+    }
+
+    private fun hentPersonId(fnr: Ident, rolle: IdentRolle, beskrivelse: String): MedRådata<PersonId> {
         try {
             return personIdService.personFromIdent(fnr)!!
         } catch (e: PersonOppslagException) {
@@ -371,7 +394,7 @@ class KompletteringsService(
     }
 
     fun ekspanderFnrTilAlleIHistorikken(fnrs: Set<String>): Set<String> {
-        return fnrs.flatMap { personIdService.personFromIdent(Ident(it))!!.historiske }.toSet()
+        return fnrs.flatMap { personIdService.personFromIdent(Ident(it))!!.value.historiske }.toSet()
     }
 
     data class Komplettert(

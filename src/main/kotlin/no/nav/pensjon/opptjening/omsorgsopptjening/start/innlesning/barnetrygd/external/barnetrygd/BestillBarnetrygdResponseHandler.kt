@@ -6,7 +6,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 
 object BestillBarnetrygdResponseHandler {
-    fun handle(response: ResponseEntity<String>, år: År): BestillBarnetrygdmottakereResponse {
+    fun handle(
+        response: ResponseEntity<String>,
+        år: År,
+    ): BestillBarnetrygdmottakereResponse {
         return when (response.statusCode) {
             HttpStatus.ACCEPTED -> {
                 BestillBarnetrygdmottakereResponse(
