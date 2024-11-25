@@ -157,9 +157,10 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                         }
                     """.trimIndent(),
                     )
-                assertThat(it.rådata[1]["fnr"]).isEqualTo("09876543210")
-                assertThat(it.rådata[1]["fom"]).isEqualTo("2020-01-01")
-                assertThat(it.rådata[1]["tom"]).isEqualTo("2021-12-31")
+                val hjelpestønadRådata = it.rådata.filter { it.containsKey("fnr") }[1]
+                assertThat(hjelpestønadRådata["fnr"]).isEqualTo("09876543210")
+                assertThat(hjelpestønadRådata["fom"]).isEqualTo("2020-01-01")
+                assertThat(hjelpestønadRådata["tom"]).isEqualTo("2021-12-31")
                 JSONAssert.assertEquals(
                     """
                         [
@@ -172,7 +173,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                             }
                         ]
                     """.trimIndent(),
-                    it.rådata[1]["hjelpestønad"] as String,
+                    hjelpestønadRådata["hjelpestønad"] as String,
                     false,
                 )
                 assertThat(it.innlesingId.toString()).isEqualTo(innlesingId.toString())

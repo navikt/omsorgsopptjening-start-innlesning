@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFraKilde
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.*
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
@@ -127,7 +128,8 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     kompletteringsService.oppdaterAlleFnr(barnetrygdData)
                 }
             }
-        assertThat(oppdatertBarnetrygdData).isEqualTo(barnetrygdData)
+        assertThat(oppdatertBarnetrygdData.copy(rådataFraKilde = Rådata(emptyList())))
+            .isEqualTo(barnetrygdData.copy(rådataFraKilde = Rådata(emptyList())))
     }
 
     @Test
@@ -221,6 +223,22 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
         assertThat(komplettert.persongrunnlag[0].omsorgsperioder).hasSize(2)
         assertThat(komplettert.persongrunnlag[0].hjelpestønadsperioder).hasSize(1)
         assertThat(komplettert.rådata).hasSizeGreaterThanOrEqualTo(12)  // TODO: Sette fast verdi igjen senere
+
+        println("RÅDATA::::::")
+        println(komplettert.rådata)
+
+        assertThat(komplettert.rådata)
+            .filteredOn {
+                it.values.any { it.contains(""""identifikasjonsnummer": "00000000001"""") }
+            }.hasSize(1)
+        assertThat(komplettert.rådata)
+            .filteredOn {
+                it.values.any { it.contains(""""identifikasjonsnummer": "00000000002"""") }
+            }.hasSize(1)
+        assertThat(komplettert.rådata)
+            .filteredOn {
+                it.values.any { it.contains(""""identifikasjonsnummer": "00000000003"""") }
+            }.hasSize(1)
     }
 
 

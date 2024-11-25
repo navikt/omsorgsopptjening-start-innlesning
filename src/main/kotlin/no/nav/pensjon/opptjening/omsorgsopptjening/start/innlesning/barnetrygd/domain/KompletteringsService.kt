@@ -83,8 +83,9 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
+                val persongrunnlagOgRådata = oppdaterAlleFnr(komplettering.persongrunnlag!!)
                 komplettering.withPersongrunnlag(
-                    oppdaterAlleFnr(komplettering.persongrunnlag!!)
+                    persongrunnlagOgRådata
                 )
             } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 secureLog.warn("Feil ved oppdatering av fødselsnummer etter henting av barnetrygdgrunnlag", e)
@@ -211,7 +212,7 @@ class KompletteringsService(
                 Komplettert(
                     barnetrygdmottaker = komplettering.barnetrygdmottaker,
                     persongrunnlag = komplettering.persongrunnlag!!.persongrunnlag,
-                    rådata = komplettering.akkumulertRådata(),
+                    rådata = Rådata(komplettering.akkumulertRådata().distinct()),
                 )
             },
             whenFeilet = { komplettering ->
@@ -219,7 +220,7 @@ class KompletteringsService(
                     barnetrygdmottaker = komplettering.barnetrygdmottaker,
                     persongrunnlag = emptyList(),
                     feilinformasjon = komplettering.feilinformasjon?.let { listOf(it) } ?: emptyList(),
-                    rådata = komplettering.akkumulertRådata(),
+                    rådata = Rådata(komplettering.akkumulertRådata().distinct()),
                 )
             }
         )
@@ -329,15 +330,20 @@ class KompletteringsService(
                 val omsorgsperioderMedrådata = sak.omsorgsperioder.map { oppdaterAlleFnr(it) }.distinct()
                 val hjelpestønadperioderMedRådata = sak.hjelpestønadsperioder.map { oppdaterAlleFnr(it) }.distinct()
 
-                PersongrunnlagMelding.Persongrunnlag.of(
-                    omsorgsyter = omsorgsyter.value,
-                    omsorgsperioder = omsorgsperioderMedrådata.map { it.value },
-                    hjelpestønadsperioder = hjelpestønadperioderMedRådata.map { it.value },
+                MedRådata(
+                    PersongrunnlagMelding.Persongrunnlag.of(
+                        omsorgsyter = omsorgsyter.value,
+                        omsorgsperioder = omsorgsperioderMedrådata.map { it.value },
+                        hjelpestønadsperioder = hjelpestønadperioderMedRådata.map { it.value },
+                    ),
+                    rådata = personIdOgRådataForOmsorgsyter.rådata
+                            + omsorgsperioderMedrådata.flatMap { it.rådata }
+                            + hjelpestønadperioderMedRådata.flatMap { it.rådata }
                 )
             }
             return barnetrygdData.copy(
-                persongrunnlag = saker,
-                rådataFraKilde = barnetrygdData.rådataFraKilde
+                persongrunnlag = saker.map { it.value },
+                rådataFraKilde = barnetrygdData.rådataFraKilde + saker.flatMap { it.rådata }
             )
         } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
             throw BarnetrygdException.OverlappendePerioder(
