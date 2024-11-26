@@ -107,14 +107,16 @@ class KompletteringsService(
                     "Feil ved oppdatering av fødselsnummer etter henting av barnetrygdgrunnlag. Overlappende perioder: ${e.perioder}",
                     e
                 )
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.OverlappendeBarnetrygdperioder(
-                        message = e.message ?: "",
-                        exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
-                        exceptionMessage = e.cause?.message ?: "",
-                        omsorgsmottaker = e.omsorgsmottaker,
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.OverlappendeBarnetrygdperioder(
+                            message = e.message ?: "",
+                            exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
+                            exceptionMessage = e.cause?.message ?: "",
+                            omsorgsmottaker = e.omsorgsmottaker,
+                        )
                     )
-                )
             }
         }.andThen { komplettering ->
             try {
@@ -126,14 +128,16 @@ class KompletteringsService(
                     "Feil ved komprimering av persongrunnlag etter henting av barnetrygdgrunnlag. Overlappende perioder: ${e.perioder}",
                     e
                 )
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.OverlappendeBarnetrygdperioder(
-                        message = e.message ?: "",
-                        exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
-                        exceptionMessage = e.cause?.message ?: "",
-                        omsorgsmottaker = e.omsorgsmottaker,
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.OverlappendeBarnetrygdperioder(
+                            message = e.message ?: "",
+                            exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
+                            exceptionMessage = e.cause?.message ?: "",
+                            omsorgsmottaker = e.omsorgsmottaker,
+                        )
                     )
-                )
             }
         }.andThen { komplettering ->
             try {
@@ -170,28 +174,32 @@ class KompletteringsService(
                 )
             } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 secureLog.warn("Feil ved oppdatering av fødselsnummer etter henting av hjelpestønadgrunnlag", e)
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.UgyldigIdent(
-                        message = "Feil ved oppdatering av ident for hjelpestønadmottager",
-                        exceptionMessage = e.cause?.message ?: "",
-                        exceptionType = e.cause?.javaClass?.canonicalName ?: "",
-                        ident = e.fnr.value,
-                        identRolle = e.rolle,
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.UgyldigIdent(
+                            message = "Feil ved oppdatering av ident for hjelpestønadmottager",
+                            exceptionMessage = e.cause?.message ?: "",
+                            exceptionType = e.cause?.javaClass?.canonicalName ?: "",
+                            ident = e.fnr.value,
+                            identRolle = e.rolle,
+                        )
                     )
-                )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
                 secureLog.warn(
                     "Feil ved oppdatering av fødselsnummer etter henting av hjelpestønadgrunnlag. Overlappende perioder: ${e.perioder}",
                     e
                 )
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.OverlappendeHjelpestønadperioder(
-                        message = "Overlappende hjelpestønadperioder",
-                        exceptionType = e::class.java.canonicalName,
-                        exceptionMessage = e.message ?: "",
-                        omsorgsmottaker = e.omsorgsmottaker,
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.OverlappendeHjelpestønadperioder(
+                            message = "Overlappende hjelpestønadperioder",
+                            exceptionType = e::class.java.canonicalName,
+                            exceptionMessage = e.message ?: "",
+                            omsorgsmottaker = e.omsorgsmottaker,
+                        )
                     )
-                )
             }
         }.andThen { komplettering ->
             try {
@@ -203,14 +211,16 @@ class KompletteringsService(
                     "Overlappende perioder ved komprimering av persongrunnlag etter henting av hjelpestønadgrunnlag: ${e.perioder}",
                     e
                 )
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.OverlappendeHjelpestønadperioder(
-                        message = e.message ?: "",
-                        exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
-                        exceptionMessage = e.cause?.message ?: "",
-                        omsorgsmottaker = e.omsorgsmottaker,
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.OverlappendeHjelpestønadperioder(
+                            message = e.message ?: "",
+                            exceptionType = e.cause?.let { it::class.java.canonicalName } ?: "",
+                            exceptionMessage = e.cause?.message ?: "",
+                            omsorgsmottaker = e.omsorgsmottaker,
+                        )
                     )
-                )
             }
         }.mapTo(
             whenOk = { komplettering ->
