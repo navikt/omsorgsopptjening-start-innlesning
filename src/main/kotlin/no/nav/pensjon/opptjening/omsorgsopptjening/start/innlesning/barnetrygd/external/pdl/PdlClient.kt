@@ -89,7 +89,10 @@ class PdlClient(
         return responseBody?.let { body ->
             val response = mapper.readValue(body, PdlResponse::class.java)
             response?.error?.extensions?.code?.also { code ->
-                if (code == PdlErrorCode.SERVER_ERROR) throw PdlException(response.error)
+                if (code == PdlErrorCode.SERVER_ERROR) throw PdlException(
+                    pdlError = response.error,
+                    rådata = listOf(RådataFraKilde(mapOf(fnr.value to body)))
+                )
             }
             MedRådata(
                 response,
