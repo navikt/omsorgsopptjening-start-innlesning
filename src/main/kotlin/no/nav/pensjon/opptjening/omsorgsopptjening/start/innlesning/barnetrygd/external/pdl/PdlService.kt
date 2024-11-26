@@ -19,15 +19,29 @@ class PdlService(
 
             val hentPersonQueryResponse =
                 pdlResponse?.value?.data?.hentPerson
-                    ?: throw PdlException(pdlResponse?.value?.error)
+                    ?: throw PdlException(
+                        pdlResponse?.value?.error,
+                        rådata = pdlResponse?.rådata ?: emptyList()
+                    )
 
             return MedRådata(
                 value = hentPersonQueryResponse.toDomain(),
                 rådata = pdlResponse.rådata,
             )
+        } catch (ex: PdlException) {
+            secureLog.error("Feil ved oppslag av person", ex)
+            throw PersonOppslagException(
+                msg = "Feil ved henting av person",
+                throwable = ex,
+                rådata = ex.rådata
+            )
         } catch (ex: Throwable) {
             secureLog.error("Feil ved oppslag av person", ex)
-            throw PersonOppslagException("Feil ved henting av person", ex)
+            throw PersonOppslagException(
+                msg = "Feil ved henting av person",
+                throwable = ex,
+                rådata = emptyList()
+            )
         }
     }
 }

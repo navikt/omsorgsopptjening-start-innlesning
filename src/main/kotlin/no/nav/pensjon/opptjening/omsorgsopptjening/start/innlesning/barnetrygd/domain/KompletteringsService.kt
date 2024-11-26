@@ -42,15 +42,17 @@ class KompletteringsService(
                     )
             } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 secureLog.warn("Feil ved oppdatering av ident for barnetrygdmottaker", e)
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.UgyldigIdent(
-                        message = "Feil ved oppdatering av ident for barnetrygdmottaker",
-                        exceptionMessage = e.cause?.message ?: "",
-                        exceptionType = e.cause?.javaClass?.canonicalName ?: "",
-                        ident = barnetrygdmottakerUtenPdlData.ident.value,
-                        identRolle = IdentRolle.BARNETRYGDMOTTAKER,
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.UgyldigIdent(
+                            message = "Feil ved oppdatering av ident for barnetrygdmottaker",
+                            exceptionMessage = e.cause?.message ?: "",
+                            exceptionType = e.cause?.javaClass?.canonicalName ?: "",
+                            ident = barnetrygdmottakerUtenPdlData.ident.value,
+                            identRolle = IdentRolle.BARNETRYGDMOTTAKER,
+                        )
                     )
-                )
             }
         }.andThen { komplettering ->
             try {
@@ -89,15 +91,17 @@ class KompletteringsService(
                 )
             } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 secureLog.warn("Feil ved oppdatering av fødselsnummer etter henting av barnetrygdgrunnlag", e)
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.UgyldigIdent(
-                        message = "Feil ved oppdatering av ident for omsorgsmottaker",
-                        exceptionType = e.cause?.javaClass?.canonicalName ?: "",
-                        exceptionMessage = e.cause?.message ?: "",
-                        ident = e.fnr.value,
-                        identRolle = e.rolle,
+                komplettering
+                    .withLøseRådata(e.rådata)
+                    .withFeilinformasjon(
+                        Feilinformasjon.UgyldigIdent(
+                            message = "Feil ved oppdatering av ident for omsorgsmottaker",
+                            exceptionType = e.cause?.javaClass?.canonicalName ?: "",
+                            exceptionMessage = e.cause?.message ?: "",
+                            ident = e.fnr.value,
+                            identRolle = e.rolle,
+                        )
                     )
-                )
             } catch (e: BarnetrygdException.OverlappendePerioder) {
                 secureLog.warn(
                     "Feil ved oppdatering av fødselsnummer etter henting av barnetrygdgrunnlag. Overlappende perioder: ${e.perioder}",
@@ -138,14 +142,15 @@ class KompletteringsService(
                 )
             } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
                 secureLog.warn("Overlappende perioder ved henting av hjelpestønadsgrunnlag: ${e.perioder}", e)
-                komplettering.withFeilinformasjon(
-                    Feilinformasjon.OverlappendeHjelpestønadperioder(
-                        message = "Overlappende perioder ved henting av hjelpestønadsgrunnlag",
-                        exceptionType = e::class.java.canonicalName,
-                        exceptionMessage = e.message ?: "",
-                        omsorgsmottaker = e.omsorgsmottaker,
+                komplettering
+                    .withFeilinformasjon(
+                        Feilinformasjon.OverlappendeHjelpestønadperioder(
+                            message = "Overlappende perioder ved henting av hjelpestønadsgrunnlag",
+                            exceptionType = e::class.java.canonicalName,
+                            exceptionMessage = e.message ?: "",
+                            omsorgsmottaker = e.omsorgsmottaker,
+                        )
                     )
-                )
             } catch (e: UgyldigPersongrunnlag) {
                 secureLog.warn("Feil ved henting av hjelpestønadgrunnlag", e)
                 komplettering.withFeilinformasjon(
@@ -299,7 +304,7 @@ class KompletteringsService(
                 }
                 return PersongrunnlagOgRådata(
                     persongrunnlag = persongrunnlag,
-                    rådataFraKilde = this.rådataFraKilde
+                    rådataFraKilde = this.rådataFraKilde,
                 )
             } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
                 throw BarnetrygdException.OverlappendePerioder(
@@ -307,18 +312,20 @@ class KompletteringsService(
                     cause = e,
                     perioder = e.perioder,
                     omsorgsmottaker = e.omsorgsmottaker,
+                    rådata = rådataFraKilde,
                 )
             } catch (e: UgyldigPersongrunnlag) {
                 throw BarnetrygdException.FeilIGrunnlagsdata(
                     msg = "Feil i datagrunnlag ved komprimering av persongrunnlag",
                     cause = e,
-                    rådata = Rådata(rådataFraKilde)
+                    rådata = rådataFraKilde,
                 )
             }
         }
     }
 
     fun oppdaterAlleFnr(barnetrygdData: PersongrunnlagOgRådata): PersongrunnlagOgRådata {
+        val rådata: MutableList<RådataFraKilde> = mutableListOf() // TODO: finne en måte å komme unna mutable
         try {
             val saker = barnetrygdData.persongrunnlag.map { sak ->
                 val personIdOgRådataForOmsorgsyter = hentPersonId(
@@ -327,8 +334,11 @@ class KompletteringsService(
                     beskrivelse = "omsorgsyter",
                 )
                 val omsorgsyter = personIdOgRådataForOmsorgsyter.value.fnr
+                rådata.addAll(personIdOgRådataForOmsorgsyter.rådata)
                 val omsorgsperioderMedrådata = sak.omsorgsperioder.map { oppdaterAlleFnr(it) }.distinct()
+                rådata.addAll(omsorgsperioderMedrådata.flatMap { it.rådata })
                 val hjelpestønadperioderMedRådata = sak.hjelpestønadsperioder.map { oppdaterAlleFnr(it) }.distinct()
+                rådata.addAll(hjelpestønadperioderMedRådata.flatMap { it.rådata })
 
                 MedRådata(
                     PersongrunnlagMelding.Persongrunnlag.of(
@@ -336,9 +346,7 @@ class KompletteringsService(
                         omsorgsperioder = omsorgsperioderMedrådata.map { it.value },
                         hjelpestønadsperioder = hjelpestønadperioderMedRådata.map { it.value },
                     ),
-                    rådata = personIdOgRådataForOmsorgsyter.rådata
-                            + omsorgsperioderMedrådata.flatMap { it.rådata }
-                            + hjelpestønadperioderMedRådata.flatMap { it.rådata }
+                    rådata = rådata
                 )
             }
             return barnetrygdData.copy(
@@ -351,6 +359,7 @@ class KompletteringsService(
                 cause = e,
                 perioder = e.perioder,
                 omsorgsmottaker = e.omsorgsmottaker,
+                rådata = rådata,
             )
         }
     }
@@ -394,7 +403,8 @@ class KompletteringsService(
                 fnr = fnr,
                 rolle = rolle,
                 msg = "Feil ved oppslag i PDL for '$beskrivelse'",
-                cause = e
+                cause = e,
+                rådata = e.rådata,
             )
         }
     }
