@@ -54,9 +54,6 @@ class BarnetrygdinformasjonRepositoryTest : SpringContextTest.NoKafka() {
 
         val alle = barnetrygdinformasjonRepository.finnAlle(innlesing.id)
         assertThat(alle).hasSize(4)
-        alle.forEach {
-            println("::: $it")
-        }
 
         val locked1 = barnetrygdinformasjonRepository.finnNesteTilBehandling(3)
         assertThat(locked1.data).hasSize(3)

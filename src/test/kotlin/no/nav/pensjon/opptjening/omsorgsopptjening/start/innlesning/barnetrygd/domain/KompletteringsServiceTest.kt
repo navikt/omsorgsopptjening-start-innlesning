@@ -357,8 +357,6 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .isInstanceOf(Feilinformasjon.UgyldigIdent::class.java)
             .hasFieldOrPropertyWithValue("ident", fnr(2).value)
             .hasFieldOrPropertyWithValue("identRolle", IdentRolle.OMSORGSMOTTAKER_BARNETRYGD)
-        println("SIZE: " + komplettert.rådata.size)
-        println("RÅDATA: ${komplettert.rådata}")
         assertThat(komplettert.rådata)
             .filteredOn { it.containsKey("barnetrygd") }
             .hasSize(1)
@@ -512,7 +510,6 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .hasSize(1)
             .first()
             .isInstanceOf(Feilinformasjon.OverlappendeBarnetrygdperioder::class.java)
-        println(komplettert)
         assertThat(komplettert.rådata).hasSizeGreaterThanOrEqualTo(1)  // TODO: Sette fast verdi igjen senere
         assertThat((komplettert.feilinformasjon.first() as Feilinformasjon.OverlappendeBarnetrygdperioder).omsorgsmottaker)
             .isEqualTo(fnr(2).value)
@@ -623,10 +620,9 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
             .hasSize(1)
             .first()
             .isInstanceOf(Feilinformasjon.OverlappendeHjelpestønadperioder::class.java)
-        println(komplettert.feilinformasjon.first())
 
         assertThat(komplettert.persongrunnlag).isEmpty()
-        assertThat(komplettert.rådata).hasSize(15) //  // TODO: Sette fast verdi igjen senere
+        assertThat(komplettert.rådata).hasSize(15) // TODO: ekspandere sjekkingen her
     }
 
     @Test
