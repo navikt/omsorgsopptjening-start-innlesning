@@ -25,8 +25,10 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import java.lang.String.format
 import java.time.Instant
+import java.time.LocalDate
 import java.time.YearMonth
 import java.util.*
+import java.util.function.Consumer
 
 
 class KompletteringsServiceTest : SpringContextTest.NoKafka() {
@@ -216,29 +218,62 @@ class KompletteringsServiceTest : SpringContextTest.NoKafka() {
                     )
                 }
             }
-        println(komplettert)
         assertThat(komplettert.barnetrygdmottaker.personId?.fnr).isEqualTo(fnr(1))
         assertThat(komplettert.persongrunnlag).hasSize(1)
         assertThat(komplettert.persongrunnlag[0].omsorgsyter).isEqualTo(fnr(1).value)
         assertThat(komplettert.persongrunnlag[0].omsorgsperioder).hasSize(2)
         assertThat(komplettert.persongrunnlag[0].hjelpestønadsperioder).hasSize(1)
-        assertThat(komplettert.rådata).hasSizeGreaterThanOrEqualTo(12)  // TODO: Sette fast verdi igjen senere
+        assertThat(komplettert.rådata).hasSize(15)
 
-        println("RÅDATA::::::")
-        println(komplettert.rådata)
+        assertThat(
+            komplettert.rådata.filter {
+                it.containsKey("barnetrygd")
+            }
+        ).satisfies(Consumer<List<RådataFraKilde>> {
+            assertThat(it.map { it["fnr"] }).containsExactlyInAnyOrder(
+                fnr(1).value,
+                fnr(1_1).value,
+                fnr(1_2).value,
+                fnr(1_3).value,
+            )
+        })
 
-        assertThat(komplettert.rådata)
-            .filteredOn {
-                it.values.any { it.contains(""""identifikasjonsnummer": "00000000001"""") }
-            }.hasSize(1)
-        assertThat(komplettert.rådata)
-            .filteredOn {
-                it.values.any { it.contains(""""identifikasjonsnummer": "00000000002"""") }
-            }.hasSize(1)
-        assertThat(komplettert.rådata)
-            .filteredOn {
-                it.values.any { it.contains(""""identifikasjonsnummer": "00000000003"""") }
-            }.hasSize(1)
+        assertThat(
+            komplettert.rådata.filter {
+                it.containsKey("hjelpestønad")
+            }
+        ).satisfies(Consumer<List<RådataFraKilde>> {
+            assertThat(it.map { it["fnr"] }).containsExactlyInAnyOrder(
+                fnr(2).value,
+                fnr(2_1).value,
+                fnr(2_2).value,
+                fnr(2_3).value,
+                fnr(3).value,
+                fnr(3_1).value,
+                fnr(3_2).value,
+                fnr(3_3).value,
+            )
+        })
+
+        assertThat(
+            komplettert.rådata.filter {
+                !it.containsKey("barnetrygd") && !it.containsKey("hjelpestønad")
+            }
+        ).satisfies(Consumer<List<RådataFraKilde>> {
+            assertThat(it.flatMap { it.values.toList() })
+                .hasSize(3)
+                .satisfiesExactlyInAnyOrder(
+                    Consumer {
+                        assertThat(it).contains(""""identifikasjonsnummer": "00000000001"""")
+                    },
+                    Consumer {
+                        assertThat(it).contains(""""identifikasjonsnummer": "00000000002"""")
+                    },
+                    Consumer {
+                        assertThat(it).contains(""""identifikasjonsnummer": "00000000003"""")
+                    }
+                )
+        })
     }
 
 
