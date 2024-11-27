@@ -3,6 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
+import net.javacrumbs.jsonunit.assertj.whenever
 import net.javacrumbs.jsonunit.core.Option
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
@@ -22,7 +23,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Month
 import java.time.YearMonth
@@ -90,11 +90,12 @@ class EndToEndTest : SpringContextTest.WithKafka() {
         sendTilBestemService.sendTilBestem()
 
         listener.removeFirstRecord(3).let { consumerRecord ->
-            assertThatJson(consumerRecord.key()).isEqualTo(
-                """
+            assertThatJson(consumerRecord.key())
+                .isEqualTo(
+                    """
                     {"ident":"12345678910"}
                 """.trimIndent()
-            )
+                )
 
             deserialize<PersongrunnlagMelding>(consumerRecord.value()).also {
                 assertThat(it.omsorgsyter).isEqualTo("12345678910")
@@ -131,7 +132,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 assertThat(it.rådata[0]["fnr"]).isEqualTo("12345678910")
                 assertThat(it.rådata[0]["fom"]).isEqualTo("2020-01-01")
                 assertThatJson(it.rådata[0]["barnetrygd"] as String)
-                    .`when`(Option.IGNORING_EXTRA_FIELDS)
+                    .whenever(Option.IGNORING_EXTRA_FIELDS)
                     .isEqualTo(
                         """
                         {
@@ -161,8 +162,10 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                 assertThat(hjelpestønadRådata["fnr"]).isEqualTo("09876543210")
                 assertThat(hjelpestønadRådata["fom"]).isEqualTo("2020-01-01")
                 assertThat(hjelpestønadRådata["tom"]).isEqualTo("2021-12-31")
-                JSONAssert.assertEquals(
-                    """
+                assertThatJson(hjelpestønadRådata["hjelpestønad"] as String)
+                    .whenever(Option.IGNORING_EXTRA_FIELDS)
+                    .isEqualTo(
+                        """
                         [
                             {
                                 "id":"101",
@@ -173,9 +176,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                             }
                         ]
                     """.trimIndent(),
-                    hjelpestønadRådata["hjelpestønad"] as String,
-                    false,
-                )
+                    )
                 assertThat(it.innlesingId.toString()).isEqualTo(innlesingId.toString())
                 assertThat(it.correlationId).isNotNull() //opprettes internt
             }

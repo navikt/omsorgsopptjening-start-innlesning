@@ -2,6 +2,9 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.ba
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
+import net.javacrumbs.jsonunit.assertj.whenever
+import net.javacrumbs.jsonunit.core.Option
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Kilde
@@ -23,7 +26,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
-import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Month
 import java.time.YearMonth
@@ -106,8 +108,9 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
 
                         assertThat(it.rådataFraKilde["fnr"]).isEqualTo("123")
                         assertThat(it.rådataFraKilde["fom"]).isEqualTo("2020-01-01")
-                        JSONAssert.assertEquals(
-                            it.rådataFraKilde["barnetrygd"],
+                        assertThatJson(it.rådataFraKilde["barnetrygd"])
+                            .whenever(Option.IGNORING_EXTRA_FIELDS)
+                            .isEqualTo(
                             """{
                                     "fagsaker": [
                                         {
@@ -129,7 +132,6 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                         }
                                     ]
                                 }""".trimIndent(),
-                            false,
                         )
                     }
                 }

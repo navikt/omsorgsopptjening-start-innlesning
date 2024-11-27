@@ -2,9 +2,11 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.OutputStreamAppender
+import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
+import net.javacrumbs.jsonunit.assertj.whenever
+import net.javacrumbs.jsonunit.core.Option
 import net.logstash.logback.encoder.LogstashEncoder
 import org.junit.jupiter.api.Test
-import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.LoggerFactory
 import org.testcontainers.shaded.org.apache.commons.io.output.ByteArrayOutputStream
 
@@ -34,16 +36,16 @@ class LogbackVerificationTest {
         log.detachAndStopAllAppenders()
         val string = String(os.toByteArray())
 
-        JSONAssert.assertEquals(
-            """
+        assertThatJson(string)
+            .whenever(Option.IGNORING_EXTRA_FIELDS)
+            .isEqualTo(
+                """
                 { 
                   "@version" : "1",
                   "message" : "hello",
                   "level" : "INFO"
                 }
-            """,
-            string,
-            false
-        )
+            """
+            )
     }
 }

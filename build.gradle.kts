@@ -19,7 +19,6 @@ val wiremockVersion = "3.9.2"
 val micrometerRegistryPrometheusVersion = "1.14.1"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.5"
-val jsonAssertVersion = "1.5.2"
 val jsonUnitVersion = "4.0.0"
 val guavaVersion = "33.3.1-jre"
 
@@ -94,7 +93,6 @@ dependencies {
     testImplementation("org.assertj:assertj-core:$assertjVersion")
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
     testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
-    testImplementation("org.skyscreamer:jsonassert:$jsonAssertVersion")
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:$jsonUnitVersion")
 }
 
