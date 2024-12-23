@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturnConsecutively
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Clock
 import java.time.Instant
@@ -29,7 +29,7 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
 
-    @MockBean
+    @MockitoBean
     private lateinit var clock: Clock
 
     @Test

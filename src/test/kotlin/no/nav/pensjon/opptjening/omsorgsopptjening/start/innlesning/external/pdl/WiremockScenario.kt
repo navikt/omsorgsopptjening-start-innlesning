@@ -7,7 +7,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest.Companion.PDL_PATH
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.PdlServiceTest.Companion.wiremock
 
 fun WireMockExtension.`pdl error not_found`(): StubMapping {
     synchronized(this) {

@@ -82,7 +82,7 @@ fun WireMockExtension.`hent hjelpestønad ok - har hjelpestønad`(
                                         "ident":"${forFnr.value}",
                                         "fom":"${fom.formatterForKall()}",
                                         "tom":"${tom.formatterForKall()}",
-                                        "omsorgstype":"${omsorgstype}"
+                                        "omsorgstype":"$omsorgstype"
                                     }
                                 ]
                             """.trimIndent()

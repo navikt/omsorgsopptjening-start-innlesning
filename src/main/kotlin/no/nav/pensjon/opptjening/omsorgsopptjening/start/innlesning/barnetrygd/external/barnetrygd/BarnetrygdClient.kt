@@ -24,7 +24,7 @@ import java.util.UUID
 import java.util.function.Predicate
 
 /**
- * @see https://familie-ba-sak.intern.dev.nav.no/swagger-ui/index.html#/pensjon-controller
+ * See https://familie-ba-sak.intern.dev.nav.no/swagger-ui/index.html#/pensjon-controller
  */
 @Component
 class BarnetrygdClient(

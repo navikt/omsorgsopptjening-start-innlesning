@@ -450,7 +450,7 @@ class KompletteringsService(
         fun akkumulertRådata(): Rådata {
             val rådataFraPersongrunnlag = persongrunnlag?.rådataFraKilde ?: emptyList()
             val rådataFraKilder = rådataFraPersongrunnlag + løseRådata
-            return Rådata(rådataFraKilder.filterNotNull())
+            return Rådata(rådataFraKilder)
         }
 
         fun <T> mapTo(

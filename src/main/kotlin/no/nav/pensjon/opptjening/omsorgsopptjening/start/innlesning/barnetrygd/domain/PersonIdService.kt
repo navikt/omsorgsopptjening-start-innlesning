@@ -2,7 +2,6 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.
 
 import com.google.common.cache.CacheBuilder
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlService
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.Duration
 
