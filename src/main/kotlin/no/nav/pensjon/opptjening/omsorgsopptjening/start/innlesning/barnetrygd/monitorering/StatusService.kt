@@ -65,7 +65,7 @@ class StatusService(
         val behandlingsperiode = 1.hours.toJavaDuration()
         val forventetAntallIdentiteter = innlesing.forventetAntallIdentiteter
         val gammelNokTilÅSjekke = innlesing.forespurtTidspunkt.plus(behandlingsperiode).isBefore(now)
-        return if (gammelNokTilÅSjekke) false
+        return if (!gammelNokTilÅSjekke) false
         else if (forventetAntallIdentiteter == null) {
             log.error("Innlesing ${innlesing.id} mangler forventet antall mottakere")
             true

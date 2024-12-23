@@ -29,11 +29,11 @@ import org.mockito.BDDMockito.any
 import org.mockito.BDDMockito.given
 import org.mockito.kotlin.argumentCaptor
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.Clock
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -50,10 +50,10 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     @Autowired
     private lateinit var sendTilBestemService: SendTilBestemService
 
-    @MockBean
+    @MockitoBean
     private lateinit var kafkaTemplate: KafkaTemplate<String, String>
 
-    @MockBean
+    @MockitoBean
     private lateinit var clock: Clock
 
     @Autowired

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.dao.IncorrectUpdateSemanticsDataAccessException
 import org.springframework.kafka.support.Acknowledgment
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.util.ReflectionTestUtils
 import java.time.Instant
 import java.util.*
@@ -128,13 +129,13 @@ class BarnetrygdmottakerKafkaListenerTest {
 
     @Nested
     inner class KafkaRetryHandlingTest : SpringContextTest.WithKafka() {
-        @MockBean
+        @MockitoBean
         private lateinit var handler: BarnetrygdmottakerMessageHandler
 
-        @MockBean
+        @MockitoBean
         private lateinit var retryListener: InnlesingInvalidatingRetryListener
 
-        @MockBean
+        @MockitoBean
         private lateinit var innlesingRepository: InnlesingRepository
 
         @Test
