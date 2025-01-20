@@ -4,32 +4,32 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "2.1.3"
-val navTokenSupportVersion = "5.0.11"
+val navTokenSupportVersion = "5.0.14"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "8.0"
-val postgresqlVersion = "42.7.4"
-val flywayCoreVersion = "11.0.0"
+val postgresqlVersion = "42.7.5"
+val flywayCoreVersion = "11.2.0"
 val testcontainersVersion = "1.20.4"
 val jacksonVersion = "2.17.1"
-val springKafkaTestVersion = "3.3.0"
+val springKafkaTestVersion = "3.3.1"
 val azureAdClient = "0.0.7"
-val assertjVersion = "3.26.3"
+val assertjVersion = "3.27.3"
 val awaitilityVersion = "4.2.2"
-val wiremockVersion = "3.9.2"
+val wiremockVersion = "3.10.0"
 val micrometerRegistryPrometheusVersion = "1.14.1"
 val mockitoKotlinVersion = "5.4.0"
-val unleashVersion = "9.2.5"
-val jsonUnitVersion = "4.0.0"
-val guavaVersion = "33.3.1-jre"
+val unleashVersion = "9.2.6"
+val jsonUnitVersion = "4.1.0"
+val guavaVersion = "33.4.0-jre"
 
 val snappyJavaVersion = "1.1.10.7"
 val snakeYamlVersion = "2.3"
 
 plugins {
-    val kotlinVersion = "2.0.21"
+    val kotlinVersion = "2.1.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.4.0"
+    id("org.springframework.boot") version "3.4.1"
     id("com.github.ben-manes.versions") version "0.51.0"
 }
 
