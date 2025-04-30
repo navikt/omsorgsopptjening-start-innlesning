@@ -41,8 +41,6 @@ jobs:
         with:
           team: pensjonopptjening
           tag: ${{ github.sha }}
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }} # required, but is defined as an organization variable
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }} # required, but is defined as an organization secret
 
       - name: 'Deploy omsorgsopptjening-start-innlesning to prod-gcp'
         uses: nais/deploy/actions/deploy@v2
