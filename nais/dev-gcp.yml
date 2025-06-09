@@ -18,8 +18,6 @@ spec:
       claims:
         groups:
           - id: "7ef907b4-ec9f-47dd-ab41-4e54ba32ceb1" #AAD pensjonopptjening testgruppe
-  secureLogs:
-    enabled: true
   gcp:
     sqlInstances:
       - type: POSTGRES_17
@@ -68,6 +66,8 @@ spec:
         - application: omsorgsarbeid-ba-mock
         - application: familie-ba-sak
           namespace: teamfamilie
+        - application: logging
+          namespace: nais-system
   liveness:
     path: /actuator/health/liveness
     port: 8080
@@ -84,6 +84,10 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
   replicas:
     # satt til 0 for ikke å bruke ressurser mens det er idle, må skrus opp igjen til faktisk kjøring
     min: 1
