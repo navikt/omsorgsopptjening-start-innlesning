@@ -5,33 +5,35 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val domeneVersion = "2.1.3"
-val navTokenSupportVersion = "5.0.14"
+val domeneVersion = "2.1.4"
+val navTokenSupportVersion = "5.0.29"
 val hibernateValidatorVersion = "8.0.1.Final"
-val logbackEncoderVersion = "8.0"
-val postgresqlVersion = "42.7.5"
-val flywayCoreVersion = "11.2.0"
-val testcontainersVersion = "1.20.4"
-val jacksonVersion = "2.18.2"
-val springKafkaTestVersion = "3.3.1"
+val logbackEncoderVersion = "7.4"
+val postgresqlVersion = "42.7.6"
+val flywayCoreVersion = "11.9.1"
+val testcontainersVersion = "1.21.1"
+val jacksonVersion = "2.19.0"
+val springKafkaTestVersion = "3.3.6"
 val azureAdClient = "0.0.7"
 val assertjVersion = "3.27.3"
-val awaitilityVersion = "4.2.2"
-val wiremockVersion = "3.10.0"
-val micrometerRegistryPrometheusVersion = "1.14.3"
+val awaitilityVersion = "4.3.0"
+val wiremockVersion = "3.13.0"
+val micrometerRegistryPrometheusVersion = "1.15.0"
 val mockitoKotlinVersion = "5.4.0"
 val unleashVersion = "9.2.6"
-val jsonUnitVersion = "4.1.0"
-val guavaVersion = "33.4.0-jre"
+val jsonUnitVersion = "4.1.1"
+val guavaVersion = "33.4.8-jre"
 
 val snappyJavaVersion = "1.1.10.7"
-val snakeYamlVersion = "2.3"
+val snakeYamlVersion = "2.4"
+
+// val junitVersion = "5.11.0"
 
 plugins {
-    val kotlinVersion = "2.1.0"
+    val kotlinVersion = "2.1.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.4.1"
+    id("org.springframework.boot") version "3.5.0"
     id("com.github.ben-manes.versions") version "0.52.0"
 }
 
@@ -96,6 +98,9 @@ dependencies {
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
     testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:$jsonUnitVersion")
+
+//    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+//    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 
 tasks.test {
