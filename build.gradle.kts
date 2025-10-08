@@ -6,35 +6,35 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val domeneVersion = "2.1.4"
-val navTokenSupportVersion = "5.0.29"
+val navTokenSupportVersion = "5.0.37"
 val hibernateValidatorVersion = "8.0.1.Final"
-val logbackEncoderVersion = "7.4"
-val postgresqlVersion = "42.7.6"
-val flywayCoreVersion = "11.9.1"
-val testcontainersVersion = "1.21.1"
-val jacksonVersion = "2.19.0"
-val springKafkaTestVersion = "3.3.6"
+val logbackEncoderVersion = "7.4" // nyere versjoner ikke støttet av spring pga logback-access
+val postgresqlVersion = "42.7.8"
+val flywayCoreVersion = "11.13.3"
+val testcontainersVersion = "1.21.3"
+val jacksonVersion = "2.20.0"
+val springKafkaTestVersion = "3.3.10"
 val azureAdClient = "0.0.7"
-val assertjVersion = "3.27.3"
+val assertjVersion = "3.27.6"
 val awaitilityVersion = "4.3.0"
-val wiremockVersion = "3.13.0"
-val micrometerRegistryPrometheusVersion = "1.15.0"
-val mockitoKotlinVersion = "5.4.0"
+val wiremockVersion = "3.13.1"
+val micrometerRegistryPrometheusVersion = "1.15.4"
+val mockitoKotlinVersion = "6.1.0"
 val unleashVersion = "9.2.6"
 val jsonUnitVersion = "4.1.1"
-val guavaVersion = "33.4.8-jre"
+val guavaVersion = "33.5.0-jre"
 
-val snappyJavaVersion = "1.1.10.7"
-val snakeYamlVersion = "2.4"
+val snappyJavaVersion = "1.1.10.8"
+val snakeYamlVersion = "2.5"
 
 // val junitVersion = "5.11.0"
 
 plugins {
-    val kotlinVersion = "2.1.21"
+    val kotlinVersion = "2.2.10"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.5.0"
-    id("com.github.ben-manes.versions") version "0.52.0"
+    id("org.springframework.boot") version "3.5.6"
+    id("com.github.ben-manes.versions") version "0.53.0"
 }
 
 apply(plugin = "io.spring.dependency-management")
