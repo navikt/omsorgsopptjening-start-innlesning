@@ -48,7 +48,7 @@ jobs:
           docker tag "$IMAGE" "$IMAGE_BASE:prod-$DATETIME"
           docker push --all-tags "$IMAGE_BASE"
 
-      - name: 'Deploy to prod-fss'
+      - name: 'Deploy to prod-gcp'
         uses: nais/deploy/actions/deploy@v2
         env:
           RESOURCE: nais/prod-gcp.yml,nais/unleash-apitoken-prod-gcp.yml
