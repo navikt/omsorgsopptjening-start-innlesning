@@ -1,0 +1,50 @@
+name: 'check-deploy-to-prod-approved'
+
+on:
+  workflow_run:
+    workflows:
+      - 'Deploy to production'
+    types:
+      - 'completed'
+
+jobs:
+  check-workflow-approved:
+    name: 'Check workflow approved'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: 'Extract workflow info'
+        id: extract-workflow-info
+        run: |
+          response=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{env.REPO}}/actions/runs/${{env.ID}}/approvals)
+          
+          skipped=$(jq 'any(.state == "skipped")' <<< $response)
+          self_approved=$(jq 'map(select(.state == "approved")) | map(.user.html_url) | any(. == "${{env.ACTOR_URL}}")' <<< $response)
+          
+          if $skipped || $self_approved;
+            then
+              echo "send_slack_alert=true" >> $GITHUB_OUTPUT
+            else
+              echo "send_slack_alert=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          REPO: '${{ github.repository }}'
+          ID: '${{ github.event.workflow_run.id }}'
+          ACTOR_URL: '${{ github.event.workflow_run.actor.html_url }}'
+      - name: 'Send Slack message if deploy approval is buypassed or self-approved'
+        id: invoke-slack-webhook
+        uses: slackapi/slack-github-action@v2.1.1
+        if: ${{ steps.extract-workflow-info.outputs.send_slack_alert == 'true' }}
+        with:
+          webhook: ${{ secrets.SLACK_WORKFLOW_APPROVAL_BUYPASS_WEBHOOK }}
+          webhook-type: webhook-trigger
+          payload: |
+            github_user_url: "${{ github.event.workflow_run.actor.html_url }}"
+            workflow_url: "${{ github.event.workflow_run.html_url }}"
+            workflow_title: "${{ github.event.workflow_run.display_title }}"

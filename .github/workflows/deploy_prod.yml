@@ -1,0 +1,56 @@
+name: 'Deploy to production'
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Which version to deploy (e.g. 2025.10.01-12.55-a1b2c3d)'
+        required: true
+
+jobs:
+  tagAndDeploy:
+    name: 'Tag and deploy'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v5
+
+      - name: 'Fetch NAIS information'
+        uses: nais/login@v0
+        id: nais-login
+        with:
+          team: 'pensjonopptjening'
+
+      - name: 'Set variables'
+        run: |
+          echo "DATETIME=$(TZ=Europe/Oslo date '+%Y-%m-%d_%H.%M.%S')" >> $GITHUB_ENV
+
+          echo "REPO=${{ steps.nais-login.outputs.registry }}" >> $GITHUB_ENV
+          echo "IMAGE=${{ steps.nais-login.outputs.registry }}/omsorgsopptjening-start-innlesning:${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          echo "IMAGE_BASE=${{ steps.nais-login.outputs.registry }}/omsorgsopptjening-start-innlesning" >> $GITHUB_ENV
+
+      - name: 'Information'
+        id: info
+        run: |
+          echo "DATETIME: $DATETIME"
+          echo "IMAGE: $IMAGE"
+          echo "IMAGE: $REPO"
+          echo "IMAGE_BASE: $IMAGE_BASE"
+
+      - name: 'Tag image'
+        run: |
+          docker pull "$IMAGE"
+          docker tag "$IMAGE" "$IMAGE_BASE:prod"
+          docker tag "$IMAGE" "$IMAGE_BASE:prod-$DATETIME"
+          docker push --all-tags "$IMAGE_BASE"
+
+      - name: 'Deploy to prod-fss'
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          RESOURCE: nais/prod-gcp.yml,nais/unleash-apitoken-prod-gcp.yml
+          CLUSTER: prod-gcp
+          IMAGE: ${{ env.IMAGE }}
