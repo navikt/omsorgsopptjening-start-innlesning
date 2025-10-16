@@ -13,24 +13,32 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - name: 'Check available disk space on /tmp (1)'
-        run: df -h /tmp
-
       - name: 'Pull repo'
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v5
 
       - name: 'Setter dato og commit variabel'
         run: |
           export TZ=CET
-          echo "DATE=$(date "+%Y-%m-%d--%H-%M-%S")" >> $GITHUB_ENV
-          echo "COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "DATE=$(date '+%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV
+          echo "GIT_COMMIT=$(echo ${{github.sha}} | cut -c 1-7)" >> $GITHUB_ENV
+          echo "GIT_BRANCH=$(echo ${{github.ref_name}})" >> $GITHUB_ENV
+
+      - name: 'Configure git reference tag'
+        run: |
+          echo "GIT_REF_TAG=git_${GIT_BRANCH}_${GIT_COMMIT}" >> $GITHUB_ENV
 
       - name: 'Java 21'
-        uses: actions/setup-java@v4.0.0
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
           cache: 'gradle'
+
+      - name: 'Setup Gradle'
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: 'Generate and submit dependency graph'
+        uses: gradle/actions/dependency-submission@v5
 
       - name: 'Build artifact'
         run: |
@@ -52,7 +60,7 @@ jobs:
           name: failed-test-results
           path: build/reports/tests/test
 
-      - name: 'Deploy omsorgsopptjening-start-innlesning to dev-gcp'
+      - name: 'Deploy to dev-gcp'
         uses: nais/deploy/actions/deploy@v2
         env:
           RESOURCE: nais/dev-gcp.yml,nais/unleash-apitoken-dev-gcp.yml

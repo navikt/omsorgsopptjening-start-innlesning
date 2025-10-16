@@ -16,20 +16,16 @@ jobs:
     permissions: # The Dependency Submission API requires write permission
       contents: write
     steps:
-      # JAVA 21
+
       - name: 'Checkout'
-        uses: actions/checkout@v4.1.1 # ratchet:actions/checkout@v3
+        uses: actions/checkout@v5
+
       - name: 'Java 21'
-        uses: actions/setup-java@v4.0.0
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
           cache: 'gradle'
-      - name: Run snapshot action
-        uses: mikepenz/gradle-dependency-submission@v1
-        with:
-          fail-on-error: true
-          gradle-dependency-path: "build.gradle.kts"
-          gradle-build-configuration: "compileClasspath"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v5
