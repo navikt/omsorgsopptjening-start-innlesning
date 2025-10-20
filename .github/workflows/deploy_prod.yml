@@ -7,6 +7,8 @@ on:
         description: 'Which version to deploy (e.g. 2025.10.01-12.55-a1b2c3d)'
         required: true
 
+run-name: "Deploy ${{ inputs.version }} to prod-gcp"
+
 jobs:
   tagAndDeploy:
     name: 'Tag and deploy'
