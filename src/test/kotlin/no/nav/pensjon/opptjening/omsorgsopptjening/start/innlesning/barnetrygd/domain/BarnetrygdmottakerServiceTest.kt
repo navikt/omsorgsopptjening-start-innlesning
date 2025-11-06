@@ -12,10 +12,13 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Omsorgstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon.Status
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok - ingen perioder`
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.barnetrygd.`hent-barnetrygd ok uten fagsaker`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - har hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.hjelpestønad.`hent hjelpestønad ok - ingen hjelpestønad`
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl.`pdl error not_found`
@@ -58,6 +61,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
     @Autowired
     private lateinit var innlesingRepository: InnlesingRepository
+
+    @Autowired
+    private lateinit var barnetrygdinformasjonRepository: BarnetrygdinformasjonRepository
 
     companion object {
         @JvmField
@@ -419,7 +425,6 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
 
     @Test
     fun `oppdaterer riktig status på flere meldinger der det kastes exception for en`() {
-
         val captor = argumentCaptor<ProducerRecord<String, String>> { }
         given(kafkaTemplate.send(captor.capture())).willAnswer {
             CompletableFuture.completedFuture(it.arguments[0])
@@ -598,6 +603,34 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                 assertThat(sak.hjelpestønadsperioder).isEmpty()
             }
         }
+    }
+
+    @Test
+    fun `oppdaterer status på melding som er ugyldig slik at den ikke stopper opp prosesseringen av andre meldinger`() {
+        val captor = argumentCaptor<ProducerRecord<String, String>> { }
+        given(kafkaTemplate.send(captor.capture())).willAnswer {
+            CompletableFuture.completedFuture(it.arguments[0])
+        }
+        given(clock.instant()).willReturn(Instant.now())
+
+        val innlesing = lagreFullførtInnlesing()
+
+        barnetrygdmottakerRepository.insert(
+            Barnetrygdmottaker.Transient(
+                ident = Ident("12345678910"),
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            )
+        )
+
+        wiremock.`pdl fnr fra query`()
+        wiremock.`hent-barnetrygd ok uten fagsaker`(Ident("12345678910"))
+        wiremock.`hent hjelpestønad ok - ingen hjelpestønad`()
+
+        barnetrygdService.låsForBehandling().map { barnetrygdService.prosesserOgFrigi(it) }
+        sendTilBestemService.sendTilBestem()
+
+        assertThat(barnetrygdinformasjonRepository.finnAlle(innlesing.id).single().status).isEqualTo(Status.IKKE_SEND)
     }
 
     @Test

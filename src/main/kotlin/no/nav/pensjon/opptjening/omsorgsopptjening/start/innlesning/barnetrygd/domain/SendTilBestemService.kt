@@ -4,6 +4,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon.Status
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
@@ -61,6 +62,21 @@ class SendTilBestemService(
         } catch (outerEx: Throwable) {
             val ex = when (outerEx) {
                 is UndeclaredThrowableException -> outerEx.undeclaredThrowable
+                is IllegalArgumentException -> {
+                    //TODO specific error
+                    when {
+                        outerEx.message == "Meldingen må inneholde enten persongrunnlag eller feilinfo" -> {
+                            transactionTemplate.execute {
+                                log.warn("Barnetrygdinformasjon: ${barnetrygdinformasjon.id} er ugyldig, oppdaterer status til ${Status.IKKE_SEND}")
+                                barnetrygdinformasjonRepository.oppdaterStatus(barnetrygdinformasjon.feil())
+                            }
+                            outerEx
+                        }
+
+                        else -> outerEx
+                    }
+                }
+
                 else -> outerEx
             }
             log.warn("Fikk feil ved sending av barnetrygdinformasjon: ${ex::class.qualifiedName}")
