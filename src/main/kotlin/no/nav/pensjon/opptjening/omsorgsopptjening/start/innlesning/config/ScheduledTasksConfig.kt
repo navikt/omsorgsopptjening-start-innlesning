@@ -1,6 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config
 
-import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.StatusCheckTask
@@ -27,7 +26,6 @@ class ScheduledTasksConfig(
     private val statusRapporteringCachingAdapter: StatusRapporteringCachingAdapter,
     private val barnetrygdmottakerService: BarnetrygdmottakerService,
     private val metrikker: Metrikker,
-    private val unleash: Unleash,
 ) {
     @Bean
     fun statusCheckTask(): StatusCheckTask {
@@ -50,7 +48,6 @@ class ScheduledTasksConfig(
             taskExecutor = taskExecutor,
             service = barnetrygdmottakerService,
             metrikker = metrikker,
-            unleash = unleash,
         )
     }
 
@@ -59,7 +56,6 @@ class ScheduledTasksConfig(
         return SendTilBestemTask(
             service = sendTilBestemService,
             metrikker = metrikker,
-            unleash = unleash,
         )
     }
 
