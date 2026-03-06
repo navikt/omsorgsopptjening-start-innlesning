@@ -20,7 +20,6 @@ val awaitilityVersion = "4.3.0"
 val wiremockVersion = "3.13.1"
 val micrometerRegistryPrometheusVersion = "1.15.4"
 val mockitoKotlinVersion = "6.1.0"
-val unleashVersion = "9.2.6"
 val jsonUnitVersion = "5.0.0"
 val guavaVersion = "33.5.0-jre"
 
@@ -73,7 +72,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
-    implementation("io.getunleash:unleash-client-java:$unleashVersion")
     implementation("com.google.guava:guava:$guavaVersion")
 
     // DB

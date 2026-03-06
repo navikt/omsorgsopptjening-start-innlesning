@@ -63,7 +63,7 @@ jobs:
       - name: 'Deploy to dev-gcp'
         uses: nais/deploy/actions/deploy@v2
         env:
-          RESOURCE: nais/dev-gcp.yml,nais/unleash-apitoken-dev-gcp.yml
+          RESOURCE: nais/dev-gcp.yml
           CLUSTER: dev-gcp
           IMAGE: ${{ steps.docker-push.outputs.image }}
           TELEMETRY: ${{ steps.docker-push.outputs.telemetry }}

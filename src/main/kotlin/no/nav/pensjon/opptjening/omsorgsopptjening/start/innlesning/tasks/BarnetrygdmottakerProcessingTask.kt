@@ -1,9 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
-import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.UnleashConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -13,7 +11,6 @@ class BarnetrygdmottakerProcessingTask(
     private val taskExecutor: ThreadPoolTaskExecutor,
     private val service: BarnetrygdmottakerService,
     private val metrikker: Metrikker,
-    private val unleash: Unleash,
 ) : Runnable {
     companion object {
         val log = LoggerFactory.getLogger(BarnetrygdmottakerProcessingTask::class.java)!!
@@ -22,14 +19,12 @@ class BarnetrygdmottakerProcessingTask(
     @Scheduled(fixedDelay = 5000)
     override fun run() {
         log.info("BarnetrygdmottakerProcessingTask.run()")
-        if (isEnabled()) {
-            try {
-                processAllAvailableBarnetrygdMottakere()
-            } catch (ex: Throwable) {
-                log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
-                log.error("Pausing for 10 seconds")
-                Thread.sleep(10_000)
-            }
+        try {
+            processAllAvailableBarnetrygdMottakere()
+        } catch (ex: Throwable) {
+            log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
+            log.error("Pausing for 10 seconds")
+            Thread.sleep(10_000)
         }
     }
 
@@ -58,10 +53,5 @@ class BarnetrygdmottakerProcessingTask(
                 service.prosesserOgFrigi(it)
             }
         }
-    }
-
-    private fun isEnabled(): Boolean {
-        val enabled = unleash.isEnabled(UnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
-        return enabled
     }
 }
