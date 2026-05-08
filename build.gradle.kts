@@ -10,8 +10,8 @@ val navTokenSupportVersion = "5.0.37"
 val hibernateValidatorVersion = "8.0.1.Final"
 val logbackEncoderVersion = "7.4" // nyere versjoner ikke støttet av spring pga logback-access
 val postgresqlVersion = "42.7.8"
-val flywayCoreVersion = "11.15.0"
-val testcontainersVersion = "1.21.3"
+val flywayCoreVersion = "12.5.0"
+val testcontainersVersion = "1.21.4"
 val jacksonVersion = "2.20.0"
 val springKafkaTestVersion = "3.3.10"
 val azureAdClient = "0.0.7"
@@ -32,8 +32,8 @@ plugins {
     val kotlinVersion = "2.2.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.5.7"
-    id("com.github.ben-manes.versions") version "0.53.0"
+    id("org.springframework.boot") version "3.5.13"
+    id("com.github.ben-manes.versions") version "0.54.0"
 }
 
 apply(plugin = "io.spring.dependency-management")
