@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
 jobs:
   tag_build_and_deploy:
     name: 'Build, deploy and tag'
@@ -14,7 +16,7 @@ jobs:
       id-token: write
     steps:
       - name: 'Pull repo'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: 'Setter dato og commit variabel'
         run: |
@@ -65,5 +67,14 @@ jobs:
         env:
           RESOURCE: nais/dev-gcp.yml
           CLUSTER: dev-gcp
+          IMAGE: ${{ steps.docker-push.outputs.image }}
+          TELEMETRY: ${{ steps.docker-push.outputs.telemetry }}
+
+      - name: 'Deploy to prod-gcp (kun for main)'
+        uses: nais/deploy/actions/deploy@v2
+        if: ${{github.ref == 'refs/heads/main' }}
+        env:
+          RESOURCE: nais/prod-gcp.yml
+          CLUSTER: prod-gcp
           IMAGE: ${{ steps.docker-push.outputs.image }}
           TELEMETRY: ${{ steps.docker-push.outputs.telemetry }}
