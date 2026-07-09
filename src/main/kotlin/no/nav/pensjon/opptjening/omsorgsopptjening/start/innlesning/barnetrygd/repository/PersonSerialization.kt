@@ -1,12 +1,12 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.readValue
 
 object PersonSerialization {
-    private val objectMapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     fun PersonId.toJson(): String {
         return objectMapper.writeValueAsString(this)

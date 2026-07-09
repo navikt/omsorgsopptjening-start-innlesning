@@ -1,19 +1,24 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import no.nav.pensjon.opptjening.omsorgsopptjening.felles.*
+import java.sql.ResultSet
+import java.time.Clock
+import java.time.Instant
+import java.util.UUID
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Feilinformasjon
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
+import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
-import java.sql.ResultSet
-import java.time.Clock
-import java.time.Instant
-import java.util.*
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.toJavaDuration
 
 @Component
 class BarnetrygdinformasjonRepository(
@@ -151,7 +156,7 @@ class BarnetrygdinformasjonRepository(
                 "lockId" to lockId
             ),
             UUID::class.java
-        )
+        ).filterNotNull()
     }
 
     fun frigiGamleLåser(): Int {

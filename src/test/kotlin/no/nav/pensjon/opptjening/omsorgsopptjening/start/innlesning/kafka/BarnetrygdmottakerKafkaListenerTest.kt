@@ -1,12 +1,19 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.kafka
 
+import java.time.Instant
+import java.util.UUID
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesingException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerMessageHandler
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.*
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaListener
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaTopic
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.InnlesingInvalidatingRetryListener
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.InvalidateOnExceptionWrapper
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.KafkaMeldingDeserialiseringException
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -16,14 +23,23 @@ import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.given
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.IncorrectUpdateSemanticsDataAccessException
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.util.ReflectionTestUtils
-import java.time.Instant
-import java.util.*
 
 class BarnetrygdmottakerKafkaListenerTest {
 
@@ -150,10 +166,8 @@ class BarnetrygdmottakerKafkaListenerTest {
             }
             sendUgyldigMeldingKafka()
 
-            Thread.sleep(500)
-
-            verify(retryListener).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
-            verify(retryListener).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
             assertInstanceOf(KafkaMeldingDeserialiseringException::class.java, captor.allValues.single().cause)
             verifyNoMoreInteractions(retryListener)
         }
@@ -172,10 +186,8 @@ class BarnetrygdmottakerKafkaListenerTest {
             }
             sendStartInnlesingKafka("17de91e9-b01a-4d95-84bc-80630ded678e")
 
-            Thread.sleep(500)
-
-            verify(retryListener).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
-            verify(retryListener).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
             assertInstanceOf(BarnetrygdInnlesingException.EksistererIkke::class.java, captor.allValues.single().cause)
             verifyNoMoreInteractions(retryListener)
         }
@@ -199,10 +211,8 @@ class BarnetrygdmottakerKafkaListenerTest {
             }
             sendStartInnlesingKafka("17de91e9-b01a-4d95-84bc-80630ded678e")
 
-            Thread.sleep(500)
-
-            verify(retryListener).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
-            verify(retryListener).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
             assertInstanceOf(InvalidateOnExceptionWrapper::class.java, captor.allValues.single().cause).also {
                 assertInstanceOf(BarnetrygdInnlesingException.UgyldigTistand::class.java, it.cause)
             }
@@ -223,10 +233,8 @@ class BarnetrygdmottakerKafkaListenerTest {
             }
             sendStartInnlesingKafka("17de91e9-b01a-4d95-84bc-80630ded678e")
 
-            Thread.sleep(3000)
-
-            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
-            verify(retryListener, times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000).times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000).times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
             assertInstanceOf(InvalidateOnExceptionWrapper::class.java, captor.lastValue.cause).also {
                 assertInstanceOf(IncorrectUpdateSemanticsDataAccessException::class.java, it.cause)
             }
@@ -253,11 +261,9 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             sendStartInnlesingKafka("17de91e9-b01a-4d95-84bc-80630ded678e")
 
-            Thread.sleep(3000)
-
-            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
-            verify(retryListener, times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
-            verify(innlesingRepository).invalider(UUID.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"))
+            verify(innlesingRepository, timeout(10_000)).invalider(UUID.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"))
+            verify(retryListener, timeout(10_000).times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
+            verify(retryListener, timeout(10_000).times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
             verifyNoMoreInteractions(retryListener)
         }
 
@@ -282,10 +288,8 @@ class BarnetrygdmottakerKafkaListenerTest {
 
             sendStartInnlesingKafka("17de91e9-b01a-4d95-84bc-80630ded678e")
 
-            Thread.sleep(3000)
-
-            verify(retryListener, times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
-            verify(retryListener, times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000).times(1)).recovered(any<ConsumerRecords<String, String>>(), any())
+            verify(retryListener, timeout(10_000).times(3)).failedDelivery(any<ConsumerRecords<String, String>>(), any(), any())
             verify(innlesingRepository, never()).invalider(UUID.fromString("17de91e9-b01a-4d95-84bc-80630ded678e"))
             verifyNoMoreInteractions(retryListener)
         }
@@ -317,7 +321,7 @@ class BarnetrygdmottakerKafkaListenerTest {
             )
             sendSluttInnlesingKafka(innlesing.id.toString())
 
-            Thread.sleep(500)
+            await { innlesingRepository.finn(innlesing.id.toString()) is BarnetrygdInnlesing.Ferdig }
 
             innlesingRepository.finn(innlesing.id.toString())!!.also { barnetrygdInnlesing ->
                 assertInstanceOf(BarnetrygdInnlesing.Ferdig::class.java, barnetrygdInnlesing).also {
@@ -341,13 +345,12 @@ class BarnetrygdmottakerKafkaListenerTest {
             )
 
             sendStartInnlesingKafka(innlesing.id.toString())
-            Thread.sleep(1000)
-            assertThat(innlesingRepository.finn(innlesing.id.toString())).isNotNull()
+            // Vent til første START faktisk er konsumert (Bestilt -> Startet); rada finst alt som Bestilt,
+            // så ei blank != null-sjekk ville passert med ein gong og racet den andre START-meldinga.
+            await { innlesingRepository.finn(innlesing.id.toString()) is BarnetrygdInnlesing.Startet }
 
             sendStartInnlesingKafka(innlesing.id.toString())
-            Thread.sleep(1000)
-
-            assertThat(innlesingRepository.finn(innlesing.id.toString())).isNull()
+            await { innlesingRepository.finn(innlesing.id.toString()) == null }
         }
     }
 }

@@ -47,3 +47,8 @@ spring.kafka:
   properties:
     log.retention.hours: 1
     log.segment.bytes: 500000000 # ca 500mb
+
+# Rask retry i test - ingen backoff-venting (prod-default er 1500ms via PdlClient @Retryable)
+pdl:
+  retry:
+    delayMs: 0

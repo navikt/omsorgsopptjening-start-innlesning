@@ -1,22 +1,25 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
+import java.time.Clock
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.UUID
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.*
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.given
 import org.mockito.kotlin.willReturnConsecutively
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.Clock
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.*
 
 class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
@@ -31,35 +34,6 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
     @MockitoBean
     private lateinit var clock: Clock
-
-    @Test
-    @Disabled
-    // TODO: Sjekken av status på innlesing gjøres nå i forkant
-    fun `finner ingen barnetrygdmottakere som skal prosesseres før alle i forsendelsen er lest inn`() {
-        val innlesing = innlesingRepository.bestilt(
-            BarnetrygdInnlesing.Bestilt(
-                id = InnlesingId.generate(),
-                år = År(2023),
-                forespurtTidspunkt = Instant.now(),
-            )
-        ).let { innlesingRepository.start(it.startet(1)) }
-
-        given(clock.instant()).willReturn(Instant.now())
-
-        barnetrygdmottakerRepository.insert(
-            barnetrygdmottaker = Barnetrygdmottaker.Transient(
-                ident = Ident("123"),
-                correlationId = CorrelationId.generate(),
-                innlesingId = innlesing.id
-            )
-        )
-
-        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1)).isNull()
-
-        innlesingRepository.fullført(innlesing.ferdig())
-
-        assertThat(barnetrygdmottakerRepository.finnNesteTilBehandling(innlesing.id, 1)).isNotNull()
-    }
 
     @Test
     fun `barnetrygdmottakere havner i karantene i 5 timer dersom de havner i status retry`() {

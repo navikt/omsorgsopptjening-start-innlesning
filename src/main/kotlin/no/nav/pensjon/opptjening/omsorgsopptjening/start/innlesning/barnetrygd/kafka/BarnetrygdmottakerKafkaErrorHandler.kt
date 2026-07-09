@@ -36,7 +36,7 @@ class InnlesingInvalidatingRetryListener(
         private val log: Logger = LoggerFactory.getLogger(InnlesingInvalidatingRetryListener::class.java)
     }
 
-    override fun failedDelivery(record: ConsumerRecord<*, *>, ex: java.lang.Exception, deliveryAttempt: Int) {}
+    override fun failedDelivery(record: ConsumerRecord<*, *>, ex: Exception?, deliveryAttempt: Int) {}
 
     override fun recovered(record: ConsumerRecords<*, *>, ex: java.lang.Exception) {
         ex.cause?.also { throwable ->

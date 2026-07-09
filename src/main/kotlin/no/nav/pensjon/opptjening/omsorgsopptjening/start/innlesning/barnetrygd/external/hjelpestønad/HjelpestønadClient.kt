@@ -1,5 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad
 
+import java.time.LocalDate
+import java.time.YearMonth
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
@@ -7,30 +9,31 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.RådataFr
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.Serializer.toJson
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.utf8RestTemplate
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.http.client.ClientHttpRequestFactory
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.toEntity
+import org.springframework.web.client.NoOpResponseErrorHandler
+import org.springframework.web.client.RestTemplate
 import pensjon.opptjening.azure.ad.client.TokenProvider
-import reactor.core.publisher.Mono
-import java.time.LocalDate
-import java.time.YearMonth
-import java.util.function.Predicate
 
 @Component
 class HjelpestønadClient(
     @Qualifier("hjelpestonadTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${HJELPESTONAD_URL}") private val baseUrl: String,
     internal val metrikker: Metrikker,
-    webClientBuilder: WebClient.Builder,
+    requestFactory: ClientHttpRequestFactory,
 ) {
-    private val webClient: WebClient = webClientBuilder.baseUrl(baseUrl).build()
+    // Kast ikke på non-2xx; body blir mata inn i deserialize-eller-tom-logikken (som WebClient onStatus(not200) + Mono.empty tidligere)
+        private val restTemplate: RestTemplate = utf8RestTemplate(requestFactory).apply {
+            errorHandler = NoOpResponseErrorHandler()
+        }
 
     internal fun hentHjelpestønad(
         fnr: Ident,
@@ -45,58 +48,53 @@ class HjelpestønadClient(
         fom: LocalDate,
         tom: LocalDate
     ): HentHjelpestønadDBResponse {
-        return webClient
-            .post()
-            .uri("/api/hjelpestonad/hent")
-            .header(CorrelationId.identifier, Mdc.getCorrelationId().toString())
-            .header(InnlesingId.identifier, Mdc.getInnlesingId().toString())
-            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(
+        val response = restTemplate.exchange(
+            "$baseUrl/api/hjelpestonad/hent",
+            HttpMethod.POST,
+            HttpEntity(
                 HentHjelpestønadQuery(
                     fnr = fnr.value,
                     fom = fom,
                     tom = tom
-                ).toJson()
-            )
-            .retrieve()
-            .onStatus(not200()) { Mono.empty() }
-            .toEntity<String>()
-            .block()?.let { response ->
-                val resp = response.body?.deserializeList<HjelpestønadVedtak>()?.let {
-                    HentHjelpestønadDBResponse(
-                        vedtak = it,
-                        rådataFraKilde = RådataFraKilde(
-                            mapOf(
-                                "fnr" to fnr.value,
-                                "fom" to fom.toString(),
-                                "tom" to tom.toString(),
-                                "hjelpestønad" to "${response.body}"
-                            )
-                        )
-                    )
+                ).toJson(),
+                HttpHeaders().apply {
+                    set(CorrelationId.identifier, Mdc.getCorrelationId().toString())
+                    set(InnlesingId.identifier, Mdc.getInnlesingId().toString())
+                    accept = listOf(MediaType.APPLICATION_JSON)
+                    contentType = MediaType.APPLICATION_JSON
+                    set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
                 }
-                resp ?: HentHjelpestønadDBResponse(
-                    vedtak = emptyList(),
-                    rådataFraKilde = RådataFraKilde(
-                        mapOf(
-                            "fnr" to fnr.value,
-                            "fom" to fom.toString(),
-                            "tom" to tom.toString(),
-                            "hjelpestønad" to "${response.body}"
-                        )
+            ),
+            String::class.java,
+        )
+
+        val body = response.body
+        return body?.deserializeList<HjelpestønadVedtak>()?.let {
+            HentHjelpestønadDBResponse(
+                vedtak = it,
+                rådataFraKilde = RådataFraKilde(
+                    mapOf(
+                        "fnr" to fnr.value,
+                        "fom" to fom.toString(),
+                        "tom" to tom.toString(),
+                        "hjelpestønad" to body
                     )
                 )
-            }
-            ?: throw HentHjelpestønadException("Response var null")
+            )
+        } ?: HentHjelpestønadDBResponse(
+            vedtak = emptyList(),
+            rådataFraKilde = RådataFraKilde(
+                mapOf(
+                    "fnr" to fnr.value,
+                    "fom" to fom.toString(),
+                    "tom" to tom.toString(),
+                    "hjelpestønad" to "$body"
+                )
+            )
+        )
     }
 
-    private fun not200(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.OK))
-
 }
-
-data class HentHjelpestønadException(val msg: String) : RuntimeException(msg)
 
 data class HentHjelpestønadDBResponse(
     val vedtak: List<HjelpestønadVedtak>,

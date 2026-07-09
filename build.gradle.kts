@@ -1,48 +1,31 @@
-
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 val domeneVersion = "2.1.101"
-val navTokenSupportVersion = "5.0.37"
-val hibernateValidatorVersion = "8.0.1.Final"
-val logbackEncoderVersion = "7.4" // nyere versjoner ikke støttet av spring pga logback-access
-val postgresqlVersion = "42.7.8"
-val flywayCoreVersion = "12.5.0"
-val testcontainersVersion = "1.21.4"
-val jacksonVersion = "2.20.0"
-val springKafkaTestVersion = "3.3.10"
 val azureAdClient = "0.0.7"
-val assertjVersion = "3.27.6"
-val awaitilityVersion = "4.3.0"
+val logbackEncoderVersion = "9.0"
+val flywayCoreVersion = "12.6.0"
 val wiremockVersion = "3.13.1"
-val micrometerRegistryPrometheusVersion = "1.15.4"
-val mockitoKotlinVersion = "6.1.0"
-val jsonUnitVersion = "5.0.0"
-val guavaVersion = "33.5.0-jre"
-
-val snappyJavaVersion = "1.1.10.8"
-val snakeYamlVersion = "2.5"
-
-// val junitVersion = "5.11.0"
+val mockitoVersion = "6.3.0"
+val unleashVersion = "9.2.6"
+val navTokenSupportVersion = "6.0.8"
 
 plugins {
-    val kotlinVersion = "2.2.21"
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.5.13"
+    val kotlinVersion = "2.3.21"
+    id("org.jetbrains.kotlin.jvm") version kotlinVersion
+    id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
+    id("org.springframework.boot") version "4.1.0"
     id("com.github.ben-manes.versions") version "0.54.0"
 }
-
-apply(plugin = "io.spring.dependency-management")
 
 group = "no.nav.pensjon.opptjening"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -58,62 +41,63 @@ repositories {
 }
 
 dependencies {
-    implementation("no.nav.pensjon.opptjening:omsorgsopptjening-domene-lib:$domeneVersion")
+    // Native Gradle BOM-import (erstatter io.spring.dependency-management-pluginet). Constraints fra
+    // spring-boot-dependencies gjelder transitivt til testImplementation (arver fra implementation).
+    implementation(platform(SpringBootPlugin.BOM_COORDINATES))
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
-    implementation("org.springframework:spring-aspects")
+    implementation("org.springframework:spring-aspects") // aspectjweaver, kreves av @EnableRetry sin AspectJ-autoproxy
+    implementation("org.springframework.retry:spring-retry:2.0.13") // ikke i Boot 4 BOM, versjon må settes
+    implementation("org.springframework.boot:spring-boot-starter-jdbc") // ren JdbcTemplate, ingen Spring Data-repos
+    implementation("io.getunleash:unleash-client-java:$unleashVersion")
     implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
+    implementation("no.nav.security:token-client-spring:$navTokenSupportVersion")
+    implementation("org.hibernate.validator:hibernate-validator") // jakarta.validation-provider for @Validated @ConfigurationProperties (version fra BOM)
 
-    implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    // Apache HttpClient 5 for connection pool management (version managed by BOM)
+    implementation("org.apache.httpcomponents.client5:httpclient5")
+
+    // Internal libraries
+    implementation("no.nav.pensjon.opptjening:omsorgsopptjening-domene-lib:$domeneVersion")
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
-    implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
-    implementation("com.google.guava:guava:$guavaVersion")
+    implementation("com.google.guava:guava:33.5.0-jre")
 
-    // DB
-    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    // Jackson 3 (tools.jackson.*): core/annotations/databind kommer transitivt via startere (styres av Spring Boot BOM, jackson-bom 3.1.4).
+    // java.time-støtte er innebygd i databind i Jackson 3 - jackson-datatype-jsr310 trengs ikke.
+    implementation("tools.jackson.module:jackson-module-kotlin") // kode bruker readValue/jacksonObjectMapper direkte
+
+    // Log and metric
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("net.logstash.logback:logstash-logback-encoder:$logbackEncoderVersion")
+
+    // DB (postgresql version managed by BOM)
+    implementation("org.postgresql:postgresql")
+    implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
 
-    // These are transitive dependencies, but overriding them on top level due to vulnerabilities
-    // (and in some cases, the wrong version being picked)
-    implementation("org.xerial.snappy:snappy-java:$snappyJavaVersion")
-    implementation("org.yaml:snakeyaml:$snakeYamlVersion")
-
-    // Test - setup
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // Test
     testImplementation(kotlin("test"))
+    testImplementation("org.springframework.boot:spring-boot-starter-test") // includes assertj, jsonassert, mockito
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test") // Boot 4: MockMvc-autokonfig + @AutoConfigureMockMvc (flyttet ut av starter-web)
+    testImplementation("org.testcontainers:postgresql:1.21.4") // TC 1.x jdbc:tc-driver, som i afp-api
+    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
+    testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion") // shaded egen Jetty; immun mot Boot 4 BOM sin Jetty-versjon (unngår både NoSuchMethodError på jetty12 og keep-alive POST-bug i 4.0.0-beta)
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.springframework.kafka:spring-kafka-test:$springKafkaTestVersion")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion")
-    testImplementation("org.assertj:assertj-core:$assertjVersion")
-    testImplementation("org.awaitility:awaitility:$awaitilityVersion")
-    testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:$jsonUnitVersion")
-
-//    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-//    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-}
-
-tasks.test {
-    maxParallelForks = 1
-    useJUnitPlatform()
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:5.0.0")
 }
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")
-        jvmTarget.set(JvmTarget.JVM_21)
+        jvmTarget = JvmTarget.JVM_25
     }
 }
 
 tasks.withType<Test> {
+    maxParallelForks = 1 // Shared resources (db/wiremock)
     useJUnitPlatform()
     testLogging {
         events(
@@ -121,14 +105,6 @@ tasks.withType<Test> {
             TestLogEvent.FAILED,
             TestLogEvent.SKIPPED
         )
-        showExceptions = true
-        showCauses = true
-        showStackTraces = true
-        exceptionFormat = TestExceptionFormat.FULL
-    }
-    reports {
-        junitXml.required.set(true)
-        html.required.set(true)
     }
 }
 
@@ -138,6 +114,13 @@ tasks.withType<DependencyUpdatesTask>().configureEach {
     }
 }
 
+tasks.register<JavaExec>("runLocal") {
+    group = "application"
+    description = "Starter appen lokalt (kafkaIntegrationTest-profil, ingen ekstern infra)"
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.LocalRunKt")
+}
+
 fun isNonStableVersion(version: String): Boolean {
-    return listOf("BETA","RC","-M",".CR").any { version.uppercase().contains(it) }
+    return listOf("BETA", "RC", "-M", ".CR").any { version.uppercase().contains(it) }
 }

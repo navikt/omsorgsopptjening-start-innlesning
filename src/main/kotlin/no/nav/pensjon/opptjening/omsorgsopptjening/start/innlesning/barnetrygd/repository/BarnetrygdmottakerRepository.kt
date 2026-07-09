@@ -1,5 +1,12 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
+import java.sql.ResultSet
+import java.time.Clock
+import java.time.Instant
+import java.util.UUID
+import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
@@ -14,13 +21,6 @@ import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
-import java.sql.ResultSet
-import java.time.Clock
-import java.time.Instant
-import java.util.UUID
-import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.toJavaDuration
 
 @Component
 class BarnetrygdmottakerRepository(
@@ -173,7 +173,7 @@ class BarnetrygdmottakerRepository(
                 "lockId" to lockId
             ),
             UUID::class.java
-        )
+        ).filterNotNull()
     }
 
     fun finnNesteForRetry(lockId: UUID, innlesingId: InnlesingId, antall: Int): List<UUID> {
@@ -184,12 +184,12 @@ class BarnetrygdmottakerRepository(
                |where id in (
                |select id
                | from barnetrygdmottaker
-               | where status_type = 'Retry' 
+               | where status_type = 'Retry'
                |and karantene_til < (:now)::timestamptz
-               | and karantene_til is not null 
+               | and karantene_til is not null
                | and innlesing_id = :innlesingId
                | and lockId is null
-               | order by karantene_til asc 
+               | order by karantene_til asc
                | fetch first :antall rows only for update skip locked)
            """.trimMargin(),
             mapOf(
@@ -205,7 +205,7 @@ class BarnetrygdmottakerRepository(
                 "lockId" to lockId,
             ),
             UUID::class.java
-        )
+        ).filterNotNull()
     }
 
     fun finnAntallMottakereMedStatusForInnlesing(
@@ -241,7 +241,7 @@ class BarnetrygdmottakerRepository(
             Long::class.java,
         )!!
     }
-    
+
     fun oppdaterFeiledeRaderTilKlar(innlesingId: UUID): Int {
         val nyStatus = serialize(Barnetrygdmottaker.Status.Klar())
         return jdbcTemplate.update(

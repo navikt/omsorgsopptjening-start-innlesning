@@ -1,0 +1,30 @@
+name: 'Bygg branch'
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+jobs:
+  build:
+    name: 'Build'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v6
+
+      - name: 'Setup Java'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 25
+          cache: 'gradle'
+
+      - name: 'Build code'
+        run: |
+          ./gradlew build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
