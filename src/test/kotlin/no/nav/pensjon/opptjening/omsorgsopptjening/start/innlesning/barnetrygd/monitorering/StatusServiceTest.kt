@@ -104,41 +104,6 @@ object StatusServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    @Order(3)
-    @Disabled
-    fun `mottakere ikke prosessert`() {
-        val innlesing = innlesingRepository.bestilt(
-            BarnetrygdInnlesing.Bestilt(
-                id = InnlesingId.generate(),
-                år = År(2001),
-                forespurtTidspunkt = Instant.now().minus(Duration.ofHours(3))
-            )
-        )
-        val startet = innlesingRepository.start(innlesing.startet(10))
-        innlesingRepository.fullført(startet.ferdig())
-
-        val barnetrygdmottaker = Barnetrygdmottaker.Transient(
-            ident = Ident("12345123451"),
-            correlationId = CorrelationId(UUID.randomUUID()),
-            innlesingId = innlesing.id,
-        )
-
-        val mottatt = mottakerRepository.insert(barnetrygdmottaker)
-        mottakerRepository.updateStatus(mottatt.ferdig())
-
-        val antallFerdig = mottakerRepository.finnAntallMottakereMedStatusForInnlesing(
-            Barnetrygdmottaker.Status.Ferdig::class,
-            innlesing.id
-        )
-
-        val status = statusService.checkStatus()
-        assertThat(status)
-            .isInstanceOf(ApplicationStatus.Feil::class.java)
-            .extracting("feil")
-            .isEqualTo("Alle mottakere er ikke prosessert")
-    }
-
-    @Test
     @Order(4)
     fun `fersk innlesing der alle mottakere ikke er ferdige`() {
         val innlesingGammel = innlesingRepository.bestilt(

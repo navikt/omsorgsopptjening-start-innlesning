@@ -1,27 +1,26 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd
 
+import java.util.UUID
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Mdc
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.GyldigÅrsintervallFilter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.HentBarnetrygdResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.utf8RestTemplate
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.http.client.ClientHttpRequestFactory
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.toEntity
+import org.springframework.web.client.NoOpResponseErrorHandler
+import org.springframework.web.client.RestTemplate
 import pensjon.opptjening.azure.ad.client.TokenProvider
-import reactor.core.publisher.Mono
-import java.util.UUID
-import java.util.function.Predicate
 
 /**
  * See https://familie-ba-sak.intern.dev.nav.no/swagger-ui/index.html#/pensjon-controller
@@ -31,9 +30,12 @@ class BarnetrygdClient(
     @Qualifier("barnetrygdTokenProvider") private val tokenProvider: TokenProvider,
     @Value("\${BARNETRYGD_URL}") private val url: String,
     private val metrikker: Metrikker,
-    webClientBuilder: WebClient.Builder,
+    requestFactory: ClientHttpRequestFactory,
 ) {
-    private val webClient: WebClient = webClientBuilder.baseUrl(url).build()
+    // Kast ikke på non-2xx; ResponseHandler avgjør utfallet (som WebClient onStatus + Mono.empty tidligere)
+    private val restTemplate: RestTemplate = utf8RestTemplate(requestFactory).apply {
+        errorHandler = NoOpResponseErrorHandler()
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdClient::class.java)
@@ -46,17 +48,17 @@ class BarnetrygdClient(
     fun bestillBarnetrygdmottakere(
         ar: År
     ): BestillBarnetrygdmottakereResponse {
-        return webClient
-            .get()
-            .uri("/api/ekstern/pensjon/bestill-personer-med-barnetrygd/${ar.value}")
-            .header(CorrelationId.identifier, UUID.randomUUID().toString())
-            .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN_VALUE)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
-            .retrieve()
-            .onStatus(not202()) { Mono.empty() }
-            .toEntity<String>()
-            .block()?.let { BestillBarnetrygdResponseHandler.handle(it, ar) }
-            ?: throw BestillBarnetrygdMottakereException("Response var null")
+        val response = restTemplate.exchange(
+            "$url/api/ekstern/pensjon/bestill-personer-med-barnetrygd/${ar.value}",
+            HttpMethod.GET,
+            HttpEntity<Void>(HttpHeaders().apply {
+                set(CorrelationId.identifier, UUID.randomUUID().toString())
+                accept = listOf(MediaType.TEXT_PLAIN)
+                set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
+            }),
+            String::class.java,
+        )
+        return BestillBarnetrygdResponseHandler.handle(response, ar)
     }
 
     /**
@@ -83,31 +85,25 @@ class BarnetrygdClient(
             ident = ident,
             fraDato = filter.minDato().toString()
         )
-        return webClient
-            .post()
-            .uri("/api/ekstern/pensjon/hent-barnetrygd")
-            .header(CorrelationId.identifier, Mdc.getCorrelationId().toString())
-            .header(InnlesingId.identifier, Mdc.getInnlesingId().toString())
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
-            .body(BodyInserters.fromValue(request))
-            .retrieve()
-            .onStatus(not200()) { Mono.empty() }
-            .toEntity<String>()
-            .block()?.let {
-                HentBarnetrygdResponseHandler.handle(
-                    request = request,
-                    response = it,
-                    filter = filter
-                )
-            }
-            ?: throw HentBarnetrygdException("Response var null")
+        val response = restTemplate.exchange(
+            "$url/api/ekstern/pensjon/hent-barnetrygd",
+            HttpMethod.POST,
+            HttpEntity(request, HttpHeaders().apply {
+                set(CorrelationId.identifier, Mdc.getCorrelationId().toString())
+                set(InnlesingId.identifier, Mdc.getInnlesingId().toString())
+                contentType = MediaType.APPLICATION_JSON
+                accept = listOf(MediaType.APPLICATION_JSON)
+                set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.getToken())
+            }),
+            String::class.java,
+        )
+        return HentBarnetrygdResponseHandler.handle(
+            request = request,
+            response = response,
+            filter = filter
+        )
     }
 
     data class HentBarnetrygdRequest(val ident: String, val fraDato: String)
-
-    private fun not200(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.OK))
-    private fun not202(): Predicate<HttpStatusCode> = Predicate.not(Predicate.isEqual(HttpStatus.ACCEPTED))
 
 }

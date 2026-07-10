@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka
 
+import java.time.Duration
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.KafkaConfig
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -11,7 +12,6 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.listener.ContainerProperties
-import java.time.Duration
 
 @EnableKafka
 @Configuration
@@ -26,13 +26,15 @@ class BarnetrygdtmottakerKafkaListenerConfig(
         ConcurrentKafkaListenerContainerFactory<String, String>().apply {
             containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
             containerProperties.setAuthExceptionRetryInterval(Duration.ofSeconds(4L))
-            consumerFactory = DefaultKafkaConsumerFactory(
-                consumerConfig() + securityConfig,
-                StringDeserializer(),
-                StringDeserializer()
+            setConsumerFactory(
+                DefaultKafkaConsumerFactory(
+                    consumerConfig() + securityConfig,
+                    StringDeserializer(),
+                    StringDeserializer()
+                )
             )
             setCommonErrorHandler(customErrorHandler)
-            isBatchListener = true
+            setBatchListener(true)
         }
 
     private fun consumerConfig(): Map<String, Any> = mapOf(

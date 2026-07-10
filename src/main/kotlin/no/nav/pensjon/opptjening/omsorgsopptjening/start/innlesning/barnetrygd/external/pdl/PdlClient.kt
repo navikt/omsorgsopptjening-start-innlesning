@@ -1,13 +1,7 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.micrometer.core.instrument.MeterRegistry
+import java.net.URI
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
@@ -19,7 +13,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -29,8 +22,11 @@ import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientException
+import org.springframework.http.client.ClientHttpRequestFactory
+import org.springframework.web.client.RestTemplate
 import pensjon.opptjening.azure.ad.client.TokenProvider
-import java.net.URI
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 
 @Component
 class PdlClient(
@@ -38,6 +34,7 @@ class PdlClient(
     @Qualifier("pdlTokenProvider") private val tokenProvider: TokenProvider,
     registry: MeterRegistry,
     private val graphqlQuery: GraphqlQuery,
+    requestFactory: ClientHttpRequestFactory,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(KompletteringsService::class.java)
@@ -45,12 +42,12 @@ class PdlClient(
     }
 
     private val antallPersonerHentet = registry.counter("personer", "antall", "hentet")
-    private val restTemplate = RestTemplateBuilder().build()
+    private val restTemplate = RestTemplate(requestFactory)
 
     @Retryable(
         maxAttempts = 4,
         value = [RestClientException::class, PdlException::class],
-        backoff = Backoff(delay = 1500L, maxDelay = 30000L, multiplier = 2.5)
+        backoff = Backoff(delayExpression = "\${pdl.retry.delayMs:1500}", maxDelay = 30000L, multiplier = 2.5)
     )
     fun hentPerson(fnr: Ident): MedRådata<PdlResponse>? {
         val entity = RequestEntity<PdlQuery>(
@@ -75,16 +72,6 @@ class PdlClient(
             String::class.java
         ).body
 
-        val mapper = ObjectMapper().registerModules(KotlinModule.Builder().build(), JavaTimeModule()).apply {
-            propertyNamingStrategy = LOWER_CAMEL_CASE
-            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true)
-            configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-            setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        }
-
-        val response = responseBody?.let { } // deserialize(responseBody)
-
         antallPersonerHentet.increment()
         return responseBody?.let { body ->
             val response = mapper.readValue(body, PdlResponse::class.java)
@@ -108,6 +95,17 @@ class PdlClient(
             )
         }
     }
+
+    // Gjenopprettet eksplisitt mapper-konfig fra før migreringen, låser kontrakten mot PDL
+    // uavhengig av Jackson-defaults.
+    // FAIL_ON_UNKNOWN_PROPERTIES=false: PDL kan legge til nye felt i svaret uten at deserialiseringen
+    // feiler. Flere av PDL-DTO-ene (PdlResponse, PdlError, Extensions) mangler @JsonIgnoreProperties,
+    // så uten dette flagget vil nye felt fra PDL krasje appen.
+    // Hvis PDL en gang sender ukjente enum-verdier: gjør status/type nullbare + slå på
+    // READ_UNKNOWN_ENUM_VALUES_AS_NULL.
+    private val mapper = jacksonMapperBuilder()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .build()
 }
 
 @Component

@@ -2,13 +2,13 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning
 
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.OutputStreamAppender
+import java.io.ByteArrayOutputStream
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import net.javacrumbs.jsonunit.assertj.whenever
 import net.javacrumbs.jsonunit.core.Option
 import net.logstash.logback.encoder.LogstashEncoder
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
-import org.testcontainers.shaded.org.apache.commons.io.output.ByteArrayOutputStream
 
 
 /**

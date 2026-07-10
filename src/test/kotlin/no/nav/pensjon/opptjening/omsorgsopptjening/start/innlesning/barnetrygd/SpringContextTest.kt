@@ -1,5 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd
 
+import java.util.UUID
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Topics
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.Application
@@ -19,13 +20,25 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
-import java.util.*
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 sealed class SpringContextTest {
     companion object {
         const val PDL_PATH = "/graphql"
         const val WIREMOCK_PORT = 9991
         const val READINESS_TOPIC = "readiness-topic"
+
+        // Poll i stedet for fast Thread.sleep: returnerer med en gang betingelsen er oppfylt, så en grønn
+        // test venter aldri unødig. timeoutMs er kun et failsafe-tak som lar en reelt brutt test feile
+        // fremfor å henge; verdien påvirker aldri en grønn kjøring, derfor én felles default her.
+        fun await(timeoutMs: Long = 30_000, condition: () -> Boolean) {
+            val deadline = System.currentTimeMillis() + timeoutMs
+            while (System.currentTimeMillis() < deadline) {
+                if (condition()) return
+                Thread.sleep(50)
+            }
+            error("Betingelsen ble ikke oppfylt innen ${timeoutMs}ms")
+        }
     }
 
     @Autowired
@@ -40,7 +53,13 @@ sealed class SpringContextTest {
 
     @SpringBootTest(classes = [Application::class])
     @EnableMockOAuth2Server
-    class NoKafka : SpringContextTest()
+    class NoKafka : SpringContextTest() {
+        // KafkaAutoConfiguration finnes ikke i Boot 4 (flyttet til eget modul) og appen konfigurerer
+        // KafkaTemplate kun for kafka-profiler. NoKafka-tester trenger derfor en mock for at
+        // SendTilBestemService skal kunne wires. Subklasser stubber den selv ved behov.
+        @MockitoBean
+        protected lateinit var kafkaTemplate: KafkaTemplate<String, String>
+    }
 
     @ActiveProfiles("kafkaIntegrationTest")
     @EmbeddedKafka(
@@ -61,7 +80,7 @@ sealed class SpringContextTest {
         fun sendStartInnlesingKafka(
             requestId: String
         ) {
-            val pr = ProducerRecord(
+            val pr = ProducerRecord<String, String>(
                 BarnetrygdmottakerKafkaTopic.NAME,
                 null,
                 "",
@@ -80,7 +99,7 @@ sealed class SpringContextTest {
         fun sendBarnetrygdmottakerDataKafka(
             melding: BarnetrygdmottakerKafkaMelding,
         ) {
-            val pr = ProducerRecord(
+            val pr = ProducerRecord<String, String>(
                 BarnetrygdmottakerKafkaTopic.NAME,
                 null,
                 null,
@@ -91,7 +110,7 @@ sealed class SpringContextTest {
         }
 
         fun sendUgyldigMeldingKafka() {
-            val pr = ProducerRecord(
+            val pr = ProducerRecord<String, String>(
                 BarnetrygdmottakerKafkaTopic.NAME,
                 null,
                 null,
@@ -104,7 +123,7 @@ sealed class SpringContextTest {
         fun sendSluttInnlesingKafka(
             requestId: String
         ) {
-            val pr = ProducerRecord(
+            val pr = ProducerRecord<String, String>(
                 BarnetrygdmottakerKafkaTopic.NAME,
                 null,
                 "",
@@ -123,7 +142,7 @@ sealed class SpringContextTest {
         fun sendMeldinger(meldinger: List<BarnetrygdmottakerKafkaMelding>) {
             meldinger
                 .map { melding ->
-                    ProducerRecord(
+                    ProducerRecord<String, String>(
                         BarnetrygdmottakerKafkaTopic.NAME,
                         null,
                         "",

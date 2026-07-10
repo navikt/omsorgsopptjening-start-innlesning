@@ -16,7 +16,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.TokenProviderConfig.Companion.MOCK_TOKEN
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -105,21 +104,20 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    @Disabled("Treig som følge av backoff ved retry")
     fun `Given other code than 200 When getting person Then retry 3 times before give up`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
                 wiremock.stubFor(
                     WireMock.post(WireMock.urlEqualTo(PDL_PATH)).willReturn(WireMock.aResponse().withStatus(401))
                 )
-                assertThrows<RestClientException> { pdlService.hentPerson(FNR) }
+                val error = assertThrows<PersonOppslagException> { pdlService.hentPerson(FNR) }
+                assertInstanceOf(RestClientException::class.java, error.cause)
                 wiremock.verify(4, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
             }
         }
     }
 
     @Test
-    @Disabled("Treig som følge av backoff ved retry")
     fun `Given server error When getting person Then retry 3 times before give up`() {
         Mdc.scopedMdc(CorrelationId.generate()) {
             Mdc.scopedMdc(InnlesingId.generate()) {
@@ -131,8 +129,10 @@ internal class PdlServiceTest : SpringContextTest.NoKafka() {
                     )
                 )
 
-                val error = assertThrows<PdlException> { pdlService.hentPerson(FNR) }
-                assertThat(error.code).isEqualTo(PdlErrorCode.SERVER_ERROR)
+                val error = assertThrows<PersonOppslagException> { pdlService.hentPerson(FNR) }
+                assertInstanceOf(PdlException::class.java, error.cause).also {
+                    assertThat(it.code).isEqualTo(PdlErrorCode.SERVER_ERROR)
+                }
                 wiremock.verify(4, WireMock.postRequestedFor(WireMock.urlEqualTo(PDL_PATH)))
             }
         }

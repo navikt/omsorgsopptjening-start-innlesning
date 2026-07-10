@@ -1,0 +1,61 @@
+name: 'Bygg og deploy'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_push:
+    permissions:
+      contents: "write"
+      id-token: "write"
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v6
+
+      - name: 'Setup Java'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 25
+          cache: 'gradle'
+
+      - name: 'Setter git-referansetag'
+        run: |
+          echo "GIT_REF_TAG=git_${{github.ref_name}}_$(echo ${{github.sha}} | cut -c 1-7)" >> $GITHUB_ENV
+
+      - name: 'Generate and submit dependency graph'
+        uses: gradle/actions/dependency-submission@v6
+        with:
+          dependency-graph-include-configurations: '^runtimeClasspath$'
+
+      - name: 'Build code'
+        run: ./gradlew build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Build and push docker image'
+        uses: nais/docker-build-push@v0
+        id: docker-push
+        with:
+          team: pensjonopptjening
+          tag: ${{env.GIT_REF_TAG}}
+
+      - name: 'Deploy til dev-gcp'
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          RESOURCE: nais/dev-gcp.yml
+          CLUSTER: dev-gcp
+          IMAGE: ${{ steps.docker-push.outputs.image }}
+          TELEMETRY: ${{ steps.docker-push.outputs.telemetry }}
+
+      - name: 'Deploy to prod-gcp'
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          RESOURCE: nais/prod-gcp.yml
+          CLUSTER: prod-gcp
+          IMAGE: ${{ steps.docker-push.outputs.image }}
+          TELEMETRY: ${{ steps.docker-push.outputs.telemetry }}
