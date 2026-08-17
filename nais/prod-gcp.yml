@@ -20,12 +20,12 @@ spec:
           - id: "abd710c7-b01d-48e6-98b9-83ff615edf26" #AAD nais-team-pensjonopptjening
   gcp:
     sqlInstances:
-      - type: POSTGRES_16
+      - type: POSTGRES_17
         cascadingDelete: false
         diskAutoresize: true
         pointInTimeRecovery: true
         name: omsorginnlesning
-        tier: db-custom-4-15360
+        tier: db-custom-1-3840
         databases:
           - name: omsorginnlesning
             envVarPrefix: DATABASE
