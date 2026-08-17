@@ -57,6 +57,11 @@ spec:
       value: teamfamilie.aapen-familie-ba-sak-identer-med-barnetrygd
     - name: BARNETRYGDMOTTAKERE_CONSUMER_GROUP
       value: omsorgsopptjening-start-innlesning
+    - name: JAVA_TRUSTSTORE_OPTIONS
+      value: "-Djavax.net.ssl.trustStore=$(NAV_TRUSTSTORE_PATH)
+              -Djavax.net.ssl.trustStorePassword=$(NAV_TRUSTSTORE_PASSWORD)"
+    - name: JDK_JAVA_OPTIONS
+      value: "$(JAVA_TRUSTSTORE_OPTIONS)"
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.nav.no
