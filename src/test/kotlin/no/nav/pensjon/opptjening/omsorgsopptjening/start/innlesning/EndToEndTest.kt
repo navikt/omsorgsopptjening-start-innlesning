@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Month
 import java.time.YearMonth
-import java.util.*
+import java.util.UUID
 
 class EndToEndTest : SpringContextTest.WithKafka() {
 
@@ -114,6 +114,7 @@ class EndToEndTest : SpringContextTest.WithKafka() {
                                     kilde = Kilde.BARNETRYGD,
                                     utbetalt = 2000,
                                     landstilknytning = Landstilknytning.NORGE,
+                                    omsorgsyterHarSelvstendigRett = false
                                 ),
                             ),
                             hjelpestønadsperioder = listOf(

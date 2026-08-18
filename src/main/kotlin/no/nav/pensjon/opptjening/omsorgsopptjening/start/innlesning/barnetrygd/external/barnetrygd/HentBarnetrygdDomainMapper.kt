@@ -41,7 +41,8 @@ internal object HentBarnetrygdDomainMapper {
                         omsorgsmottaker = periode.personIdent,
                         kilde = periode.kildesystem.map(),
                         utbetalt = periode.utbetaltPerMnd,
-                        landstilknytning = toDomainLandstilknytning(periode)
+                        landstilknytning = toDomainLandstilknytning(periode),
+                        omsorgsyterHarSelvstendigRett = toDomainSelvstendigRett(periode.søkerHarSelvstendigRett)
                     )
                 },
             hjelpestønadsperioder = emptyList()
@@ -103,6 +104,16 @@ internal object HentBarnetrygdDomainMapper {
                 throw RuntimeException("Klarte ikke å oversette sakstypeEkstern: ${periode.sakstypeEkstern}")
             }
         }
+    }
+
+    /**
+     * omsorgsyter mottar barnetrygd på grunnlag av på annen forelders rettigheter i Norge, men har selv
+     * ingen tilknytning til Norge og har derfor heller ingen pensjonsrettigheter. Dersom verdien ikke er satt settes
+     * den til false - dette er likt som behandlingen ville vært forut før denne opplysningen ble innført. Feltet
+     * forventes å eksistere for saker med kilde [BarnetrygdKilde.BA], men ikke [BarnetrygdKilde.Infotrygd].
+     */
+    fun toDomainSelvstendigRett(søkerHarSelvstendigRett: Boolean?): Boolean {
+        return søkerHarSelvstendigRett ?: false
     }
 
     fun BarnetrygdKilde.map(): Kilde {
