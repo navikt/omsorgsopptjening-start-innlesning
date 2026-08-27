@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
-val domeneVersion = "2.1.101"
+val domeneVersion = "2.1.102"
 val azureAdClient = "0.0.7"
 val logbackEncoderVersion = "9.0"
 val flywayCoreVersion = "12.6.0"

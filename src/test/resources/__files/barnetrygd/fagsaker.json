@@ -7,15 +7,16 @@
         {{#each perioder}}
         {
           "personIdent": "{{personIdent}}",
-          "delingsprosentYtelse": "{{delingsProsentYtelse}}",
-          "ytelseTypeEkstern": "{{ytelsestype}}",
+          "delingsprosentYtelse": "{{delingsprosentYtelse}}",
+          "ytelseTypeEkstern": "{{ytelseTypeEkstern}}",
           "utbetaltPerMnd": {{utbetaltPerMnd}},
           "stønadFom": "{{stønadFom}}",
           "stønadTom": "{{stønadTom}}",
           "sakstypeEkstern": "NASJONAL",
           "kildesystem": "BA",
           "pensjonstrygdet": null,
-          "norgeErSekundærlandMedNullUtbetaling": false
+          "norgeErSekundærlandMedNullUtbetaling": false,
+          "søkerHarSelvstendigRett": {{søkerHarSelvstendigRett}}
         }{{#unless @last}},{{/unless}}
         {{/each}}
       ]

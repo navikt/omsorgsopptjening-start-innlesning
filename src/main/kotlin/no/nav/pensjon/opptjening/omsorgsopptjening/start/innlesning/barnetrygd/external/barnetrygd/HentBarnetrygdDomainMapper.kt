@@ -8,6 +8,9 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.nedreGrense
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.øvreGrense
 
+/**
+ * @see https://github.com/navikt/familie-ba-sak/blob/main/src/main/kotlin/no/nav/familie/ba/sak/ekstern/pensjon/Barnetrygd.kt
+ */
 internal object HentBarnetrygdDomainMapper {
 
     fun map(
@@ -41,7 +44,8 @@ internal object HentBarnetrygdDomainMapper {
                         omsorgsmottaker = periode.personIdent,
                         kilde = periode.kildesystem.map(),
                         utbetalt = periode.utbetaltPerMnd,
-                        landstilknytning = toDomainLandstilknytning(periode)
+                        landstilknytning = toDomainLandstilknytning(periode),
+                        omsorgsyterHarSelvstendigRett = periode.toDomainSelvstendigRett()
                     )
                 },
             hjelpestønadsperioder = emptyList()
@@ -102,6 +106,19 @@ internal object HentBarnetrygdDomainMapper {
             else -> {
                 throw RuntimeException("Klarte ikke å oversette sakstypeEkstern: ${periode.sakstypeEkstern}")
             }
+        }
+    }
+
+    /**
+     * omsorgsyter mottar barnetrygd på grunnlag av på annen forelders rettigheter i Norge, men har selv
+     * ingen tilknytning til Norge og har derfor heller ingen pensjonsrettigheter. Kun tilgjengelig for perioder
+     * fra [BarnetrygdKilde.BA]. Perioder fra [BarnetrygdKilde.Infotrygd] settes til default til false, da dette
+     * sannsynligvis er korrekt og er i tråd med hvordan dette har blitt håndtert før denne opplysningen ble tilgjengelig.
+     */
+    fun BarnetrygdPeriode.toDomainSelvstendigRett(): Boolean {
+        return when (kildesystem) {
+            BarnetrygdKilde.BA -> søkerHarSelvstendigRett!!
+            BarnetrygdKilde.Infotrygd -> søkerHarSelvstendigRett ?: false
         }
     }
 

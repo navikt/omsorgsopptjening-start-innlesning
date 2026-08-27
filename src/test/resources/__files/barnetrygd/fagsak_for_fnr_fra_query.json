@@ -15,7 +15,8 @@
           "sakstypeEkstern":"NASJONAL",
           "kildesystem":"BA",
           "pensjonstrygdet":null,
-          "norgeErSekundærlandMedNullUtbetaling":false
+          "norgeErSekundærlandMedNullUtbetaling":false,
+          "søkerHarSelvstendigRett": false
         }
       ]
     }

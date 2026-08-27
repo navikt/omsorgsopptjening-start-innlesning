@@ -6,10 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.not
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import java.time.Clock
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.concurrent.CompletableFuture
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
@@ -40,6 +36,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.time.Clock
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.CompletableFuture
 
 @DirtiesContext
 class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
@@ -167,7 +167,8 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
                                                 "sakstypeEkstern":"NASJONAL",
                                                 "kildesystem":"BA",
                                                 "pensjonstrygdet":null,
-                                                "norgeErSekundærlandMedNullUtbetaling":false
+                                                "norgeErSekundærlandMedNullUtbetaling":false,
+                                                "søkerHarSelvstendigRett": false
                                             }
                                         ]
                                     }

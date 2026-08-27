@@ -97,7 +97,9 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                             tom = YearMonth.of(2021, Month.DECEMBER),
                                             kilde = Kilde.BARNETRYGD,
                                             utbetalt = 2000,
-                                            landstilknytning = Landstilknytning.NORGE
+                                            landstilknytning = Landstilknytning.NORGE,
+                                            omsorgsyterHarSelvstendigRett = false,
+
                                         )
                                     ),
                                     hjelpestønadsperioder = emptyList(),
@@ -125,7 +127,8 @@ class BarnetrygdClientTest : SpringContextTest.NoKafka() {
                                                     "sakstypeEkstern":"NASJONAL",
                                                     "kildesystem":"BA",
                                                     "pensjonstrygdet":null,
-                                                    "norgeErSekundærlandMedNullUtbetaling":false
+                                                    "norgeErSekundærlandMedNullUtbetaling":false,
+                                                    "søkerHarSelvstendigRett":false
                                                 }
                                             ]
                                         }
