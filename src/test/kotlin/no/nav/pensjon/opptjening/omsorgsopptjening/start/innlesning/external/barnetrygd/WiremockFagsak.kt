@@ -8,20 +8,22 @@ data class WiremockFagsak(val eier: Ident, val perioder: List<BarnetrygdPeriode>
 
     data class BarnetrygdPeriode(
         val personIdent: Ident,
-        val delingsProsentYtelse: String = "FULL",
-        val ytelsestype: String = "ORDINÆR_BARNETRYGD",
+        val delingsprosentYtelse: String = "FULL",
+        val ytelseTypeEkstern: String = "ORDINÆR_BARNETRYGD",
         val utbetaltPerMnd: Int = 2000,
         val stønadFom: YearMonth = YearMonth.of(2020, 1),
         val stønadTom: YearMonth = YearMonth.of(2025, 12),
+        val søkerHarSelvstendigRett: Boolean = false,
     ) {
         fun toMap(): Map<String, Any?> {
             return mapOf(
                 Pair("personIdent", personIdent.value),
-                Pair("delingsProsentYtelse", delingsProsentYtelse),
-                Pair("ytelsestype", ytelsestype),
+                Pair("delingsprosentYtelse", delingsprosentYtelse),
+                Pair("ytelseTypeEkstern", ytelseTypeEkstern),
                 Pair("utbetaltPerMnd", utbetaltPerMnd),
                 Pair("stønadFom", stønadFom.formatterForKall()),
                 Pair("stønadTom", stønadTom.formatterForKall()),
+                Pair("søkerHarSelvstendigRett", søkerHarSelvstendigRett),
             )
         }
     }

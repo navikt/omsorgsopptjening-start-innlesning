@@ -100,7 +100,8 @@ internal data class BarnetrygdPeriode(
     val sakstypeEkstern: Sakstype,
     val kildesystem: BarnetrygdKilde,
     val pensjonstrygdet: Boolean? = null,
-    val norgeErSekundærlandMedNullUtbetaling: Boolean? = null
+    val norgeErSekundærlandMedNullUtbetaling: Boolean? = null,
+    val søkerHarSelvstendigRett: Boolean? = null,
 ) {
     fun årsintervall(): IntRange = stønadFom.year..(stønadTom?.year ?: Int.MAX_VALUE)
 }

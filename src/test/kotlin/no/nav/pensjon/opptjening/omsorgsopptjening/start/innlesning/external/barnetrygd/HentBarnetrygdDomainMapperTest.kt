@@ -14,6 +14,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.BarnetrygdSak
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.DelingsprosentYtelse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.HentBarnetrygdDomainMapper
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.HentBarnetrygdDomainMapper.toDomainSelvstendigRett
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.Sakstype
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.barnetrygd.YtelseTypeEkstern
 import org.assertj.core.api.Assertions.assertThat
@@ -41,7 +42,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             ),
                             //filtreres vekk
                             BarnetrygdPeriode(
@@ -54,7 +56,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             ),
                             //delvis overlapp, begrenset nedover
                             BarnetrygdPeriode(
@@ -67,7 +70,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             ),
                             //delvis overlapp, begrenset oppover
                             BarnetrygdPeriode(
@@ -80,7 +84,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             ),
                             //full overlapp
                             BarnetrygdPeriode(
@@ -93,7 +98,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             )
                         )
                     )
@@ -113,7 +119,8 @@ class HentBarnetrygdDomainMapperTest {
                             omsorgsmottaker = "123",
                             kilde = Kilde.BARNETRYGD,
                             utbetalt = 7204,
-                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
+                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND,
+                            omsorgsyterHarSelvstendigRett = false,
                         ),
                         //delvis overlapp, begrenset oppover
                         PersongrunnlagMelding.Omsorgsperiode(
@@ -123,7 +130,8 @@ class HentBarnetrygdDomainMapperTest {
                             omsorgsmottaker = "123",
                             kilde = Kilde.BARNETRYGD,
                             utbetalt = 7204,
-                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
+                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND,
+                            omsorgsyterHarSelvstendigRett = false,
                         ),
                         //full overlapp
                         PersongrunnlagMelding.Omsorgsperiode(
@@ -133,7 +141,8 @@ class HentBarnetrygdDomainMapperTest {
                             omsorgsmottaker = "123",
                             kilde = Kilde.BARNETRYGD,
                             utbetalt = 7204,
-                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
+                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND,
+                            omsorgsyterHarSelvstendigRett = false,
                         ),
                     ),
                     hjelpestønadsperioder = listOf()
@@ -161,7 +170,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             ),
                             //filtreres vekk
                             BarnetrygdPeriode(
@@ -174,7 +184,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             ),
                             //utvidet fra Infotrygd, skal være med
                             BarnetrygdPeriode(
@@ -187,7 +198,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.EØS,
                                 kildesystem = BarnetrygdKilde.Infotrygd,
                                 pensjonstrygdet = true,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = null,
                             ),
                             //ok
                             BarnetrygdPeriode(
@@ -200,7 +212,8 @@ class HentBarnetrygdDomainMapperTest {
                                 sakstypeEkstern = Sakstype.NASJONAL,
                                 kildesystem = BarnetrygdKilde.BA,
                                 pensjonstrygdet = null,
-                                norgeErSekundærlandMedNullUtbetaling = null
+                                norgeErSekundærlandMedNullUtbetaling = null,
+                                søkerHarSelvstendigRett = false,
                             )
                         )
                     )
@@ -219,7 +232,8 @@ class HentBarnetrygdDomainMapperTest {
                             omsorgsmottaker = "123",
                             kilde = Kilde.INFOTRYGD,
                             utbetalt = 7204,
-                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND
+                            landstilknytning = Landstilknytning.EØS_UKJENT_PRIMÆR_OG_SEKUNDÆR_LAND,
+                            omsorgsyterHarSelvstendigRett = false,
                         ),
                         PersongrunnlagMelding.Omsorgsperiode(
                             fom = mai(2020),
@@ -228,12 +242,80 @@ class HentBarnetrygdDomainMapperTest {
                             omsorgsmottaker = "123",
                             kilde = Kilde.BARNETRYGD,
                             utbetalt = 7204,
-                            landstilknytning = Landstilknytning.NORGE
+                            landstilknytning = Landstilknytning.NORGE,
+                            omsorgsyterHarSelvstendigRett = false,
                         ),
                     ),
                     hjelpestønadsperioder = listOf()
                 )
             )
         )
+    }
+
+    @Test
+    fun `mapper selvstendig rett korrekt`() {
+        assertThat(
+            BarnetrygdPeriode(
+                personIdent = "123",
+                delingsprosentYtelse = DelingsprosentYtelse.FULL,
+                ytelseTypeEkstern = YtelseTypeEkstern.SMÅBARNSTILLEGG,
+                utbetaltPerMnd = 7204,
+                stønadFom = januar(2020),
+                stønadTom = desember(2020),
+                sakstypeEkstern = Sakstype.EØS,
+                kildesystem = BarnetrygdKilde.Infotrygd,
+                pensjonstrygdet = null,
+                norgeErSekundærlandMedNullUtbetaling = null,
+                søkerHarSelvstendigRett = null,
+            ).toDomainSelvstendigRett()
+        ).isEqualTo(false)
+
+        assertThat(
+            BarnetrygdPeriode(
+                personIdent = "123",
+                delingsprosentYtelse = DelingsprosentYtelse.FULL,
+                ytelseTypeEkstern = YtelseTypeEkstern.SMÅBARNSTILLEGG,
+                utbetaltPerMnd = 7204,
+                stønadFom = januar(2020),
+                stønadTom = desember(2020),
+                sakstypeEkstern = Sakstype.EØS,
+                kildesystem = BarnetrygdKilde.Infotrygd,
+                pensjonstrygdet = null,
+                norgeErSekundærlandMedNullUtbetaling = null,
+                søkerHarSelvstendigRett = true,
+            ).toDomainSelvstendigRett()
+        ).isEqualTo(true)
+
+        assertThat(
+            BarnetrygdPeriode(
+                personIdent = "123",
+                delingsprosentYtelse = DelingsprosentYtelse.FULL,
+                ytelseTypeEkstern = YtelseTypeEkstern.SMÅBARNSTILLEGG,
+                utbetaltPerMnd = 7204,
+                stønadFom = januar(2020),
+                stønadTom = desember(2020),
+                sakstypeEkstern = Sakstype.EØS,
+                kildesystem = BarnetrygdKilde.BA,
+                pensjonstrygdet = null,
+                norgeErSekundærlandMedNullUtbetaling = null,
+                søkerHarSelvstendigRett = false,
+            ).toDomainSelvstendigRett()
+        ).isEqualTo(false)
+
+        assertThat(
+            BarnetrygdPeriode(
+                personIdent = "123",
+                delingsprosentYtelse = DelingsprosentYtelse.FULL,
+                ytelseTypeEkstern = YtelseTypeEkstern.SMÅBARNSTILLEGG,
+                utbetaltPerMnd = 7204,
+                stønadFom = januar(2020),
+                stønadTom = desember(2020),
+                sakstypeEkstern = Sakstype.EØS,
+                kildesystem = BarnetrygdKilde.BA,
+                pensjonstrygdet = null,
+                norgeErSekundærlandMedNullUtbetaling = null,
+                søkerHarSelvstendigRett = true,
+            ).toDomainSelvstendigRett()
+        ).isEqualTo(true)
     }
 }
