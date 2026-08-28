@@ -16,8 +16,3 @@ no.nav.security.jwt:
     azure:
       discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
       accepted_audience: ${AZURE_APP_CLIENT_ID}
-
-spring.datasource:
-  url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}
-  username: ${DATABASE_USERNAME}
-  password: ${DATABASE_PASSWORD}

@@ -24,7 +24,7 @@ spec:
         cascadingDelete: false
         diskAutoresize: true
         pointInTimeRecovery: true
-        name: omsorginnlesning
+        name: omsorgsopptjening-start-innlesning-db-pg17
         tier: db-f1-micro
         databases:
           - name: omsorginnlesning
