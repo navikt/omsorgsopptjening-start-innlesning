@@ -16,3 +16,6 @@ no.nav.security.jwt:
     azure:
       discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
       accepted_audience: ${AZURE_APP_CLIENT_ID}
+
+spring.datasource:
+  url: ${DATABASE_JDBC_URL}
