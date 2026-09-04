@@ -57,6 +57,8 @@ spec:
               -Djavax.net.ssl.trustStorePassword=$(NAV_TRUSTSTORE_PASSWORD)"
     - name: JDK_JAVA_OPTIONS
       value: "$(JAVA_TRUSTSTORE_OPTIONS)"
+  envFrom:
+    - secret: unleash-api-token
   image: {{ image }}
   ingresses:
     - https://omsorgsopptjening-start-innlesning.intern.dev.nav.no
@@ -64,6 +66,7 @@ spec:
     outbound:
       external:
         - host: omsorgsopptjening-hjelpestonad-db-proxy.dev-fss-pub.nais.io
+        - host: pensjonopptjening-unleash-api.nav.cloud.nais.io
       rules:
         - application: omsorgsarbeid-ba-mock
         - application: familie-ba-sak

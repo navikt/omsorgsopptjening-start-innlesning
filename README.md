@@ -10,6 +10,9 @@ kommer med i pensjonsbeholdningen som beregnes av POPP.
 
 ## Gjennomføring av flyt for omsorgsopptjening
 
+1. Konfigurer Unleash:
+   1. omsorgsopptjening-start-innlesning-prosesser-barnetrygdmottaker = `enabled` (innhent opplysninger for barnetrygdmottakere mottatt fra barnetrygd via kafka).
+   2. omsorgsopptjening-start-innlesning-send-til-bestem = `enabled/disabled` (videresend innhentede opplysninger til bestem for vilkårsvurdering). Disables dersom man f.eks ønsker å verifisere resultater før oversendelse (point of no return)
 1. Konfigurer [omsorgsopptjening-bestem-pensjonsopptjeninig](https://github.com/navikt/omsorgsopptjening-bestem-pensjonsopptjening). Beskrivelse av hvordan dette gjøres finnes der.
 2. Sett i gang flyten ved å navigere til  `GET https://omsorgsopptjening-start-innlesning.intern.[dev|prod].nav.no/innlesning/start/{opptjeningsåret det skal vurderes for}` i nettleser
 3. Dersom man ikke allrede er logget inn vil man redirectes til innlogging
