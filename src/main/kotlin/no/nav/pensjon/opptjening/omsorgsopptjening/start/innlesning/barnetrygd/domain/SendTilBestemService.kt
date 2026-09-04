@@ -112,6 +112,7 @@ class SendTilBestemService(
                     rådata = barnetrygdinformasjon.rådata,
                     innlesingId = barnetrygdinformasjon.innlesingId,
                     correlationId = barnetrygdinformasjon.correlationId,
+                    opptjeningsAr = barnetrygdinformasjon.opptjeningsAr,
                 )
             )
         )
