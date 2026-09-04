@@ -32,10 +32,12 @@ spec:
         flags:
           - name: cloudsql.enable_pgaudit
             value: "on"
-          - name: pgaudit.log_parameter
-            value: "on"
           - name: pgaudit.log
             value: "write,ddl,role,read"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
   env:
     - name: PDL_URL
       value: https://pdl-api.prod-fss-pub.nais.io/graphql
