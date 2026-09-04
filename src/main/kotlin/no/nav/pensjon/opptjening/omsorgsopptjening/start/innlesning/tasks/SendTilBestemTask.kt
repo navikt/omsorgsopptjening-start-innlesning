@@ -1,7 +1,9 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
+import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.UnleashConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -9,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled
 class SendTilBestemTask(
     private val service: SendTilBestemService,
     private val metrikker: Metrikker,
+    private val unleash: Unleash,
 ) : Runnable {
 
     companion object {
@@ -19,7 +22,9 @@ class SendTilBestemTask(
     override fun run() {
         log.info("sendTilBestemTask().run()") // TODO: fjern ekstra logging
         try {
-            sendAltSomErKlartTilBestem()
+            if (isEnabled()) {
+                sendAltSomErKlartTilBestem()
+            }
         } catch (ex: Throwable) {
             log.error("Exception caught while processing, type: ${ex::class.qualifiedName}")
             log.error("Pausing for 5 seconds")
@@ -36,5 +41,9 @@ class SendTilBestemTask(
                 log.info("sendt ${prosessert.size} barnetrygdmottakere til bestem")
             }
         } while (!prosessert.isNullOrEmpty())
+    }
+
+    private fun isEnabled(): Boolean {
+        return unleash.isEnabled(UnleashConfig.Feature.SEND_TIL_BESTEM.toggleName)
     }
 }
