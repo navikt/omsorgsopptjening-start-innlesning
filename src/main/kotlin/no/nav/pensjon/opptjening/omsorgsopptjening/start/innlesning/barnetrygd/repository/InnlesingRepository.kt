@@ -1,7 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import java.sql.ResultSet
-import java.util.UUID
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
@@ -10,6 +8,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.stereotype.Component
+import java.sql.ResultSet
+import java.util.UUID
 
 @Component
 class InnlesingRepository(
@@ -80,12 +80,14 @@ class InnlesingRepository(
         ).singleOrNull()
     }
 
-    fun finnAlleFullførte(): List<InnlesingId> {
+    fun finnAlleFullførte(): List<BarnetrygdInnlesing> {
         return jdbcTemplate.queryForList(
             """select id from innlesing where ferdig_tidspunkt is not null""",
             emptyMap<String, Any?>(),
             String::class.java
-        ).filterNotNull().map(InnlesingId::fromString)
+        ).filterNotNull()
+            .map(InnlesingId::fromString)
+            .mapNotNull { finn(it.toString()) }
     }
 
     fun invalider(id: UUID) {

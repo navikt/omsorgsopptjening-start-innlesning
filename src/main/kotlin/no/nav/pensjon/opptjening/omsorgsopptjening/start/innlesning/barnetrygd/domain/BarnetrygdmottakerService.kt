@@ -6,12 +6,13 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.NaisCluster
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.lang.reflect.UndeclaredThrowableException
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Service
 class BarnetrygdmottakerService(
@@ -21,6 +22,7 @@ class BarnetrygdmottakerService(
     private val transactionTemplate: TransactionTemplate,
     private val innlesingRepository: InnlesingRepository,
     private val kompletteringsService: KompletteringsService,
+    private val cluster: NaisCluster,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdmottakerService::class.java)
@@ -28,6 +30,11 @@ class BarnetrygdmottakerService(
     }
 
     fun bestillPersonerMedBarnetrygd(ar: År): BarnetrygdInnlesing.Bestilt {
+        if(cluster.isProd()){
+            require(innlesingRepository.finnAlleFullførte().none { it.år == ar }) {
+                "Fullført innlesing for år: $ar eksisterer allerede"
+            }
+        }
         return client.bestillBarnetrygdmottakere(ar).let { response ->
             BarnetrygdInnlesing.Bestilt(
                 id = response.innlesingId,
@@ -40,7 +47,7 @@ class BarnetrygdmottakerService(
     }
 
     fun låsForBehandling() = innlesingRepository.finnAlleFullførte().stream()
-        .map { låsForBehandling(it) }
+        .map { låsForBehandling(it.id) }
         .toList()
         .filterNotNull()
 
@@ -128,7 +135,8 @@ class BarnetrygdmottakerService(
                 Barnetrygdinformasjon.Status.KLAR
             } else {
                 Barnetrygdinformasjon.Status.IKKE_SEND
-            }
+            },
+            opptjeningsAr = komplettert.barnetrygdmottaker.år
         )
     }
 

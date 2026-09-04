@@ -1,20 +1,22 @@
 # omsorgsopptjening-start-innlesning
-Bestiller overlevering av alle barnetrygdmottakere for et gitt år fra [barnetrygdsystemet](https://github.com/navikt/familie-ba-sak), og innhenter nødvendig grunnlagsdata om barnetrygd og hjepestønad for disse. Data fra kildesystemet transformeres til internt format før det publiseres videre til intern kafkatopic for videre prosessering.
+Bestiller overlevering av alle barnetrygdmottakere for et gitt år fra [barnetrygdsystemet](https://github.com/navikt/familie-ba-sak), 
+og innhenter nødvendig grunnlagsdata om barnetrygd og hjepestønad for disse. Data fra kildesystemet transformeres til 
+internt format før det publiseres videre til intern kafkatopic for videre prosessering i
+[omsorgsopptjening-bestem-pensjonsopptjeninig](https://github.com/navikt/omsorgsopptjening-bestem-pensjonsopptjening).
 
-## Kom i gang
+Flyten for omsorgsopptjening (omsorgsopptjening-start-innlesning + omsorgsopptjening-bestem-pensjonsopptjeninig) bør
+kjøres 1 gang mot slutten av året, fortrinnsvis før godskriving av nytt opptjeningsår gjøres i POPP slik at opptjeningen
+kommer med i pensjonsbeholdningen som beregnes av POPP.
 
-Først:
-* Sørg for at du er kjent med sideeffektene i nedstrømsapplikasjonene [Arkitektur](#Arkitektur)
-* Sørg for at du har konfigurert parameteret `ar` i requesten i nedstrømsapplikasjonene [Arkitektur](#Arkitektur)
+## Gjennomføring av flyt for omsorgsopptjening
 
-Applikasjonen tilbyr endepunktet `GET:/innlesning/start/{ar}` eksponert via ingress `https://omsorgsopptjening-start-innlesning.intern.[dev|prod].nav.no`. 
-
-1. Naviger til url i nettleser
-2. Dersom man ikke allrede er logget inn vil man redirectes til innlogging
+1. Konfigurer [omsorgsopptjening-bestem-pensjonsopptjeninig](https://github.com/navikt/omsorgsopptjening-bestem-pensjonsopptjening). Beskrivelse av hvordan dette gjøres finnes der.
+2. Sett i gang flyten ved å navigere til  `GET https://omsorgsopptjening-start-innlesning.intern.[dev|prod].nav.no/innlesning/start/{opptjeningsåret det skal vurderes for}` i nettleser
+3. Dersom man ikke allrede er logget inn vil man redirectes til innlogging
    1. For `prod-gcp` logg inn med din @nav.no bruker
    2. For `dev-gcp` logg inn med din @trygdeetaten.no bruker
-3. Etter innlogging skal man sendes tilbake til url fra 2.
-4. Returnert `uuid` er identifikator for innlesingen som er bestilt
+4. Etter innlogging skal man sendes tilbake til url fra 3.
+5. Returnert `uuid` er identifikator for innlesingen som er bestilt
 
 ## Arkitektur
 

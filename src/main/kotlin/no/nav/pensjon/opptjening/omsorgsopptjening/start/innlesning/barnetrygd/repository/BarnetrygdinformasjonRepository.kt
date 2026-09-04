@@ -1,11 +1,5 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import java.sql.ResultSet
-import java.time.Clock
-import java.time.Instant
-import java.util.UUID
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.toJavaDuration
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
@@ -19,6 +13,12 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.d
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.sql.ResultSet
+import java.time.Clock
+import java.time.Instant
+import java.util.UUID
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
 
 @Component
 class BarnetrygdinformasjonRepository(
@@ -77,7 +77,11 @@ class BarnetrygdinformasjonRepository(
 
     fun hent(id: UUID): Barnetrygdinformasjon? {
         return jdbcTemplate.queryForObject(
-            "select * from barnetrygdinformasjon where id = :id",
+            """
+                    select * from barnetrygdinformasjon b
+                    join innlesing i on i.id = b.innlesingId::varchar
+                    where b.id = :id
+            """.trimIndent(),
             mapOf<String, Any>(
                 "id" to id
             ),
@@ -118,8 +122,9 @@ class BarnetrygdinformasjonRepository(
     fun finnAlle(id: InnlesingId): List<Barnetrygdinformasjon> {
         return jdbcTemplate.query(
             """select *
-                | from barnetrygdinformasjon
-                | where innlesingId = :id""".trimMargin(),
+                | from barnetrygdinformasjon b
+                | join innlesing i on i.id = b.innlesingId::varchar
+                | where b.innlesingId = :id""".trimMargin(),
             mapOf<String, Any>(
                 "id" to id.toUUID()
             ),
@@ -187,7 +192,8 @@ class BarnetrygdinformasjonRepository(
                     "Sendt" -> Barnetrygdinformasjon.Status.SENDT
                     "Ikke send" -> Barnetrygdinformasjon.Status.IKKE_SEND
                     else -> throw UgyldigBarnetrygdinformasjonException("Ukjent status: $value")
-                }
+                },
+                opptjeningsAr = rs.getInt("år"),
             )
         }
     }

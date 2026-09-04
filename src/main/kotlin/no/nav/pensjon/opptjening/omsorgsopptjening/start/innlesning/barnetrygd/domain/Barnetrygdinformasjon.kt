@@ -6,7 +6,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.Rådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.Feilinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.domene.kafka.messages.domene.PersongrunnlagMelding
 import java.time.Instant
-import java.util.*
+import java.util.Objects
+import java.util.UUID
 
 data class Barnetrygdinformasjon(
     val id: UUID,
@@ -19,6 +20,7 @@ data class Barnetrygdinformasjon(
     val correlationId: CorrelationId,
     val innlesingId: InnlesingId,
     val status: Status,
+    val opptjeningsAr: Int,
 ) {
     enum class Status {
         KLAR,

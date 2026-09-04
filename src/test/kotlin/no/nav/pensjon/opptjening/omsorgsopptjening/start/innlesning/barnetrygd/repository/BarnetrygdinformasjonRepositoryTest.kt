@@ -110,6 +110,7 @@ class BarnetrygdinformasjonRepositoryTest : SpringContextTest.NoKafka() {
             correlationId = barnetrygdmottaker.correlationId,
             innlesingId = innlesing.id,
             status = Barnetrygdinformasjon.Status.KLAR,
+            opptjeningsAr = 2023,
         )
     }
 
