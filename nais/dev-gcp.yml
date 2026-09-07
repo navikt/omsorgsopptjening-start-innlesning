@@ -20,11 +20,11 @@ spec:
           - id: "7ef907b4-ec9f-47dd-ab41-4e54ba32ceb1" #AAD pensjonopptjening testgruppe
   gcp:
     sqlInstances:
-      - type: POSTGRES_17
+      - type: POSTGRES_18
         cascadingDelete: false
         diskAutoresize: true
         pointInTimeRecovery: true
-        name: omsorgsopptjening-start-innlesning-db-pg17
+        name: omsorgsopptjening-start-innlesning-pg18
         tier: db-f1-micro
         databases:
           - name: omsorginnlesning
