@@ -62,7 +62,7 @@ dependencies {
     // Internal libraries
     implementation("no.nav.pensjon.opptjening:omsorgsopptjening-domene-lib:$domeneVersion")
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
-    implementation("com.google.guava:guava:33.5.0-jre")
+    implementation("com.google.guava:guava:33.7.1-jre")
 
     // Jackson 3 (tools.jackson.*): core/annotations/databind kommer transitivt via startere (styres av Spring Boot BOM, jackson-bom 3.1.4).
     // java.time-støtte er innebygd i databind i Jackson 3 - jackson-datatype-jsr310 trengs ikke.
