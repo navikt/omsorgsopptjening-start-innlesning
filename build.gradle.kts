@@ -7,18 +7,21 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 val domeneVersion = "2.1.103"
 val azureAdClient = "0.0.7"
 val logbackEncoderVersion = "9.0"
-val flywayCoreVersion = "12.6.0"
-val wiremockVersion = "3.13.1"
-val mockitoVersion = "6.3.0"
-val unleashVersion = "12.2.3"
-val navTokenSupportVersion = "6.0.8"
+val flywayCoreVersion = "13.12.1"
+val wiremockVersion = "3.13.2"
+val mockitoVersion = "6.4.0"
+val unleashVersion = "12.3.2"
+val navTokenSupportVersion = "7.0.1"
+val jsonUnitVersion = "6.4.0"
+val testcontainersVersion = "1.21.4"
+val guavaVersion = "33.8.0-jre"
 
 plugins {
-    val kotlinVersion = "2.3.21"
+    val kotlinVersion = "2.4.21"
     id("org.jetbrains.kotlin.jvm") version kotlinVersion
     id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "4.1.0"
-    id("com.github.ben-manes.versions") version "0.54.0"
+    id("org.springframework.boot") version "4.1.2"
+    id("com.github.ben-manes.versions") version "0.67.0"
 }
 
 group = "no.nav.pensjon.opptjening"
@@ -62,7 +65,7 @@ dependencies {
     // Internal libraries
     implementation("no.nav.pensjon.opptjening:omsorgsopptjening-domene-lib:$domeneVersion")
     implementation("no.nav.pensjonopptjening:pensjon-opptjening-azure-ad-client:$azureAdClient")
-    implementation("com.google.guava:guava:33.5.0-jre")
+    implementation("com.google.guava:guava:$guavaVersion")
 
     // Jackson 3 (tools.jackson.*): core/annotations/databind kommer transitivt via startere (styres av Spring Boot BOM, jackson-bom 3.1.4).
     // java.time-støtte er innebygd i databind i Jackson 3 - jackson-datatype-jsr310 trengs ikke.
@@ -81,12 +84,12 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test") // includes assertj, jsonassert, mockito
     testImplementation("org.springframework.boot:spring-boot-webmvc-test") // Boot 4: MockMvc-autokonfig + @AutoConfigureMockMvc (flyttet ut av starter-web)
-    testImplementation("org.testcontainers:postgresql:1.21.4") // TC 1.x jdbc:tc-driver, som i afp-api
+    testImplementation("org.testcontainers:postgresql:$testcontainersVersion") // TC 1.x jdbc:tc-driver, som i afp-api
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
     testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion") // shaded egen Jetty; immun mot Boot 4 BOM sin Jetty-versjon (unngår både NoSuchMethodError på jetty12 og keep-alive POST-bug i 4.0.0-beta)
     testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:5.0.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:$jsonUnitVersion")
 }
 
 tasks.withType<KotlinCompile> {
