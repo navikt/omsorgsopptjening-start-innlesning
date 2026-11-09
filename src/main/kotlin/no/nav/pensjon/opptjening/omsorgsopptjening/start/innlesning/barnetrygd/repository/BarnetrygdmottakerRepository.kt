@@ -1,19 +1,14 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import java.sql.ResultSet
-import java.time.Clock
-import java.time.Instant
-import java.util.UUID
-import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.toJavaDuration
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserializeList
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serialize
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.serializeList
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdEndring
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Personidentifikator
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toJson
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.PersonSerialization.toPerson
 import org.jetbrains.annotations.TestOnly
@@ -21,6 +16,13 @@ import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.sql.ResultSet
+import java.time.Clock
+import java.time.Instant
+import java.util.UUID
+import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
 
 @Component
 class BarnetrygdmottakerRepository(
@@ -270,6 +272,32 @@ class BarnetrygdmottakerRepository(
         )
     }
 
+    fun lagre(barnetrygdEndring: List<BarnetrygdEndring>) {
+        jdbcTemplate.batchUpdate(
+            """insert into barnetrygd_endring (ident, vedtakstidspunkt, endringstidspunkt, sekvensnummer, opprettet)
+             | values (:ident, :vedtakstidspunkt::timestamp, :endringstidspunkt, :sekvensnummer, :opprettet::timestamptz)
+             | on conflict (sekvensnummer) do nothing""".trimMargin(),
+            barnetrygdEndring
+                .map {
+                    mapOf(
+                        "ident" to it.ident.value,
+                        "vedtakstidspunkt" to it.vedtakstidspunkt,
+                        "endringstidspunkt" to it.endringstidspunkt,
+                        "sekvensnummer" to it.sekvensnummer,
+                        "opprettet" to Instant.now(clock).toString()
+                    )
+                }.toTypedArray()
+        )
+    }
+
+    fun hentBarnetrygdEndring(ident: Personidentifikator): List<BarnetrygdEndring> {
+        return jdbcTemplate.query(
+            """select * from barnetrygd_endring where ident = :ident""",
+            MapSqlParameterSource(mapOf("ident" to ident.value)),
+            BarnetrygEndringRowMapper()
+        )
+    }
+
     internal class BarnetrygdmottakerRowMapper :
         RowMapper<Barnetrygdmottaker.Mottatt> {
         override fun mapRow(rs: ResultSet, rowNum: Int): Barnetrygdmottaker.Mottatt {
@@ -298,4 +326,18 @@ class BarnetrygdmottakerRepository(
     }
 
     data class Locked(val lockId: UUID, val data: List<Barnetrygdmottaker.Mottatt>)
+
+    internal class BarnetrygEndringRowMapper :
+        RowMapper<BarnetrygdEndring> {
+        override fun mapRow(rs: ResultSet, rowNum: Int): BarnetrygdEndring {
+            return BarnetrygdEndring(
+                id = rs.getLong("id"),
+                ident = rs.getString("ident").let { Personidentifikator.krev(it) },
+                vedtakstidspunkt = rs.getTimestamp("vedtakstidspunkt").toLocalDateTime(),
+                endringstidspunkt = rs.getDate("endringstidspunkt").toLocalDate(),
+                sekvensnummer = rs.getLong("sekvensnummer"),
+                opprettet = rs.getTimestamp("opprettet").toInstant(),
+            )
+        }
+    }
 }
