@@ -1,16 +1,14 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository
 
-import java.time.Clock
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.UUID
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdEndring
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Ident
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.PersonId
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Personidentifikator
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.År
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
@@ -20,6 +18,14 @@ import org.mockito.kotlin.willReturnConsecutively
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
 
@@ -250,6 +256,78 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
             Barnetrygdmottaker.Status.Klar::class.java
         )
         assertThat(barnetrygdmottakerRepository.finnAlle(innlesingUberørt.id).single().statushistorikk).hasSize(1)
+    }
+
+    @Test
+    fun `lagrer og henter barnetrygd endring`() {
+        val ident = Personidentifikator.random()
+        val barnetrygdEndring = BarnetrygdEndring(
+            id = null,
+            ident = ident,
+            vedtakstidspunkt = LocalDateTime.of(2026, Month.NOVEMBER, 16, 15, 13, 12, 123456789),
+            endringstidspunkt = LocalDate.of(2022, Month.FEBRUARY, 2),
+            sekvensnummer = 42313L,
+            opprettet = null,
+        )
+
+        given(clock.instant()).willReturn(
+            LocalDateTime.of(2026, Month.DECEMBER, 16, 15, 13, 12, 123456789)
+                .toInstant(ZoneOffset.UTC),
+        )
+
+        barnetrygdmottakerRepository.lagre(listOf(barnetrygdEndring))
+
+        barnetrygdmottakerRepository.hentBarnetrygdEndring(ident).also {
+            assertThat(it).hasSize(1)
+            it.single().also {
+                assertThat(it.id).isNotNull()
+                assertThat(it.ident).isEqualTo(ident)
+                assertThat(it.vedtakstidspunkt).isEqualTo(
+                    LocalDateTime.of(
+                        2026,
+                        Month.NOVEMBER,
+                        16,
+                        15,
+                        13,
+                        12,
+                        123457000
+                    )
+                )
+                assertThat(it.endringstidspunkt).isEqualTo(LocalDate.of(2022, Month.FEBRUARY, 2))
+                assertThat(it.sekvensnummer).isEqualTo(42313L)
+                assertThat(it.opprettet).isEqualTo(
+                    LocalDateTime.of(2026, Month.DECEMBER, 16, 15, 13, 12, 123457000).toInstant(ZoneOffset.UTC)
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `lagring av samme sekvensnummer flere ganger er idempotent`() {
+        val ident = Personidentifikator.random()
+        val barnetrygdEndring = BarnetrygdEndring(
+            id = null,
+            ident = ident,
+            vedtakstidspunkt = LocalDateTime.of(2026, Month.NOVEMBER, 16, 15, 13, 12, 123456789),
+            endringstidspunkt = LocalDate.of(2022, Month.FEBRUARY, 2),
+            sekvensnummer = 42313L,
+            opprettet = null,
+        )
+
+        given(clock.instant()).willReturn(
+            LocalDateTime.of(2026, Month.DECEMBER, 16, 15, 13, 12, 123456789)
+                .toInstant(ZoneOffset.UTC),
+        )
+
+        barnetrygdmottakerRepository.lagre(listOf(barnetrygdEndring))
+        val lagret = barnetrygdmottakerRepository.hentBarnetrygdEndring(ident).single()
+
+        given(clock.instant()).willReturn(Instant.parse("2026-12-17T15:13:12Z"))
+        barnetrygdmottakerRepository.lagre(
+            listOf(barnetrygdEndring.copy(endringstidspunkt = LocalDate.of(2023, Month.MARCH, 3)))
+        )
+
+        assertThat(barnetrygdmottakerRepository.hentBarnetrygdEndring(ident)).containsExactly(lagret)
     }
 
     private fun lagreBestiltInnlesing(

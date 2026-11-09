@@ -26,6 +26,7 @@ class PostgresqlTestContainer private constructor(image: String) : PostgreSQLCon
         dataSource.connection.apply {
             createStatement().execute(
                 """                       
+                        DELETE FROM BARNETRYGD_ENDRING;
                         DELETE FROM BARNETRYGDINFORMASJON;
                         DELETE FROM BARNETRYGDMOTTAKER;
                         DELETE FROM INNLESING;
