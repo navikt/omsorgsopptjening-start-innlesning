@@ -46,10 +46,9 @@ class BarnetrygdmottakerService(
         }
     }
 
-    fun låsForBehandling() = innlesingRepository.finnAlleFullførte().stream()
+    fun låsForBehandling() = innlesingRepository.finnAlleFullførte()
         .map { låsForBehandling(it.id) }
-        .toList()
-        .filterNotNull()
+        .filterNot { it.data.isEmpty() }
 
     fun prosesserOgFrigi(låsteTilBehandling: BarnetrygdmottakerRepository.Locked): List<Barnetrygdmottaker>? {
         try {

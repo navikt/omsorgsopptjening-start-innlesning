@@ -70,6 +70,15 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
+    fun `filtrerer vekk innlesinger som ikke har noe som skal prosesseres`(){
+        given(clock.instant()).willReturn(Instant.now())
+
+        lagreFullførtInnlesing()
+
+        assertThat(barnetrygdService.låsForBehandling()).isEmpty()
+    }
+
+    @Test
     fun `Gitt en ny status saa skal den kunne retryes 3 ganger for den feiler`() {
         wiremock.`pdl fnr fra query`()
         wiremock.stubFor(

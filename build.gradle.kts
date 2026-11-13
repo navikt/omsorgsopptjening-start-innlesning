@@ -21,7 +21,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version kotlinVersion
     id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
     id("org.springframework.boot") version "4.1.2"
-    id("com.github.ben-manes.versions") version "0.67.0"
+    id("io.github.ben-manes.versions") version "0.67.0"
 }
 
 group = "no.nav.pensjon.opptjening"
