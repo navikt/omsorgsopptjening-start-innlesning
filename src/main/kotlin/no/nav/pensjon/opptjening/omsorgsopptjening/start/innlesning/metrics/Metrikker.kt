@@ -2,12 +2,13 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics
 
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdEndring
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.HentBarnetrygdResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HentHjelpestønadDBResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.Locale
 
 @Component
 class Metrikker(private val registry: MeterRegistry) {
@@ -77,5 +78,11 @@ class Metrikker(private val registry: MeterRegistry) {
 
     fun tellSendtTilBestem(antall: Int) {
         antallSendtTilBestem.increment(antall.toDouble())
+    }
+
+    fun tellEndringer(barnetrygdEndringer: List<BarnetrygdEndring>) {
+        barnetrygdEndringer.forEach {
+            registry.counter("barnetrygdendring","antall", "hentet", it.endringstidspunkt.year.toString()).increment()
+        }
     }
 }
