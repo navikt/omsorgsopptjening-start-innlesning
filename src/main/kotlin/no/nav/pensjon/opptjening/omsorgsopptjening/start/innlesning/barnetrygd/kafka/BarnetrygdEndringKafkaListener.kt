@@ -14,7 +14,7 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("dev-gcp", "kafkaIntegrationTest")
+@Profile("dev-gcp", "prod-gcp", "kafkaIntegrationTest")
 class BarnetrygdEndringKafkaListener(
     private val handler: BarnetrygdmottakerRepository,
     private val metrikker: Metrikker,
@@ -35,6 +35,7 @@ class BarnetrygdEndringKafkaListener(
     ) {
         val kafkaMeldinger = consumerRecord
             .mapNotNull { record -> record.deserialiser() }
+            .also { metrikker.tellEndringer(it) }
 
         handler.lagre(kafkaMeldinger)
 
