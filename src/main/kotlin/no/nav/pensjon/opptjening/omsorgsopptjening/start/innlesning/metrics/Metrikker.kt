@@ -82,7 +82,7 @@ class Metrikker(private val registry: MeterRegistry) {
 
     fun tellEndringer(barnetrygdEndringer: List<BarnetrygdEndring>) {
         barnetrygdEndringer.forEach {
-            registry.counter("barnetrygdendring","antall", "hentet", it.endringstidspunkt.year.toString()).increment()
+            registry.counter("barnetrygdendring","ar", it.endringstidspunkt.year.toString()).increment()
         }
     }
 }
