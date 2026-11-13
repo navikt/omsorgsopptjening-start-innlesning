@@ -59,6 +59,10 @@ spec:
       value: teamfamilie.aapen-familie-ba-sak-identer-med-barnetrygd
     - name: BARNETRYGDMOTTAKERE_CONSUMER_GROUP
       value: omsorgsopptjening-start-innlesning
+    - name: BARNETRYGD_ENDRING_TOPIC
+      value: teamfamilie.ferdigstilt-behandling-for-pensjon-v1
+    - name: BARNETRYGD_ENDRING_CONSUMER_GROUP
+      value: omsorgsopptjening-start-innlesning
     - name: JAVA_TRUSTSTORE_OPTIONS
       value: "-Djavax.net.ssl.trustStore=$(NAV_TRUSTSTORE_PATH)
               -Djavax.net.ssl.trustStorePassword=$(NAV_TRUSTSTORE_PASSWORD)"
