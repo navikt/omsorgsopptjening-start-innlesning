@@ -5,7 +5,9 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdEndring
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdmottaker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.HentBarnetrygdResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.MedRådata
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.hjelpestønad.HentHjelpestønadDBResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.external.pdl.PdlResponse
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.kafka.BarnetrygdmottakerKafkaMelding
 import org.springframework.stereotype.Component
 import java.util.Locale
@@ -68,7 +70,7 @@ class Metrikker(private val registry: MeterRegistry) {
         return hentHjelpestonadTimer.recordCallable(lambda)!!
     }
 
-    fun målHentPdl(lambda: () -> HentHjelpestønadDBResponse?): HentHjelpestønadDBResponse? {
+    fun målHentPdl(lambda: () -> MedRådata<PdlResponse>?): MedRådata<PdlResponse>? {
         return hentPdlTimer.recordCallable(lambda)!!
     }
 
