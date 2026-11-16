@@ -36,10 +36,15 @@ class BarnetrygdmottakerProcessingTask(
     private fun processAllAvailableBarnetrygdMottakere() {
         log.info("Prosesserer alle tilgjengelige barnetrygdmottakere")
         do {
+            val time1 = System.currentTimeMillis()
             val låste = service.låsForBehandling()
+            val time2 = System.currentTimeMillis()
             val antallBarnetrygdmottakere = låste.sumOf { it.data.size }
             log.info("Schedulerer prosessering av $antallBarnetrygdmottakere barnetrygdmottakere")
+            val time3 = System.currentTimeMillis()
             schedulerProsessering(låste)
+            val time4 = System.currentTimeMillis()
+            log.info("processAllAvailableBarnetrygdMottakere:time: lås=${time2 - time1} scheduler=${time4 - time3}")
         } while (antallBarnetrygdmottakere > 0)
     }
 
