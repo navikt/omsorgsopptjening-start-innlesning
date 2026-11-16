@@ -60,7 +60,11 @@ class BarnetrygdmottakerProcessingTask(
         taskExecutor.execute {
             metrikker.tellBarnetrygdmottakerStatus {
                 log.info("Prosesser og frigi barnetrygdmottakere i tråden ${Thread.currentThread().name}")
-                service.prosesserOgFrigi(it)
+                val time1 = System.currentTimeMillis()
+                val mottakere = service.prosesserOgFrigi(it)
+                val time2 = System.currentTimeMillis()
+                log.info("taskExecutor.execute: service.prosesserOgFrigi: time=${time2 - time1}")
+                mottakere
             }
         }
     }
