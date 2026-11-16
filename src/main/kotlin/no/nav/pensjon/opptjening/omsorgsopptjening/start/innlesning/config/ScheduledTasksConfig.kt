@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import java.util.concurrent.ThreadPoolExecutor
 
 @Configuration
@@ -63,11 +64,19 @@ class ScheduledTasksConfig(
         )
     }
 
+    @Bean
+    fun taskScheduler(): ThreadPoolTaskScheduler {
+        return ThreadPoolTaskScheduler().apply {
+            poolSize = 4
+            setThreadNamePrefix("TasksScheduler-")
+        }
+    }
+
     @Bean("scheduledTasksExecutor")
     fun threadpoolExecutor(): ThreadPoolTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
             queueCapacity = 25
-            corePoolSize = 1
+            corePoolSize = 5
             maxPoolSize = 5
             setThreadNamePrefix("ScheduledTasksExecutor-")
             setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
