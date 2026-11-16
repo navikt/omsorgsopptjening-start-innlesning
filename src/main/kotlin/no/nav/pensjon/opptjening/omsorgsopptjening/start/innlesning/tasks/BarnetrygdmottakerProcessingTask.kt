@@ -44,7 +44,7 @@ class BarnetrygdmottakerProcessingTask(
             val time3 = System.currentTimeMillis()
             schedulerProsessering(låste)
             val time4 = System.currentTimeMillis()
-            log.info("processAllAvailableBarnetrygdMottakere:time: lås=${time2 - time1} scheduler=${time4 - time3}")
+            log.info("processAllAvailableBarnetrygdMottakere:time: låste.size=${låste.size} lås=${time2 - time1}")
         } while (antallBarnetrygdmottakere > 0)
     }
 
