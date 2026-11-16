@@ -30,7 +30,7 @@ class BarnetrygdmottakerService(
     }
 
     fun bestillPersonerMedBarnetrygd(ar: År): BarnetrygdInnlesing.Bestilt {
-        if(cluster.isProd()){
+        if (cluster.isProd()) {
             require(innlesingRepository.finnAlleFullførte().none { it.år == ar }) {
                 "Fullført innlesing for år: $ar eksisterer allerede"
             }
@@ -56,13 +56,20 @@ class BarnetrygdmottakerService(
                 låsteTilBehandling.data.map { barnetrygdmottaker ->
                     Mdc.scopedMdc(barnetrygdmottaker.correlationId) {
                         Mdc.scopedMdc(barnetrygdmottaker.innlesingId) {
-                            prosesserMottattBarnetrygmottaker(barnetrygdmottaker)
+                            val time1 = System.currentTimeMillis()
+                            val mottatt = prosesserMottattBarnetrygmottaker(barnetrygdmottaker)
+                            val time2 = System.currentTimeMillis()
+                            log.info("prosesserOgFrigi: prossesserMottattBarnetrygdmottakter:. time=${time2 - time1}")
+                            mottatt
                         }
                     }
                 }
             return barnetrygdmottaker.filterNotNull().ifEmpty { null }
         } finally {
+            val time1 = System.currentTimeMillis()
             låsteTilBehandling.let { barnetrygdmottakerRepository.frigi(it) }
+            val time2 = System.currentTimeMillis()
+            log.info("prosesserOgFrigi:frigi: time=${time2 - time1}")
         }
     }
 
