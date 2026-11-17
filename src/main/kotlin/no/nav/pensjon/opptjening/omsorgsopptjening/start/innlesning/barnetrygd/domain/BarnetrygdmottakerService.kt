@@ -46,9 +46,12 @@ class BarnetrygdmottakerService(
         }
     }
 
-    fun låsForBehandling() = innlesingRepository.finnIdForAlleFullførte()
-        .map { låsForBehandling(it) }
-        .filterNot { it.data.isEmpty() }
+    fun låsForBehandling(): List<BarnetrygdmottakerRepository.Locked> {
+//        return innlesingRepository.finnIdForAlleFullførte()
+//            .map { låsForBehandling(it) }
+//            .filterNot { it.data.isEmpty() }
+        return listOf(låsForBehandling(InnlesingId(UUID.fromString("c366287b-3e80-42be-8ab1-2ff6cf0a3771"))))
+    }
 
     fun prosesserOgFrigi(låsteTilBehandling: BarnetrygdmottakerRepository.Locked): List<Barnetrygdmottaker>? {
         try {
