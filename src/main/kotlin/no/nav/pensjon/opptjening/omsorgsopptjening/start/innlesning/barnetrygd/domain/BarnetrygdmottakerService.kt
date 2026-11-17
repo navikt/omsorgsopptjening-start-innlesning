@@ -10,7 +10,6 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.NaisC
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
-import java.awt.desktop.SystemSleepEvent
 import java.lang.reflect.UndeclaredThrowableException
 import java.time.Instant
 import java.util.UUID
@@ -47,8 +46,8 @@ class BarnetrygdmottakerService(
         }
     }
 
-    fun låsForBehandling() = innlesingRepository.finnAlleFullførte()
-        .map { låsForBehandling(it.id) }
+    fun låsForBehandling() = innlesingRepository.finnIdForAlleFullførte()
+        .map { låsForBehandling(it) }
         .filterNot { it.data.isEmpty() }
 
     fun prosesserOgFrigi(låsteTilBehandling: BarnetrygdmottakerRepository.Locked): List<Barnetrygdmottaker>? {

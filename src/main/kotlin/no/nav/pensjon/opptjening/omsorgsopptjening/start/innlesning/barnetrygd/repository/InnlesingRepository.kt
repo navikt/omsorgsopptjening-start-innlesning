@@ -90,6 +90,14 @@ class InnlesingRepository(
             .mapNotNull { finn(it.toString()) }
     }
 
+    fun finnIdForAlleFullførte(): List<InnlesingId> {
+        return jdbcTemplate.queryForList(
+            """select id from innlesing where ferdig_tidspunkt is not null""",
+            emptyMap<String, Any?>(),
+            String::class.java
+        ).filterNotNull().map(InnlesingId::fromString)
+    }
+
     fun invalider(id: UUID) {
         jdbcTemplate.update(
             """delete from innlesing where id = :id""",
