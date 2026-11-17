@@ -10,6 +10,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.NaisC
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.awt.desktop.SystemSleepEvent
 import java.lang.reflect.UndeclaredThrowableException
 import java.time.Instant
 import java.util.UUID
@@ -85,15 +86,19 @@ class BarnetrygdmottakerService(
             log.info("Start prosessering")
             transactionTemplate.execute {
                 barnetrygdmottaker.ferdig().also { barnetrygdmottakerUtenPdlData ->
-
+                    val time1 = System.currentTimeMillis()
                     val komplettert = kompletteringsService.kompletter(barnetrygdmottakerUtenPdlData)
+                    val time2 = System.currentTimeMillis()
 
                     barnetrygdinformasjonRepository.insert(
                         toBarnetrygdinformasjon(komplettert)
                     )
+                    val time3 = System.currentTimeMillis()
                     barnetrygdmottakerRepository.updatePersonIdent(komplettert.barnetrygdmottaker)
+                    val time4 = System.currentTimeMillis()
                     barnetrygdmottakerRepository.updateStatus(komplettert.barnetrygdmottaker)
-
+                    val time5 = System.currentTimeMillis()
+                    log.info("prosesserBarnetrygdMottaker:time: total=${time5 - time1} kompletter=${time2 - time1} insert=${time3 - time2} updatePersonIdent=${time4 - time3} updateStatus=${time5 - time4}")
                     log.info("Melding prosessert")
                 }
             } // end transaction

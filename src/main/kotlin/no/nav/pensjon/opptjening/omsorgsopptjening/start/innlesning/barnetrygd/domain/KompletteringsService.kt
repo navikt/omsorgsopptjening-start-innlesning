@@ -28,11 +28,14 @@ class KompletteringsService(
             barnetrygdmottaker = barnetrygdmottakerUtenPdlData
         ).andThen { komplettering ->
             try {
+                val time1 = System.currentTimeMillis()
                 val personIdOgRådata = hentPersonId(
                     fnr = barnetrygdmottakerUtenPdlData.ident,
                     rolle = IdentRolle.BARNETRYGDMOTTAKER,
                     beskrivelse = "barnetrygdmottaker"
                 )
+                val time2 = System.currentTimeMillis()
+                log.info("kompletter:hentPersonId:time: ${time2 - time1}")
                 komplettering
                     .withLøseRådata(Rådata(personIdOgRådata.rådata))
                     .withBarnetrygdMottaker(
@@ -56,9 +59,13 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
-                komplettering.withPersongrunnlag(
+                val time1 = System.currentTimeMillis()
+                val komplettering = komplettering.withPersongrunnlag(
                     hentBarnetrygd(komplettering.barnetrygdmottaker, gyldigÅrsIntervall)
                 )
+                val time2 = System.currentTimeMillis()
+                log.info("kompletter:hentBarnetrygd:time: ${time2 - time1}")
+                komplettering
             } catch (e: BarnetrygdException.OverlappendePerioder) {
                 secureLog.warn("Feil ved henting av barnetrygd. Overlappende perioder: ${e.perioder}", e)
                 komplettering
@@ -85,7 +92,10 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
+                val time1 = System.currentTimeMillis()
                 val persongrunnlagOgRådata = oppdaterAlleFnr(komplettering.persongrunnlag!!)
+                val time2 = System.currentTimeMillis()
+                log.info("komplettering:oppdaterAlleFnr:time: ${time2 - time1}")
                 komplettering.withPersongrunnlag(
                     persongrunnlagOgRådata
                 )
@@ -141,9 +151,13 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
-                komplettering.withPersongrunnlag(
+                val time1 = System.currentTimeMillis()
+                val komplettering = komplettering.withPersongrunnlag(
                     hentHjelpestønadGrunnlag(komplettering.persongrunnlag!!, gyldigÅrsIntervall)
                 )
+                val time2 = System.currentTimeMillis()
+                log.info("komplettering:hentHjelpestønadgrunnlag:time: ${time2 - time1}")
+                komplettering
             } catch (e: UgyldigPersongrunnlag.OverlappendeOmsorgsperiode) {
                 secureLog.warn("Overlappende perioder ved henting av hjelpestønadsgrunnlag: ${e.perioder}", e)
                 komplettering
@@ -167,11 +181,15 @@ class KompletteringsService(
             }
         }.andThen { komplettering ->
             try {
-                komplettering.withPersongrunnlag(
+                val time1 = System.currentTimeMillis()
+                val komplettering = komplettering.withPersongrunnlag(
                     oppdaterAlleFnr(
                         komplettering.persongrunnlag!!
                     )
                 )
+                val time2 = System.currentTimeMillis()
+                log.info("komplettering:oppdaterAlleFnr(2):time: ${time2 - time1}")
+                komplettering
             } catch (e: BarnetrygdException.FeilVedHentingAvPersonId) {
                 secureLog.warn("Feil ved oppdatering av fødselsnummer etter henting av hjelpestønadgrunnlag", e)
                 komplettering
