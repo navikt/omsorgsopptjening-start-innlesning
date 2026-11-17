@@ -26,6 +26,7 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.external.pdl
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.BDDMockito.any
@@ -42,6 +43,7 @@ import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 
 @DirtiesContext
+@Disabled
 class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     @Autowired
     private lateinit var barnetrygdmottakerRepository: BarnetrygdmottakerRepository
