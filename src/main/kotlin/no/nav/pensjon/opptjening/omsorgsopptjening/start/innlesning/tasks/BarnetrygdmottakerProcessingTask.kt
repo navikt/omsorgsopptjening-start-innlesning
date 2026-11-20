@@ -3,7 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.UnleashConfig
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.NavUnleashConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -70,6 +70,6 @@ class BarnetrygdmottakerProcessingTask(
     }
 
     private fun isEnabled(): Boolean {
-        return unleash.isEnabled(UnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
+        return unleash.isEnabled(NavUnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
     }
 }

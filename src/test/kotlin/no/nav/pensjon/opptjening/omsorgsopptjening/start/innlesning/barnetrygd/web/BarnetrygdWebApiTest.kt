@@ -1,7 +1,6 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web
 
 import com.nimbusds.jose.JOSEObjectType
-import java.time.Instant
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.SpringContextTest
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdInnlesing
@@ -20,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.Instant
 
 @AutoConfigureMockMvc
 class BarnetrygdWebApiTest : SpringContextTest.NoKafka() {
@@ -59,10 +59,12 @@ class BarnetrygdWebApiTest : SpringContextTest.NoKafka() {
     @Test
     fun `svarer med 200 hvis gyldig token`() {
         given(barnetrygdmottakerService.bestillPersonerMedBarnetrygd(any())).willReturn(
-            BarnetrygdInnlesing.Bestilt(
-                id = InnlesingId.fromString("f9792c4b-76ed-4906-ab06-caea51b3bf3b"),
-                år = År(2022),
-                forespurtTidspunkt = Instant.now(),
+            BarnetrygdmottakerService.BestillResultat.Ok(
+                BarnetrygdInnlesing.Bestilt(
+                    id = InnlesingId.fromString("f9792c4b-76ed-4906-ab06-caea51b3bf3b"),
+                    år = År(2022),
+                    forespurtTidspunkt = Instant.now(),
+                )
             )
         )
         mvc.perform(
