@@ -1,9 +1,9 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
-import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.NavUnleashConfig
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.UnleashWrapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled
 class SendTilBestemTask(
     private val service: SendTilBestemService,
     private val metrikker: Metrikker,
-    private val unleash: Unleash,
+    private val unleash: UnleashWrapper,
 ) : Runnable {
 
     companion object {
@@ -40,10 +40,10 @@ class SendTilBestemTask(
                 metrikker.tellSendtTilBestem(prosessert.size)
                 log.info("sendt ${prosessert.size} barnetrygdmottakere til bestem")
             }
-        } while (!prosessert.isNullOrEmpty())
+        } while (!prosessert.isNullOrEmpty() && isEnabled())
     }
 
     private fun isEnabled(): Boolean {
-        return unleash.isEnabled(NavUnleashConfig.Feature.SEND_TIL_BESTEM.toggleName)
+        return unleash.isEnabled(NavUnleashConfig.Feature.SEND_TIL_BESTEM)
     }
 }

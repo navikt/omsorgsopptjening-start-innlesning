@@ -1,12 +1,12 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config
 
-import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.StatusCheckTask
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.monitorering.StatusRapporteringCachingAdapter
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.UnleashWrapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.BarnetrygdmottakerProcessingTask
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks.FrigiLaserTask
@@ -28,7 +28,7 @@ class ScheduledTasksConfig(
     private val statusRapporteringCachingAdapter: StatusRapporteringCachingAdapter,
     private val barnetrygdmottakerService: BarnetrygdmottakerService,
     private val metrikker: Metrikker,
-    private val unleash: Unleash,
+    private val unleash: UnleashWrapper,
 ) {
     @Bean
     fun statusCheckTask(): StatusCheckTask {
