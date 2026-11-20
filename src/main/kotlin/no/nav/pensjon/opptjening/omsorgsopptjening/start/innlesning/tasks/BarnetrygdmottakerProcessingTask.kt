@@ -1,9 +1,9 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 
-import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.NavUnleashConfig
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.UnleashWrapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -13,7 +13,7 @@ class BarnetrygdmottakerProcessingTask(
     private val taskExecutor: ThreadPoolTaskExecutor,
     private val service: BarnetrygdmottakerService,
     private val metrikker: Metrikker,
-    private val unleash: Unleash,
+    private val unleash: UnleashWrapper,
 ) : Runnable {
     companion object {
         val log = LoggerFactory.getLogger(BarnetrygdmottakerProcessingTask::class.java)!!
@@ -45,7 +45,7 @@ class BarnetrygdmottakerProcessingTask(
             schedulerProsessering(låste)
             val time4 = System.currentTimeMillis()
             log.info("processAllAvailableBarnetrygdMottakere:time: låste.size=${låste.size} lås=${time2 - time1}")
-        } while (antallBarnetrygdmottakere > 0)
+        } while (antallBarnetrygdmottakere > 0 && isEnabled())
     }
 
     private fun schedulerProsessering(låste: List<BarnetrygdmottakerRepository.Locked>) {
@@ -70,6 +70,6 @@ class BarnetrygdmottakerProcessingTask(
     }
 
     private fun isEnabled(): Boolean {
-        return unleash.isEnabled(NavUnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER.toggleName)
+        return unleash.isEnabled(NavUnleashConfig.Feature.PROSESSER_BARNETRYGDMOTTAKER)
     }
 }
