@@ -3,7 +3,7 @@ package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.tasks
 import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.Barnetrygdinformasjon
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.SendTilBestemService
-import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.UnleashConfig
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.NavUnleashConfig
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.metrics.Metrikker
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -44,6 +44,6 @@ class SendTilBestemTask(
     }
 
     private fun isEnabled(): Boolean {
-        return unleash.isEnabled(UnleashConfig.Feature.SEND_TIL_BESTEM.toggleName)
+        return unleash.isEnabled(NavUnleashConfig.Feature.SEND_TIL_BESTEM.toggleName)
     }
 }

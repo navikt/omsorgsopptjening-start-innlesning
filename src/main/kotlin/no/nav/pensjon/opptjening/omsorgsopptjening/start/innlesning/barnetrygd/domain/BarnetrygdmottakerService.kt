@@ -6,6 +6,8 @@ import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.e
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdinformasjonRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.BarnetrygdmottakerRepository
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.repository.InnlesingRepository
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.NavUnleashConfig
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.unleash.UnleashWrapper
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.config.NaisCluster
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -23,25 +25,38 @@ class BarnetrygdmottakerService(
     private val innlesingRepository: InnlesingRepository,
     private val kompletteringsService: KompletteringsService,
     private val cluster: NaisCluster,
+    private val unleash: UnleashWrapper,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(BarnetrygdmottakerService::class.java)
         private val secureLog = LoggerFactory.getLogger("secure")
     }
 
-    fun bestillPersonerMedBarnetrygd(ar: År): BarnetrygdInnlesing.Bestilt {
-        if (cluster.isProd()) {
-            require(innlesingRepository.finnAlleFullførte().none { it.år == ar }) {
-                "Fullført innlesing for år: $ar eksisterer allerede"
-            }
+    fun bestillPersonerMedBarnetrygd(ar: År): BestillResultat {
+        if (cluster.isProd() && innlesingRepository.finnAlleFullførte().any { it.år == ar }) {
+            return BestillResultat.Feil("Fullført innlesing for år: $ar eksisterer allerede")
         }
-        return client.bestillBarnetrygdmottakere(ar).let { response ->
-            BarnetrygdInnlesing.Bestilt(
-                id = response.innlesingId,
-                år = response.år,
-                forespurtTidspunkt = Instant.now()
-            ).also {
-                innlesingRepository.bestilt(it)
+
+        val kanStarte = !unleash.isEnabled(NavUnleashConfig.Feature.BREV) &&
+                !unleash.isEnabled(NavUnleashConfig.Feature.OPPRETT_OPPGAVER) &&
+                !unleash.isEnabled(NavUnleashConfig.Feature.GODSKRIV)
+
+        return when (kanStarte) {
+            true -> {
+                client.bestillBarnetrygdmottakere(ar).let { response ->
+                    BarnetrygdInnlesing.Bestilt(
+                        id = response.innlesingId,
+                        år = response.år,
+                        forespurtTidspunkt = Instant.now()
+                    ).let {
+                        innlesingRepository.bestilt(it)
+                        BestillResultat.Ok(it)
+                    }
+                }
+            }
+
+            false -> {
+                BestillResultat.Feil("Ingen side-effekter i bestem kan aktiveres før alle behandlingene i bestem er ferdig prosessert.")
             }
         }
     }
@@ -265,5 +280,10 @@ class BarnetrygdmottakerService(
         RESTARTET,
         IKKE_NODVENDIG,
         IKKE_FUNNET,
+    }
+
+    sealed class BestillResultat {
+        data class Ok(val bestilt: BarnetrygdInnlesing.Bestilt) : BestillResultat()
+        data class Feil(val melding: String) : BestillResultat()
     }
 }

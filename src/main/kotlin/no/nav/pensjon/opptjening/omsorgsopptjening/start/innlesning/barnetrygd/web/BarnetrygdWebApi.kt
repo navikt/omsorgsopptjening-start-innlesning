@@ -23,8 +23,16 @@ class BarnetrygdWebApi(
     @GetMapping("/innlesning/start/{ar}")
     fun startInnlesning(@PathVariable ar: Int): ResponseEntity<String> {
         return barnetrygdService.bestillPersonerMedBarnetrygd(År(ar)).let {
-            log.info("Bestilt innlesing: ${it.id} av barnetrygdmottakere for år:${it.år}")
-            ResponseEntity.ok("""${it.id}""")
+            when(it){
+                is BarnetrygdmottakerService.BestillResultat.Feil -> {
+                    ResponseEntity.badRequest().body("Feil ved bestilling av innlesing: ${it.melding}")
+                }
+                is BarnetrygdmottakerService.BestillResultat.Ok -> {
+                    log.info("Bestilt innlesing: ${it.bestilt.id} av barnetrygdmottakere for år:${it.bestilt.år}")
+                    ResponseEntity.ok("""${it.bestilt.id}""")
+                }
+            }
+
         }
     }
 

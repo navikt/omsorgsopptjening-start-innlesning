@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.not
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.Scenario
+import io.getunleash.Unleash
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.CorrelationId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.InnlesingId
 import no.nav.pensjon.opptjening.omsorgsopptjening.felles.deserialize
@@ -28,6 +29,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.BDDMockito.any
 import org.mockito.BDDMockito.given
@@ -63,6 +65,9 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     @Autowired
     private lateinit var barnetrygdinformasjonRepository: BarnetrygdinformasjonRepository
 
+    @MockitoBean
+    private lateinit var unleash: Unleash
+
     companion object {
         @JvmField
         @RegisterExtension
@@ -72,13 +77,27 @@ class BarnetrygdmottakerServiceTest : SpringContextTest.NoKafka() {
     }
 
     @Test
-    fun `filtrerer vekk innlesinger som ikke har noe som skal prosesseres`(){
+    fun `filtrerer vekk innlesinger som ikke har noe som skal prosesseres`() {
         given(clock.instant()).willReturn(Instant.now())
 
         lagreFullførtInnlesing()
 
         assertThat(barnetrygdService.låsForBehandling()).isEmpty()
     }
+
+    @Test
+    fun `svarer med feil dersom konfigurasjon ikke er som den skal på bestillingstidspunktet`() {
+        given(unleash.isEnabled(any())).willReturn(true)
+
+        assertInstanceOf<BarnetrygdmottakerService.BestillResultat.Feil>(
+            barnetrygdService.bestillPersonerMedBarnetrygd(
+                År(2025)
+            )
+        ).also {
+            assertThat(it.melding).isEqualTo("Ingen side-effekter i bestem kan aktiveres før alle behandlingene i bestem er ferdig prosessert.")
+        }
+    }
+
 
     @Test
     fun `Gitt en ny status saa skal den kunne retryes 3 ganger for den feiler`() {
