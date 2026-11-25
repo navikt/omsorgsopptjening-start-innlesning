@@ -63,4 +63,33 @@ class InnlesingRepositoryTest : SpringContextTest.NoKafka() {
         innlesingRepository.invalider(aa.id.toUUID())
         assertThat(barnetrygdmottakerRepository.find(bb.id)).isNull()
     }
+
+    @Test
+    fun `kan hente alle innlesinger sortert på år synkende og forespurt tidspunkt synkende`() {
+        val eldste = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = År(2022),
+                forespurtTidspunkt = Instant.parse("2026-01-01T00:00:00Z")
+            )
+        )
+        val nyereI2023 = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = År(2023),
+                forespurtTidspunkt = Instant.parse("2026-02-01T00:00:00Z")
+            )
+        )
+        val eldsteI2023 = innlesingRepository.bestilt(
+            BarnetrygdInnlesing.Bestilt(
+                id = InnlesingId.generate(),
+                år = År(2023),
+                forespurtTidspunkt = Instant.parse("2026-01-15T00:00:00Z")
+            )
+        )
+
+        val alle = innlesingRepository.finnAlle()
+
+        assertThat(alle.map { it.id }).containsSubsequence(nyereI2023.id, eldsteI2023.id, eldste.id)
+    }
 }

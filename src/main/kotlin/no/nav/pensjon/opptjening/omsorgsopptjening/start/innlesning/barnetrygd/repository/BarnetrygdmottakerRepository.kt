@@ -143,6 +143,20 @@ class BarnetrygdmottakerRepository(
         )
     }
 
+    fun finnFeilede(innlesingId: InnlesingId): List<Barnetrygdmottaker.Mottatt> {
+        return jdbcTemplate.query(
+            """select b.*, i.id as innlesing_id, i.år
+                | from barnetrygdmottaker b
+                | join innlesing i on i.id = b.innlesing_id
+                | where i.id = :innlesingId
+                | and b.status_type = 'Feilet'""".trimMargin(),
+            mapOf<String, Any>(
+                "innlesingId" to innlesingId.toString()
+            ),
+            BarnetrygdmottakerRowMapper()
+        )
+    }
+
     /**
      * Utformet for å være mekanismen som tilrettelegger for at flere podder kan prosessere data i paralell.
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en

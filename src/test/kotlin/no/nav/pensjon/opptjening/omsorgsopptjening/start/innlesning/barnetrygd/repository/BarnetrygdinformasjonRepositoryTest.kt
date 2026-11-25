@@ -70,6 +70,20 @@ class BarnetrygdinformasjonRepositoryTest : SpringContextTest.NoKafka() {
         assertThat(locked3.data).containsExactlyInAnyOrderElementsOf(locked1.data)
     }
 
+    @Test
+    fun `kan hente informasjon for liste av mottakere`() {
+        val innlesing = lagreFullførtInnlesing()
+        val mottaker1 = lagreBarnetrygdmottaker(innlesing)
+        val mottaker2 = lagreBarnetrygdmottaker(innlesing)
+        val info1 = lagBarnetrygdInformasjon(mottaker1, innlesing)
+        val info2 = lagBarnetrygdInformasjon(mottaker2, innlesing)
+        barnetrygdinformasjonRepository.insert(info1)
+        barnetrygdinformasjonRepository.insert(info2)
+
+        val result = barnetrygdinformasjonRepository.finnForMottakere(listOf(mottaker2.id))
+
+        assertThat(result).containsExactly(info2)
+    }
 
     private fun lagBarnetrygdInformasjon(
         barnetrygdmottaker: Barnetrygdmottaker.Mottatt,

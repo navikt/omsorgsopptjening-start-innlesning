@@ -80,6 +80,17 @@ class InnlesingRepository(
         ).singleOrNull()
     }
 
+    fun finnAlle(): List<BarnetrygdInnlesing> {
+        return jdbcTemplate.query(
+            """select i.*, count(b) as antallLesteIdenter
+                | from innlesing i
+                | left join barnetrygdmottaker b on i.id = b.innlesing_id
+                | group by i.id
+                | order by i.år desc, i.forespurt_tidspunkt desc""".trimMargin(),
+            InnlesingRowMapper()
+        )
+    }
+
     fun finnAlleFullførte(): List<BarnetrygdInnlesing> {
         return jdbcTemplate.queryForList(
             """select id from innlesing where ferdig_tidspunkt is not null""",

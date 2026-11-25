@@ -1,6 +1,8 @@
 package no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web
 
 import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.domain.BarnetrygdmottakerService
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.dto.FeiletMottakerResponse
+import no.nav.pensjon.opptjening.omsorgsopptjening.start.innlesning.barnetrygd.web.dto.InnlesingResponse
 import no.nav.security.token.support.core.api.Protected
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -9,6 +11,7 @@ import org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -141,5 +144,19 @@ class AdminWebApi(
     @GetMapping("/start/ping")
     fun ping(): ResponseEntity<String> {
         return ResponseEntity.ok("pong")
+    }
+
+    @GetMapping("/start/innlesning/{innlesingId}/mottakere/feilede")
+    fun hentFeiledeMottakereMedInformasjon(@PathVariable innlesingId: UUID): ResponseEntity<List<FeiletMottakerResponse>> {
+        return barnetrygdmottakerService.hentFeiledeMottakereMedInformasjon(innlesingId)
+            .map { FeiletMottakerResponse.from(it.first, it.second) }
+            .let { ResponseEntity.ok(it) }
+    }
+
+    @GetMapping("/start/innlesninger")
+    fun hentInnlesinger(): ResponseEntity<List<InnlesingResponse>> {
+        return barnetrygdmottakerService.hentInnlesinger()
+            .map { InnlesingResponse.from(it) }
+            .let { ResponseEntity.ok(it) }
     }
 }
