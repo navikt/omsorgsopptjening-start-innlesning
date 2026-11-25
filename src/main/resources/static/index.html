@@ -6,6 +6,48 @@
             background-color: white;
             border: 1px solid lightgrey;
         }
+        .response-box {
+            background-color: #f7f7f7;
+            border: 1px solid lightgrey;
+            padding: 8px;
+            max-width: 900px;
+            white-space: pre-wrap;
+        }
+        .innlesing-table th, .innlesing-table td {
+            border-bottom: 1px solid #e5e5e5;
+            padding: 6px 8px;
+            text-align: left;
+        }
+        .innlesing-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .sidepanel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 520px;
+            max-width: 90vw;
+            height: 100vh;
+            background: white;
+            border-left: 1px solid lightgrey;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+            padding: 12px;
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+        .sidepanel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .sidepanel-content {
+            overflow: auto;
+            height: calc(100vh - 72px);
+        }
     </style>
     <script>
         function init() {
@@ -108,6 +150,115 @@
             }
             localStorage.setItem("hjelpetekst", hjelpetekst.hidden ? "hidden" : "shown")
         }
+
+        async function hentInnlesinger() {
+            const responseElement = document.getElementById("innlesingerStatus")
+            const actionsElement = document.getElementById("innlesingerActions")
+            responseElement.textContent = "Laster..."
+            actionsElement.innerHTML = ""
+            try {
+                const response = await fetch("/start/innlesninger")
+                if (!response.ok) {
+                    responseElement.textContent = "Feil: " + response.status + " " + response.statusText
+                    return
+                }
+                const data = await response.json()
+                responseElement.textContent = "Fant " + data.length + " innlesinger."
+                renderInnlesingerActions(data)
+            } catch (error) {
+                responseElement.textContent = "Feil ved henting av innlesinger: " + error
+            }
+        }
+
+        function renderInnlesingerActions(innlesinger) {
+            const actionsElement = document.getElementById("innlesingerActions")
+            actionsElement.innerHTML = ""
+
+            if (!Array.isArray(innlesinger) || innlesinger.length === 0) {
+                actionsElement.textContent = "Ingen innlesinger funnet."
+                return
+            }
+
+            const table = document.createElement("table")
+            table.className = "innlesing-table"
+
+            const thead = document.createElement("thead")
+            thead.innerHTML = "<tr><th>InnlesingId</th><th>År</th><th>Forespurt</th><th>Status</th><th></th></tr>"
+            table.appendChild(thead)
+
+            const tbody = document.createElement("tbody")
+            innlesinger.forEach((innlesing) => {
+                const row = document.createElement("tr")
+                const idCell = document.createElement("td")
+                const id = document.createElement("span")
+                id.className = "uuid-value"
+                id.textContent = innlesing.id
+                idCell.appendChild(id)
+
+                const årCell = document.createElement("td")
+                const år = document.createElement("span")
+                år.textContent = innlesing.år
+                årCell.appendChild(år)
+
+                const forespurtCell = document.createElement("td")
+                const forespurt = document.createElement("span")
+                forespurt.textContent = innlesing.forespurtTidspunkt
+                forespurtCell.appendChild(forespurt)
+
+                const statusCell = document.createElement("td")
+                const status = document.createElement("span")
+                status.textContent = innlesing.status
+                statusCell.appendChild(status)
+
+                const buttonCell = document.createElement("td")
+                const button = document.createElement("button")
+                button.type = "button"
+                button.textContent = "Hent feilede mottakere"
+                button.onclick = () => hentFeiledeMottakereForInnlesing(innlesing.id)
+                buttonCell.appendChild(button)
+
+                row.appendChild(idCell)
+                row.appendChild(årCell)
+                row.appendChild(forespurtCell)
+                row.appendChild(statusCell)
+                row.appendChild(buttonCell)
+                tbody.appendChild(row)
+            })
+            table.appendChild(tbody)
+            actionsElement.appendChild(table)
+        }
+
+        function hentFeiledeMottakereForInnlesing(innlesingId) {
+            hentFeiledeMottakere(innlesingId)
+        }
+
+        function lukkFeiledePanel() {
+            document.getElementById("feiledePanel").hidden = true
+        }
+
+        async function hentFeiledeMottakere(innlesingId) {
+            const responseElement = document.getElementById("feiledeMottakereResponse")
+            document.getElementById("feiledeInnlesingId").textContent = innlesingId
+            document.getElementById("feiledePanel").hidden = false
+
+            if (!innlesingId) {
+                responseElement.textContent = "Kunne ikke finne innlesingId."
+                return
+            }
+
+            responseElement.textContent = "Laster..."
+            try {
+                const response = await fetch("/start/innlesning/" + innlesingId + "/mottakere/feilede")
+                if (!response.ok) {
+                    responseElement.textContent = "Feil: " + response.status + " " + response.statusText
+                    return
+                }
+                const data = await response.json()
+                responseElement.textContent = JSON.stringify(data, null, 2)
+            } catch (error) {
+                responseElement.textContent = "Feil ved henting av feilede mottakere: " + error
+            }
+        }
     </script>
     <title>Administrasjon omsorgsopptjening-start-innlesning</title>
 </head>
@@ -139,8 +290,6 @@
         <li>Behandlingen kan avsluttes så lenge den ikke er ferdig, inkludert hvis den er stoppet</li>
     </ul>
 </div>
-
-<br>
 
 <form>
     <label for="tjeneste">Velg funksjon</label>
@@ -176,5 +325,25 @@
         </tbody>
     </table>
 </form>
+
+<br>
+    <h2>Hent innlesinger</h2>
+    <div class="innlesing-toolbar">
+        <button type="button" onclick="hentInnlesinger()">Hent innlesinger</button>
+        <div id="innlesingerStatus">Trykk på knapp for å hente innlesninger</div>
+    </div>
+    <div id="innlesingerActions"></div>
+
+    <div id="feiledePanel" class="sidepanel" hidden>
+        <div class="sidepanel-header">
+            <strong>Feilede mottakere</strong>
+            <button type="button" onclick="lukkFeiledePanel()">Lukk</button>
+        </div>
+        <div>InnlesingId: <span id="feiledeInnlesingId">-</span></div>
+        <div class="sidepanel-content">
+            <pre id="feiledeMottakereResponse" class="response-box">Velg innlesning for å se feilede mottakere</pre>
+        </div>
+    </div>
+<br>
 </body>
 </html>

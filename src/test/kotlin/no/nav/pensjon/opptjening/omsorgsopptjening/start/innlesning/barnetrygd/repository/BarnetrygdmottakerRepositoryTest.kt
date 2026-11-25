@@ -259,6 +259,47 @@ class BarnetrygdmottakerRepositoryTest : SpringContextTest.NoKafka() {
     }
 
     @Test
+    fun `kan hente feilede mottakere for en gitt innlesing`() {
+        fun fnr(i: Int) = Ident(String.format("%011d", i))
+
+        val innlesing = lagreStartetInnlesing()
+        val annenInnlesing = lagreStartetInnlesing()
+
+        lesInnBarnetrygdmottakere(
+            Barnetrygdmottaker.Transient(
+                ident = fnr(1),
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            ),
+            Barnetrygdmottaker.Transient(
+                ident = fnr(2),
+                correlationId = CorrelationId.generate(),
+                innlesingId = innlesing.id
+            ),
+            Barnetrygdmottaker.Transient(
+                ident = fnr(3),
+                correlationId = CorrelationId.generate(),
+                innlesingId = annenInnlesing.id
+            )
+        )
+
+        val alleForInnlesing = barnetrygdmottakerRepository.finnAlle(innlesing.id)
+        val alleForAnnenInnlesing = barnetrygdmottakerRepository.finnAlle(annenInnlesing.id)
+
+        barnetrygdmottakerRepository.updateStatus(
+            alleForInnlesing.single { it.ident == fnr(1) }.retry("a1").retry("a2").retry("a3").retry("afeil")
+        )
+        barnetrygdmottakerRepository.updateStatus(
+            alleForAnnenInnlesing.single().retry("b1").retry("b2").retry("b3").retry("bfeil")
+        )
+
+        val feilede = barnetrygdmottakerRepository.finnFeilede(innlesing.id)
+        assertThat(feilede).hasSize(1)
+        assertThat(feilede.single().ident).isEqualTo(fnr(1))
+        assertThat(feilede.single().status).isInstanceOf(Barnetrygdmottaker.Status.Feilet::class.java)
+    }
+
+    @Test
     fun `lagrer og henter barnetrygd endring`() {
         val ident = Personidentifikator.random()
         val barnetrygdEndring = BarnetrygdEndring(

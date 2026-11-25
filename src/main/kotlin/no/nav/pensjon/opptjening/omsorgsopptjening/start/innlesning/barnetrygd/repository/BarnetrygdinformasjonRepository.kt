@@ -132,6 +132,21 @@ class BarnetrygdinformasjonRepository(
         )
     }
 
+    fun finnForMottakere(mottakerIder: List<UUID>): List<Barnetrygdinformasjon> {
+        if (mottakerIder.isEmpty()) return emptyList()
+
+        return jdbcTemplate.query(
+            """select *
+                | from barnetrygdinformasjon b
+                | join innlesing i on i.id = b.innlesingId::varchar
+                | where b.barnetrygdmottaker_id in (:mottakerIder)""".trimMargin(),
+            mapOf(
+                "mottakerIder" to mottakerIder
+            ),
+            BarnetrygdinformasjonRowMapper()
+        )
+    }
+
     /**
      * Utformet for å være mekanismen som tilrettelegger for at flere podder kan prosessere data i paralell.
      * "select for update skip locked" sørger for at raden som leses av en connection (pod) ikke vil plukkes opp av en

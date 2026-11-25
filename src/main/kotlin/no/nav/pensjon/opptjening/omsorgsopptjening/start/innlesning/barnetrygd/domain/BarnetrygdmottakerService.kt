@@ -172,6 +172,21 @@ class BarnetrygdmottakerService(
         return barnetrygdmottakerRepository.oppdaterFeiledeRaderTilKlar(innlesingId)
     }
 
+    fun hentFeiledeMottakereMedInformasjon(innlesingId: UUID): List<Pair<Barnetrygdmottaker.Mottatt, Barnetrygdinformasjon?>> {
+        val feiledeMottakere = barnetrygdmottakerRepository.finnFeilede(InnlesingId.fromString(innlesingId.toString()))
+            .associateBy { it.id }
+        val informasjon = barnetrygdinformasjonRepository.finnForMottakere(feiledeMottakere.keys.toList())
+            .associateBy { it.barnetrygdmottakerId }
+
+        return feiledeMottakere.map { (id, mottaker) ->
+            mottaker to informasjon[id]
+        }
+    }
+
+    fun hentInnlesinger(): List<BarnetrygdInnlesing> {
+        return innlesingRepository.finnAlle()
+    }
+
     fun stopp(id: UUID, melding: String): StoppResultat {
         return barnetrygdmottakerRepository.find(id)?.let { mottatt ->
             when (mottatt.status) {
