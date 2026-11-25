@@ -73,8 +73,8 @@ class BarnetrygdinformasjonRepositoryTest : SpringContextTest.NoKafka() {
     @Test
     fun `kan hente informasjon for liste av mottakere`() {
         val innlesing = lagreFullførtInnlesing()
-        val mottaker1 = lagreBarnetrygdmottaker(innlesing)
-        val mottaker2 = lagreBarnetrygdmottaker(innlesing)
+        val mottaker1 = lagreBarnetrygdmottaker(innlesing, Ident("00000000001"))
+        val mottaker2 = lagreBarnetrygdmottaker(innlesing, Ident("00000000002"))
         val info1 = lagBarnetrygdInformasjon(mottaker1, innlesing)
         val info2 = lagBarnetrygdInformasjon(mottaker2, innlesing)
         barnetrygdinformasjonRepository.insert(info1)
@@ -128,10 +128,13 @@ class BarnetrygdinformasjonRepositoryTest : SpringContextTest.NoKafka() {
         )
     }
 
-    private fun lagreBarnetrygdmottaker(innlesing: BarnetrygdInnlesing): Barnetrygdmottaker.Mottatt {
+    private fun lagreBarnetrygdmottaker(
+        innlesing: BarnetrygdInnlesing,
+        ident: Ident = Ident("00000000001")
+    ): Barnetrygdmottaker.Mottatt {
         return barnetrygdmottakerRepository.insert(
             Barnetrygdmottaker.Transient(
-                ident = Ident("00000000001"),
+                ident = ident,
                 correlationId = CorrelationId.generate(),
                 innlesingId = innlesing.id
             )
